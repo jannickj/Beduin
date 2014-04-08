@@ -1,0 +1,17 @@
+bin/
+obj/
+Builds/
+.metadata/
+/FlamingGoose/GooseEngine/*.suo
+TestResults/
+*.user
+*.suo
+*.userprefs
+metadata/
+Temp/
+debuggame_Data/
+*.pdb
+*.exe
+UnityTestGame/Library/
+UnityTestGame/Assets/dlls/*.dll
+UnityTestGame/Assets/dlls/*.xml
