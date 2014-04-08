@@ -7,16 +7,9 @@ module AgentTypes =
     type TeamName = string
     type AgentName = string
 
-    type Decision<'a> =
-        | Condition of 'a * Decision<'a>
-        | Choice of 'a
-        | Options of Decision<'a> list
-
-    type Upgrade =
-        | Battery
-        | Sensor
-        | Shield
-        | SabotageDevice
+    //To be done
+    type Intention = string
+    type Solution = string
 
     type ActionResult =
         | Successful
@@ -40,15 +33,6 @@ module AgentTypes =
         | Inspector
         | Sentinel
 
-    type Level = int
-
-    type Achievement =
-        | ConqueredZone      of Level
-        | ProbedVertices     of Level
-        | SurveyedEdges      of Level
-        | InspectedVehicles  of Level
-        | Attacked           of Level
-        | Parried            of Level
     
     type EntityStatus =
         | Normal
@@ -73,8 +57,10 @@ module AgentTypes =
         ; Money         : int
         ; Score         : int
         ; ZoneScore     : int
-        ; Achievements  : Achievement list
         }
+    
+    type Command =
+        | Goto of VertexName
 
     type Action =
         | Skip
@@ -86,7 +72,6 @@ module AgentTypes =
         | Attack    of AgentName
         | Parry
         | Repair    of AgentName
-        | Buy       of Upgrade
 
     
 
@@ -111,32 +96,8 @@ module AgentTypes =
     type AgentsNeededForJob = int
 
     type JobHeader = Option<JobID> * JobValue * JobType * AgentsNeededForJob
-    type JobGoal =
-        | OccupyGoal of VertexName
-        | RepairGoal of VertexName * AgentName
-        | DisruptGoal of VertexName
-        | AttackGoal of VertexName
-
-    type Goal =
-        | JobGoal  of JobGoal
-        | KiteGoal of int * (Agent list)
-        | GotoGoal of VertexName
 
     type Job = JobHeader * JobData
-
-
-    let levelToPoints start level =
-        start * (pown 2 level)
-
-    let achievementPoints achievement =
-        levelToPoints <||
-            match achievement with
-            | ConqueredZone l     -> (l, 10)
-            | ProbedVertices l    -> (l, 5)
-            | SurveyedEdges l     -> (l, 10)
-            | InspectedVehicles l -> (l, 5)
-            | Attacked l          -> (l, 5)
-            | Parried  l          -> (l, 5)
 
     type SeenVertex = VertexName * TeamName option
     type AgentRolePercept = AgentName * AgentRole * int
@@ -158,7 +119,7 @@ module AgentTypes =
 
     type SimulationID = int
 
-    type MetaAction =
+    type CommunicationAction =
         | CreateJob of Job
         | RemoveJob of JobID
         | UpdateJob of Job
@@ -168,7 +129,11 @@ module AgentTypes =
         | ShareKnowledge of Percept list
         | NewRound of int
     
-    type SendMessage = SimulationID * MetaAction
+    type AgentAction = 
+        | Communicate of CommunicationAction
+        | Perform of Action
+
+    type SendMessage = SimulationID * CommunicationAction
 
     type Deadline = uint32
     type CurrentTime = uint32
@@ -210,8 +175,6 @@ module AgentTypes =
             FriendlyData     : Agent list;         
             EnemyData        : Agent list; 
             SimulationStep   : int;
-            NearbyAgents     : Agent list
-            OwnedVertices    : Map<VertexName, TeamName>
             LastPosition     : VertexName
             NewVertices      : SeenVertex list
             NewEdges         : Edge list
@@ -219,13 +182,9 @@ module AgentTypes =
             Money            : int
             Score            : int
             ThisZoneScore    : int
-            Achievements     : Achievement list
             LastActionResult : ActionResult
             LastAction       : Action
             TeamZoneScore    : int
-            NewZone          : Option<Graph * bool>
-            NewZoneFrontier  : VertexName list
-            Goals            : Goal list
             Jobs             : Job list
         }
 

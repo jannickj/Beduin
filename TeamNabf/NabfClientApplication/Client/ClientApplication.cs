@@ -66,7 +66,7 @@ namespace NabfClientApplication.Client
             actionTimeStart = DateTime.Now;
 		}
 
-		public void SetGoal(NabfAgentLogic.AgentTypes.Goal goal)
+		public void SetGoal(NabfAgentLogic.AgentTypes.Command goal)
 		{
 			this.currentLogic.SetGoal(goal);
 		}

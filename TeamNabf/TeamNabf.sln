@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XmasEngineView", "..\XmasEn
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XmasEngineController", "..\XmasEngine\XmasProject\XmasEngineController\XmasEngineController.csproj", "{0FAE1368-42FC-48F7-A82B-58CF276188C1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JSLibrary", "..\XmasEngine\JSLibrary\JSLibrary\JSLibrary\JSLibrary.csproj", "{02121C4A-B1FB-46B8-BDE8-C5C6CA28C036}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JSLibrary", "..\JSLibrary\JSLibrary\JSLibrary\JSLibrary.csproj", "{02121C4A-B1FB-46B8-BDE8-C5C6CA28C036}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XmasEngine", "..\XmasEngine\XmasProject\XmasEngine\XmasEngine.csproj", "{935B3FA0-D1DE-4395-A69C-8F64159791F9}"
 EndProject

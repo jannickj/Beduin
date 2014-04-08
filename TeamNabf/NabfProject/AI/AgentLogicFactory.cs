@@ -19,11 +19,7 @@ namespace NabfProject.AI
 
         public virtual IAgentLogic ConstructAgentLogic()
         {
-			if (!debugmode)
-				return new AgentLogicClient(name);
-			else
-				return new AgentLogicClient(name, true);
-			
+			return new AgentLogicClient(name);			
         }
 
 		public void SetDebugMode()

@@ -89,10 +89,10 @@ namespace NabfAgentLogic.IiLang
 
         let parseIilUpgrade iilUpgrade =
             match iilUpgrade with
-            | Identifier "battery" -> Battery
-            | Identifier "sensor" -> Sensor
-            | Identifier "shield" -> Shield
-            | Identifier "sabotageDevice" -> SabotageDevice
+//            | Identifier "battery" -> Battery
+//            | Identifier "sensor" -> Sensor
+//            | Identifier "shield" -> Shield
+//            | Identifier "sabotageDevice" -> SabotageDevice
             | _ -> raise <| InvalidIilException ("upgrade", [iilUpgrade])
 
         let parseIilAction iilAction iilActionParam =
@@ -105,7 +105,7 @@ namespace NabfAgentLogic.IiLang
             | (Identifier "survey", _)                     -> Survey
             | (Identifier "inspect", Identifier agentName) -> Inspect <| stringToOption agentName
             | (Identifier "repair", Identifier agentName)  -> Repair agentName
-            | (Identifier "buy", upgrade)                  -> Buy <| parseIilUpgrade upgrade
+            //| (Identifier "buy", upgrade)                  -> Buy <| parseIilUpgrade upgrade
             | _ -> raise <| InvalidIilException ("iilAction", [iilAction; iilActionParam])
 
         let parseIilActionResult iilActionResult =
@@ -179,14 +179,14 @@ namespace NabfAgentLogic.IiLang
                 else 
                     None
             match achievement with
-            | Identifier str ->
-                match str with
-                | Name "proved" score    -> ProbedVertices score
-                | Name "surveyed" score  -> SurveyedEdges score
-                | Name "area" score      -> ConqueredZone score
-                | Name "parried" score   -> Parried score
-                | Name "attacked" score  -> Attacked score
-                | Name "inspected" score -> InspectedVehicles score
+//            | Identifier str ->
+//                match str with
+//                | Name "proved" score    -> ProbedVertices score
+//                | Name "surveyed" score  -> SurveyedEdges score
+//                | Name "area" score      -> ConqueredZone score
+//                | Name "parried" score   -> Parried score
+//                | Name "attacked" score  -> Attacked score
+//                | Name "inspected" score -> InspectedVehicles score
             | _ -> raise <| InvalidIilException ("achievement", [achievement])
                     
 
@@ -201,7 +201,7 @@ namespace NabfAgentLogic.IiLang
                    ; Money = int money
                    ; Score = int score
                    ; ZoneScore = int zoneScore
-                   ; Achievements = List.map parseIilAchievement achievements
+                   //; Achievements = List.map parseIilAchievement achievements
                    }
             | _ -> raise <| InvalidIilException ("team", iilData)
 
@@ -365,7 +365,7 @@ namespace NabfAgentLogic.IiLang
             | Goto vn -> Action ("goto", [Numeral id; Identifier vn])
             | Attack a -> Action ("goto", [Numeral id; Identifier a])
             | Recharge -> Action ("recharge", [Numeral id])
-            | Buy a -> Action ("buy", [Numeral id; Identifier (a.ToString().ToLower())])
+            //| Buy a -> Action ("buy", [Numeral id; Identifier (a.ToString().ToLower())])
             | Inspect None -> Action ("inspect", [Numeral id])
             | Inspect (Some a) -> Action ("inspect", [Numeral id; Identifier a])
             | Parry -> Action ("parry", [Numeral id])

@@ -127,7 +127,7 @@ namespace NabfClientApplication
 				{
 					Console.WriteLine("Goto Vertice: ");
 					string vertice = Console.ReadLine();
-					client.SetGoal(NabfAgentLogic.AgentTypes.Goal.NewGotoGoal(vertice));
+					client.SetGoal(NabfAgentLogic.AgentTypes.Command.NewGoto(vertice));
 				}
 			}
             //mars_client.Connect(

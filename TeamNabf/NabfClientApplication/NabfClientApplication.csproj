@@ -70,7 +70,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\XmasEngine\JSLibrary\JSLibrary\JSLibrary\JSLibrary.csproj">
+    <ProjectReference Include="..\..\JSLibrary\JSLibrary\JSLibrary\JSLibrary.csproj">
       <Project>{02121C4A-B1FB-46B8-BDE8-C5C6CA28C036}</Project>
       <Name>JSLibrary</Name>
     </ProjectReference>
