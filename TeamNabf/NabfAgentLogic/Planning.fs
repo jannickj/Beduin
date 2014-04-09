@@ -9,7 +9,7 @@
                 member this.PlanWorking(state, goal, solution) = true
                 member this.RepairPlan (state, goal, solution) = None
                 member this.SolutionFinished (state, goal, solution) = false
-                member this.NextAction : ('TState * 'TGoal * 'TSolution) -> 'TAction * 'TSolution
+                member this.NextAction (state, goal, solution) = (Perform Skip,"Some Solution")
 
         end
  
