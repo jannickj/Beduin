@@ -11,9 +11,13 @@
     open Logging
     open System.Reflection
     open System.Diagnostics
-    
+
 
     type public AgentLogicClient(name) = class 
+        
+        
+        let MarsCom = new MarsCommunicator()
+
         
                      
         let SendAgentServerEvent = new Event<UnaryValueHandler<IilAction>, UnaryValueEvent<IilAction>>()
@@ -21,7 +25,11 @@
         let EvaluationCompletedEvent = new Event<EventHandler, EventArgs>()
         let EvaluationStartedEvent = new Event<EventHandler, EventArgs>()
         let SimulationEndedEvent = new Event<EventHandler, EventArgs>()
-       
+        
+        do
+            //MarsCom.NewAction.Subscribe((fun _ -> ()))
+            ()
+
         interface IAgentLogic with
             member this.SetGoal goal =
                 ()
