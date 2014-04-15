@@ -5,11 +5,11 @@ module DesireTree =
     open FsPlanning.Agent.Planning
     open AgentTypes
     open Common
-    open Explorer
-    open Repairer
-    open Sentinel
-    open Saboteur
-    open Inspector
+    open ExplorerTree
+    open RepairerTree
+    open SentinelTree
+    open SaboteurTree
+    open InspectorTree
 
     let isRole (r:Option<AgentRole>)(s:State) = s.Self.Role = r
 
