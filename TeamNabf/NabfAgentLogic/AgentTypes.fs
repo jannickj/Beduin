@@ -7,9 +7,8 @@ module AgentTypes =
     type TeamName = string
     type AgentName = string
 
-    //To be done
-    type Intention = string
-    type Solution = string
+   
+    
 
     type ActionResult =
         | Successful
@@ -191,3 +190,15 @@ module AgentTypes =
     type OptionFunc = State -> (bool*Option<Action>)
 
     type DecisionRank = int
+
+    type IntentionType =
+        | Communication
+        | Activity 
+
+    type Goal = 
+        | Plan of (State -> AgentAction list)
+        | Requirement of (State -> bool)
+
+
+    type Intention = string*IntentionType*(Goal list)
+    type Solution = string
