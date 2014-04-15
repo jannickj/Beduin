@@ -18,9 +18,9 @@
     type public AgentLogicClient(name) as this = class 
         
         
+        [<DefaultValue>] val mutable private agent : BDIAgentImpl
         
         let MarsCom = new MarsCommunicator()
-        let mutable agent : BDIAgentImpl = null
         let mutable simID = -1
                      
         let SendAgentServerEvent = new Event<UnaryValueHandler<IilAction>, UnaryValueEvent<IilAction>>()
@@ -69,12 +69,15 @@
                         SendAgentServerEvent.Trigger(this, new UnaryValueEvent<IilAction>(subscribeAction))
                         
                         let initState = buildInitState (name, sData)
-                        
+                        //Add agent to desires
+                        //this.agent = new BDIAgentImpl(initState, 
+                        this.agent.AddAcuator(MarsCom)
+                        this.agent.AddSensor(MarsCom)
                         ()
-                    | _ -> ()
+                    | msg -> 
+                        MarsCom.SetMessage (msg)
                 | None -> ()
                     
-               ()
            
             
 
