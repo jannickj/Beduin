@@ -28,3 +28,8 @@
         let ZONE_BORDER_VALUE = 6
 
         let RECHARGE_FACTOR = 0.5
+
+        let ACTION_COST_CHEAP = 1
+        let ACTION_COST_EXPENSIVE = 2
+        let ACTION_COST_DISABLED = 3
+       

@@ -174,7 +174,7 @@ module AgentTypes =
             Self             : Agent; 
             FriendlyData     : Agent list;         
             EnemyData        : Agent list; 
-            InspectedEnemies : Agent list;
+            InspectedEnemies : AgentName Set;
             SimulationStep   : int;
             LastPosition     : VertexName
             NewVertices      : SeenVertex list
