@@ -187,6 +187,10 @@ module AgentTypes =
             LastAction       : Action
             TeamZoneScore    : int
             Jobs             : Job list
+            TotalNodeCount   : int
+            ExploredCount    : int
+            MyExploredCount  : int
+            ProbedCount      : int
         }
 
     type OptionFunc = State -> (bool*Option<Action>)
