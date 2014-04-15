@@ -26,9 +26,7 @@
         let EvaluationStartedEvent = new Event<EventHandler, EventArgs>()
         let SimulationEndedEvent = new Event<EventHandler, EventArgs>()
         
-        do
-            //MarsCom.NewAction.Subscribe((fun _ -> ()))
-            ()
+        
 
         interface IAgentLogic with
             member this.SetGoal goal =
