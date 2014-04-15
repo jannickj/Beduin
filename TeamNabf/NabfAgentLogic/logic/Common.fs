@@ -5,7 +5,7 @@ module Common =
     open AgentTypes
 
     //An agent always wants to have exactly one goal
-    let onlyOneJob s = Some("have exactly 1 job.",Inherent,[Requirement(fun state -> state.Jobs.Length = 1)])
+    let onlyOneGoal s = Some("have exactly 1 job.",Inherent,[Requirement(fun state -> state.Jobs.Length = 1)])
 
     let exploreMap (s:State) = 
         if s.ExploredCount < s.TotalNodeCount
