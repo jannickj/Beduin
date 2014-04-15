@@ -19,7 +19,7 @@
 
             let NewPerceptsEvent = new Event<EventHandler, EventArgs>()
             let ActuatorReadyEvent = new Event<EventHandler, EventArgs>()
-            let NewActionEvent = new Event<UnaryValueHandler<Action>, UnaryValueEvent<Action>>()
+            let NewActionEvent = new Event<UnaryValueHandler<int*Action>, UnaryValueEvent<int*Action>>()
 
             [<CLIEvent>]
             member this.NewAction = NewActionEvent.Publish
@@ -43,8 +43,9 @@
                 member this.PerformAction action =
                     match action with
                     | Perform act ->
-                        lock actionLock (fun () -> actionSent <- curActId)
-                        NewActionEvent.Trigger(this, new UnaryValueEvent<_>(act))
+                        let id = lock actionLock (fun () -> actionSent <- curActId
+                                                            curActId)
+                        NewActionEvent.Trigger(this, new UnaryValueEvent<_>((id,act)))
                     | _ -> ()
                 member this.IsReady =  lock actionLock (fun () -> actionSent = curActId)
 

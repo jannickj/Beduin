@@ -48,6 +48,7 @@
     <Compile Include="MasterCommunicator.fs" />
     <Compile Include="BDIAgentImpl.fs" />
     <Compile Include="AgentInterfaces.fs" />
+    <Compile Include="AgentClientLib.fs" />
     <Compile Include="AgentLogicClient.fs" />
   </ItemGroup>
   <ItemGroup>
