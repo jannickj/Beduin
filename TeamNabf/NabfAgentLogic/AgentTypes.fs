@@ -185,6 +185,10 @@ module AgentTypes =
             LastAction       : Action
             TeamZoneScore    : int
             Jobs             : Job list
+            TotalNodeCount   : int
+            ExploredCount    : int
+            MyExploredCount  : int
+            ProbedCount      : int
         }
 
     type OptionFunc = State -> (bool*Option<Action>)
@@ -193,7 +197,8 @@ module AgentTypes =
 
     type IntentionType =
         | Communication
-        | Activity 
+        | Activity
+        | Inherent
 
     type Goal = 
         | Plan of (State -> AgentAction list)
