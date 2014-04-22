@@ -41,21 +41,29 @@ module AgentPlanning =
         | [] -> failwith "No next action for empty plan"
 
     type AgentPlanner()  =  // : FsPlanning.Agent.Planning.Planner<State, ActionSpecification, (State -> bool), Action list> = 
-        interface Planner<State, AgentAction, Goal, AgentAction list> with 
-            member self.FormulatePlan (state, goal) = formulatePlan state goal
-            member self.PlanWorking (state, goal, plan) = planWorking state goal plan
-            member self.RepairPlan (state, goal, plan) = repairPlan state goal plan
-            member self.SolutionFinished (state, goal, solution) = solutionFinished state goal
-            member self.NextAction (state, goal, solution) = nextAction state goal solution
-            
-           type ProgressionPlanner() =
         class
-            interface Planner<State, AgentAction, Intention, Solution> with
-                member this.FormulatePlan(state, goal) = None
-                member this.PlanWorking(state, goal, solution) = true
-                member this.RepairPlan (state, goal, solution) = None
-                member this.SolutionFinished (state, goal, solution) = false
-                member this.NextAction (state, goal, solution) = (Perform Skip,"Some Solution")
-
+            interface Planner<State, AgentAction, Intention, Solution> with 
+                member self.FormulatePlan (state, intent) = 
+                    let (_,_,goals) = intent
+                    match goals with
+                    | (Plan p)::_ -> None
+                    | (Requirement r)::_ -> None
+                    | [] -> None
+                    //formulatePlan state goal
+                member self.PlanWorking (state, intent, solution) = true //planWorking state goal plan
+                member self.RepairPlan (state, intent, solution) = None //repairPlan state goal plan
+                member self.SolutionFinished (state, intent, solution) = false //solutionFinished state goal
+                member self.NextAction (state, intent, solution) = (Perform Skip,(0,[])) //nextAction state goal solution
         end
+                    
+//           type ProgressionPlanner() =
+//        class
+//            interface Planner<State, AgentAction, Intention, Solution> with
+//                member this.FormulatePlan(state, goal) = None
+//                member this.PlanWorking(state, goal, solution) = true
+//                member this.RepairPlan (state, goal, solution) = None
+//                member this.SolutionFinished (state, goal, solution) = false
+//                member this.NextAction (state, goal, solution) = (Perform Skip,"Some Solution")
+//
+//        end
  

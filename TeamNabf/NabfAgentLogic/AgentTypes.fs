@@ -209,4 +209,4 @@ module AgentTypes =
 
 
     type Intention = string*IntentionType*(Goal list)
-    type Solution = string
+    type Solution = int * (AgentAction list)
