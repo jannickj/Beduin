@@ -359,7 +359,7 @@ namespace NabfAgentLogic.IiLang
                 | _ ->  raise <| InvalidIilException ("iilServerMessage", data)
             | _ -> failwith "nonono"
         
-        let buildIilAction action id =
+        let buildIilActionContainer action id =
             match action with
             | Skip -> Action ("skip", [Numeral id])
             | Goto vn -> Action ("goto", [Numeral id; Identifier vn])

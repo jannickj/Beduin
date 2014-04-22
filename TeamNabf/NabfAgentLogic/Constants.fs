@@ -33,3 +33,4 @@
         let ACTION_COST_EXPENSIVE = 2
         let ACTION_COST_DISABLED = 3
        
+        let OUR_TEAM = "Nabf"

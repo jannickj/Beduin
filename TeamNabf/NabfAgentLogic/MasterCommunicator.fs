@@ -1,2 +1,2 @@
-﻿module MasterCommunicator
-
+﻿namespace NabfAgentLogic
+    

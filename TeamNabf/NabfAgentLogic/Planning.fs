@@ -40,7 +40,7 @@ module AgentPlanning =
         | head :: tail -> (head, tail)
         | [] -> failwith "No next action for empty plan"
 
-    type AgentPlanner(state : State, goal : (State -> bool))  =  // : FsPlanning.Agent.Planning.Planner<State, ActionSpecification, (State -> bool), Action list> = 
+    type AgentPlanner()  =  // : FsPlanning.Agent.Planning.Planner<State, ActionSpecification, (State -> bool), Action list> = 
         interface Planner<State, AgentAction, Goal, AgentAction list> with 
             member self.FormulatePlan (state, goal) = formulatePlan state goal
             member self.PlanWorking (state, goal, plan) = planWorking state goal plan
@@ -48,4 +48,14 @@ module AgentPlanning =
             member self.SolutionFinished (state, goal, solution) = solutionFinished state goal
             member self.NextAction (state, goal, solution) = nextAction state goal solution
             
-       
+           type ProgressionPlanner() =
+        class
+            interface Planner<State, AgentAction, Intention, Solution> with
+                member this.FormulatePlan(state, goal) = None
+                member this.PlanWorking(state, goal, solution) = true
+                member this.RepairPlan (state, goal, solution) = None
+                member this.SolutionFinished (state, goal, solution) = false
+                member this.NextAction (state, goal, solution) = (Perform Skip,"Some Solution")
+
+        end
+ 

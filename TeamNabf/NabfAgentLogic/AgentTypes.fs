@@ -102,6 +102,14 @@ module AgentTypes =
     type SeenVertex = VertexName * TeamName option
     type AgentRolePercept = AgentName * AgentRole * int
 
+    type SimStartData =
+        { SimId          :   int
+        ; SimEdges       :   int
+        ; SimVertices    :   int
+        ; SimRole        :   AgentRole
+//        ; SimTotalSteps  :   int
+        }
+
     type Percept =
         | EnemySeen         of Agent
         | VertexSeen        of SeenVertex
@@ -115,7 +123,6 @@ module AgentTypes =
         | Team              of TeamState
         | Self              of Agent
         | AgentRolePercept  of AgentRolePercept
-        
 
     type SimulationID = int
 
@@ -142,13 +149,7 @@ module AgentTypes =
     type ActionID = int
     type ActionRequestData = Deadline * CurrentTime * ActionID
     
-    type SimStartData =
-        { SimId          :   int
-        ; SimEdges       :   int
-        ; SimVertices    :   int
-        ; SimRole        :   AgentRole
-//        ; SimTotalSteps  :   int
-        }
+    
 
     type AgentServerMessage =
         | AddedOrChangedJob of Job
