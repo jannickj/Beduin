@@ -109,26 +109,56 @@
         let updateJobs knownJobs (state:State) =
             { state with Jobs = knownJobs }
 
+        let updateProbeCount (lastState:State) (state:State) =
+            
+            let probeAction = match state.LastAction with
+                                | Action.Probe param -> true
+                                | _ -> false
+            let resultSuccessful = state.LastActionResult = ActionResult.Successful
+            let getProbedVertex = lastState.Self.Node
+            let notAlreadyProbed = lastState.World.[getProbedVertex].Value = Option.None
+
+            if probeAction && resultSuccessful && notAlreadyProbed then 
+                { state with 
+                    MyProbedCount = state.MyProbedCount + 1    
+                    ProbedCount = state.ProbedCount + 1
+                }
+            else
+                state
+
+        let updateExploredCount (lastState:State) (state:State) =
+            
+            let gotoAction = match state.LastAction with
+                                | Action.Goto param -> true
+                                | _ -> false
+            let resultSuccessful = state.LastActionResult = ActionResult.Successful
+            let getGotoVertex = match state.LastAction with
+                                | Action.Goto node -> node
+                                | _ -> ""
+            let notAlreadyExplored = Set.forall (fun (value, _) -> value = Option.None) lastState.World.[getGotoVertex].Edges
+
+            if gotoAction && resultSuccessful && notAlreadyExplored then 
+                { state with 
+                    MyExploredCount = state.MyExploredCount + 1    
+                    ExploredCount = state.ExploredCount + 1
+                }
+            else
+                state
+                
+                
+
             (* let updateState : State -> Percept list -> State *)
-        let updateState state percepts knownJobs = 
+        let updateState state percepts = 
             let clearedState = clearTempBeliefs state
             //logImportant (sprintf "%A" (List.filter (fun g -> match g with | JobGoal jg -> true | _ -> false) state.Goals))
             let updatedState = 
                 List.fold handlePercept clearedState percepts
                 |> updateEdgeCosts state
                 |> updateLastPos state
-                |> updateJobs knownJobs
-            
-//            if updatedState.LastActionResult = FailedUnreachable then
-//                logImportant ("Unreachable: "+(sprintf "%A" updatedState.LastAction))
-//            
-//            if Map.exists (fun _ vertex -> Set.exists (snd >> (=) vertex.Identifier) vertex.Edges) updatedState.World then
-//                logError <| sprintf "EDGE TO SELF!!!"
-                |> updateKiteGoal
+                |> updateProbeCount state
+                |> updateExploredCount state
 
-            match updatedState.Self.Role.Value with
-            | Explorer -> updateStateExplorer updatedState
-            | _ -> updatedState
+            updatedState
             
         override this.AnalyzePercept(percept, state) = state
             

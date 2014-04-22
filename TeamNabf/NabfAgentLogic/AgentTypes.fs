@@ -190,6 +190,7 @@ module AgentTypes =
             TotalNodeCount   : int
             ExploredCount    : int
             MyExploredCount  : int
+            MyProbedCount    : int
             ProbedCount      : int
         }
 
