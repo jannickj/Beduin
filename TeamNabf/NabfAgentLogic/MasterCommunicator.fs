@@ -15,7 +15,7 @@
 
             let NewPerceptsEvent = new Event<EventHandler, EventArgs>()
             let ActuatorReadyEvent = new Event<EventHandler, EventArgs>()
-            let NewActionEvent = new Event<UnaryValueHandler<int*CommunicationAction>, UnaryValueEvent<int*CommunicationAction>>()
+            let NewActionEvent = new Event<UnaryValueHandler<CommunicationAction>, UnaryValueEvent<CommunicationAction>>()
 
             [<CLIEvent>]
             member this.NewAction = NewActionEvent.Publish
@@ -23,7 +23,7 @@
             member this.SetMessage (msg:AgentServerMessage) =
                 match msg with
                 | JobMessage jobpercept -> 
-                        lock perceptLock (fun () -> awaitingPercepts <- jobpercept::awaitingPercepts)
+                        lock perceptLock (fun () -> awaitingPercepts <- (JobPercept jobpercept)::awaitingPercepts)
                 | SharedPercepts percepts ->
                         ()
                 | _ -> ()
@@ -41,10 +41,11 @@
                     | Communicate act ->
                         match act with
                         | ShareKnowledge pl ->
-                            //lock perceptLock (fun () -> 
+                            lock perceptLock (fun () -> awaitingPercepts <- (KnowledgeSent pl)::awaitingPercepts)
+                            NewPerceptsEvent.Trigger(this, new EventArgs())
                             ()
                         | _ -> ()
-                        //lock actionLock (fun () -> NewActionEvent.Trigger(this, new UnaryValueEvent<_>((id,act))))
+                        lock actionLock (fun () -> NewActionEvent.Trigger(this, new UnaryValueEvent<_>((act))))
                         ()
                     | _ -> ()
                 member this.IsReady =  true
@@ -54,11 +55,11 @@
 
             interface Sensor<Percept> with
                 member this.ReadPercepts() = 
-//                    lock perceptLock (fun () ->
-//                        let percepts = awaitingPercepts
-//                        awaitingPercepts <- []
-//                        percepts)
-                        []
+                    lock perceptLock (fun () ->
+                        let percepts = awaitingPercepts
+                        awaitingPercepts <- []
+                        percepts)
+
                 [<CLIEvent>]
                 member this.NewPercepts = NewPerceptsEvent.Publish
 

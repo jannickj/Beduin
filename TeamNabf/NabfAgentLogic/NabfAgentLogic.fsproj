@@ -43,6 +43,14 @@
     <Compile Include="Logging.fs" />
     <Compile Include="IiLang\IiLang.fs" />
     <Compile Include="IiLang\IilTranslator.fs" />
+    <Compile Include="Logic\LogicLib.fs" />
+    <Compile Include="Logic\Common.fs" />
+    <Compile Include="Logic\Explorer.fs" />
+    <Compile Include="Logic\Repairer.fs" />
+    <Compile Include="Logic\Saboteur.fs" />
+    <Compile Include="Logic\Sentinel.fs" />
+    <Compile Include="Logic\Inspector.fs" />
+    <Compile Include="DesireTree.fs" />
     <Compile Include="Planning.fs" />
     <Compile Include="MarsCommunicator.fs" />
     <Compile Include="MasterCommunicator.fs" />

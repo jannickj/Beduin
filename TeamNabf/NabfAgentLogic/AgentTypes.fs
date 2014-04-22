@@ -7,9 +7,8 @@ module AgentTypes =
     type TeamName = string
     type AgentName = string
 
-    //To be done
-    type Intention = string
-    type Solution = string
+   
+    
 
     type ActionResult =
         | Successful
@@ -131,6 +130,8 @@ module AgentTypes =
         | NewRoundPercept
         | AgentRolePercept  of AgentRolePercept
         | JobPercept        of JobPercept
+        | KnowledgeSent     of Percept list
+        
 
     type SimulationID = int
 
@@ -192,8 +193,26 @@ module AgentTypes =
             LastAction       : Action
             TeamZoneScore    : int
             Jobs             : Job list
+            TotalNodeCount   : int
+            ExploredCount    : int
+            MyExploredCount  : int
+            ProbedCount      : int
+            NewKnowledge     : Percept list
         }
 
     type OptionFunc = State -> (bool*Option<Action>)
 
     type DecisionRank = int
+
+    type IntentionType =
+        | Communication
+        | Activity
+        | Inherent
+
+    type Goal = 
+        | Plan of (State -> AgentAction list)
+        | Requirement of (State -> bool)
+
+
+    type Intention = string*IntentionType*(Goal list)
+    type Solution = string

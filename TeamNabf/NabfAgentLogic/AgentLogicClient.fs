@@ -21,6 +21,7 @@
         [<DefaultValue>] val mutable private agent : BDIAgentImpl
         
         let MarsCom = new MarsCommunicator()
+        let MasterCom = new MasterCommunicator()
         let mutable simID = -1
                      
         let SendAgentServerEvent = new Event<UnaryValueHandler<IilAction>, UnaryValueEvent<IilAction>>()
@@ -35,6 +36,9 @@
                 let iilContainer =  buildIilActionContainer act (float id)
                 let iilAction = buildIilAction iilContainer
                 SendMarsServerEvent.Trigger(this,new UnaryValueEvent<IilAction>(iilAction))
+                ())
+            MasterCom.NewAction.Add(fun evt -> 
+                let 
                 ())
             ()
         member private this.protectedExecute (name, action, returnedOnError) =
