@@ -5,12 +5,25 @@ module ActionSpecifications =
     open Graphing.Graph
     open Constants
 
+    [<CustomEquality>]
+    [<CustomComparison>]
     type ActionSpecification =
         { ActionType    : Action 
         ; Preconditions : (State -> bool) list 
         ; Effect        : State -> State
         ; Cost          : State -> int
-        } 
+        }
+        override x.GetHashCode() = 0
+        override self.Equals (other) = 
+            match other with
+            | :? ActionSpecification as spec -> spec.ActionType = self.ActionType
+            | _ -> false
+
+        interface System.IComparable with
+            member self.CompareTo yobj =
+                match yobj with
+                | :? ActionSpecification as spec -> compare spec.ActionType self.ActionType
+                | _ -> failwith "fsharp sucks"
     
     let isNotDisabled state = state.Self.Status = Normal
 

@@ -20,13 +20,18 @@ module AgentPlanning =
 //    abstract member SolutionFinished : ('TState * 'TGoal * 'TSolution) -> bool
 //    abstract member NextAction : ('TState * 'TGoal * 'TSolution) -> 'TAction * 'TSolution
 
+    let perform actionspec = Perform actionspec.ActionType
+       
     let formulatePlan state goal = 
-        solve aStar <| agentProblem state goal
+        let solution = solve aStar <| agentProblem state goal
+        match solution with
+        | Some sol -> Some <| List.map perform sol.Path
+        | None -> None
 
     let planWorking state goal plan =
         true
 
-    let repairPlan state goal plan = Some plan
+    let repairPlan state goal plan = None
 
     let solutionFinished state goal = 
         goal state
@@ -36,11 +41,11 @@ module AgentPlanning =
         | [] -> failwith "No next action for empty plan"
 
     type AgentPlanner(state : State, goal : (State -> bool))  =  // : FsPlanning.Agent.Planning.Planner<State, ActionSpecification, (State -> bool), Action list> = 
-        interface Planner<State, ActionSpecification, (State -> bool), Action list> with 
-            member self.FormulatePlan ((state, goal)) = formulatePlan state goal
-            member self.PlanWorking ((state, goal, plan)) = planWorking
-            member self.RepairPlan ((state, goal, plan)) = repairPlan state goal plan
-            member self.SolutionFinished ((state, goal, solution)) = solutionFinished state goal
-            member self.NextAction ((state, goal, solution)) = solutionFinished state goal
+        interface Planner<State, AgentAction, Goal, AgentAction list> with 
+            member self.FormulatePlan (state, goal) = formulatePlan state goal
+            member self.PlanWorking (state, goal, plan) = planWorking state goal plan
+            member self.RepairPlan (state, goal, plan) = repairPlan state goal plan
+            member self.SolutionFinished (state, goal, solution) = solutionFinished state goal
+            member self.NextAction (state, goal, solution) = nextAction state goal solution
             
        
