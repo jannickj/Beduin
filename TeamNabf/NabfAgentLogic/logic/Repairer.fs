@@ -3,3 +3,13 @@ module Repairer =
 
     open FsPlanning.Agent.Planning
     open AgentTypes
+
+    ///////////////////////////////////Helper functions//////////////////////////////////////
+        
+   
+
+    ////////////////////////////////////////Logic////////////////////////////////////////////
+
+    let applyToRepairJob (s:State) = None
+    
+    let doRepairJob (s:State) = None

@@ -8,5 +8,11 @@ module SentinelTree =
     let getSentinelDesires : DesireTree<State,Intention> = 
             ManyDesires 
                 [
-                    //Desire(stuffhere)
+                    Desire(applyToOccupyJob)
+
+                    Desire(doOccupyJobThenParryIfEnemiesClose)
+
+                    Desire(applyToDisruptJob)
+
+                    Desire(doDisruptJobThenParryIfEnemiesClose)
                 ]

@@ -8,5 +8,15 @@ module SaboteurTree =
     let getSaboteurDesires : DesireTree<State,Intention> = 
             ManyDesires 
                 [
-                    //Desire(stuffhere)
+                    Desire(applyToAttackJob)
+
+                    Desire(doAttackJob)
+
+                    Desire(spontanousAttack)
+
+                    Desire(applyToDisruptJob)
+
+                    Desire(doDisruptJobThenParryIfEnemiesClose)
+
+                    Desire(findAgentToDestroy)
                 ]
