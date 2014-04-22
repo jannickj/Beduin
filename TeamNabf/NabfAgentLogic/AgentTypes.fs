@@ -42,6 +42,7 @@ module AgentTypes =
         { Energy      : Option<int>
         ; Health      : Option<int>
         ; MaxEnergy   : Option<int>
+        ; MaxEnergyDisabled : Option<int>
         ; MaxHealth   : Option<int>
         ; Name        : string
         ; Node        : string
@@ -102,6 +103,20 @@ module AgentTypes =
     type SeenVertex = VertexName * TeamName option
     type AgentRolePercept = AgentName * AgentRole * int
 
+    type SimStartData =
+        { SimId          :   int
+        ; SimEdges       :   int
+        ; SimVertices    :   int
+        ; SimRole        :   AgentRole
+//        ; SimTotalSteps  :   int
+        }
+    
+    type JobPercept =
+        | AddedOrChangedJob of Job
+        | RemovedJob of Job
+        | AcceptedJob of JobID*VertexName
+        | FiredFrom of JobID 
+
     type Percept =
         | EnemySeen         of Agent
         | VertexSeen        of SeenVertex
@@ -114,8 +129,9 @@ module AgentTypes =
         | ZoneScore         of int
         | Team              of TeamState
         | Self              of Agent
+        | NewRoundPercept
         | AgentRolePercept  of AgentRolePercept
-        
+        | JobPercept        of JobPercept
 
     type SimulationID = int
 
@@ -142,21 +158,12 @@ module AgentTypes =
     type ActionID = int
     type ActionRequestData = Deadline * CurrentTime * ActionID
     
-    type SimStartData =
-        { SimId          :   int
-        ; SimEdges       :   int
-        ; SimVertices    :   int
-        ; SimRole        :   AgentRole
-//        ; SimTotalSteps  :   int
-        }
+    
 
     type AgentServerMessage =
-        | AddedOrChangedJob of Job
-        | RemovedJob of Job
-        | AcceptedJob of JobID*VertexName
+        | JobMessage of JobPercept
         | SharedPercepts of Percept list
         | RoundChanged of int
-        | FiredFrom of JobID
 
     type MarsServerMessage =  
         | ActionRequest of ActionRequestData * Percept list

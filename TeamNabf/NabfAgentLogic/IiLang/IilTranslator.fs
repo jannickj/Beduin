@@ -52,7 +52,8 @@ namespace NabfAgentLogic.IiLang
                 -> { Energy      = Some (int energy)
                    ; Health      = Some (int health)
                    ; MaxEnergy   = Some (int maxEnergy)
-                   ; MaxHealth   = Some (int maxHealth)    
+                   ; MaxEnergyDisabled = None
+                   ; MaxHealth   = Some (int maxHealth)                      
                    ; Name        = name
                    ; Node        = node
                    ; Role        = parseIilRole role
@@ -140,12 +141,12 @@ namespace NabfAgentLogic.IiLang
               ; Function ("visRange", [Numeral visRange])
               ; Function ("zoneScore", [Numeral zoneScore])
               ] -> [ ZoneScore <| int zoneScore 
-                   ; MaxEnergyDisabled <| int maxEnergyDisabled
                    ; LastAction <| parseIilAction action actionParam
                    ; LastActionResult <| parseIilActionResult actionResult
                    ; Self { Energy = Some (int energy)
                           ; Health = Some (int health)
                           ; MaxEnergy = Some (int maxEnergy)
+                          ; MaxEnergyDisabled = Some (int maxEnergyDisabled)
                           ; MaxHealth = Some (int maxHealth)
                           ; Name = ""
                           ; Node = node
@@ -229,6 +230,7 @@ namespace NabfAgentLogic.IiLang
                         ]) -> { Energy = None
                               ; Health = None
                               ; MaxEnergy = None
+                              ; MaxEnergyDisabled = None
                               ; MaxHealth = None
                               ; Name = name
                               ; Node = node
@@ -342,24 +344,24 @@ namespace NabfAgentLogic.IiLang
                     let percepts = List.concat <| List.map parseIilPercept tail
                     AgentServerMessage <| SharedPercepts percepts
                 | "newNotice" ->
-                    AgentServerMessage <| (AddedOrChangedJob <| parseIilJob tail)
+                    AgentServerMessage <| (JobMessage <| (AddedOrChangedJob <| parseIilJob tail))
                 | "noticeUpdated" ->
-                    AgentServerMessage <| (AddedOrChangedJob <| parseIilJob tail)
+                    AgentServerMessage <| (JobMessage <| (AddedOrChangedJob <| parseIilJob tail))
                 | "noticeRemoved" ->
-                    AgentServerMessage <| (RemovedJob <| parseIilJob tail)
+                    AgentServerMessage <| (JobMessage <| (RemovedJob <| parseIilJob tail))
                 | "roundChanged" ->
                     let [Numeral roundid] = data
                     AgentServerMessage <| (RoundChanged  <| (int roundid))
                 | "receivedJob" ->
                     let [Percept ("noticeId", [Numeral rjobid]); Percept ("whichNodeNameToGoTo", [Identifier nodename])] = tail
-                    AgentServerMessage <| (AcceptedJob <| ((int rjobid),nodename))
+                    AgentServerMessage <| (JobMessage <| (AcceptedJob <| ((int rjobid),nodename)))
                 | "firedFromJob" ->
                     let [Percept ("noticeId", [Numeral jobId])] = tail
-                    AgentServerMessage <| (FiredFrom (int jobId))
+                    AgentServerMessage <| (JobMessage <| (FiredFrom (int jobId)))
                 | _ ->  raise <| InvalidIilException ("iilServerMessage", data)
             | _ -> failwith "nonono"
         
-        let buildIilAction action id =
+        let buildIilActionContainer action id =
             match action with
             | Skip -> Action ("skip", [Numeral id])
             | Goto vn -> Action ("goto", [Numeral id; Identifier vn])
