@@ -93,6 +93,9 @@ module HandlePercepts =
             | NewRoundPercept -> state //is here for simplicity, should not do anything
             | AgentRolePercept agentRole -> state // todo
             | JobPercept job -> state //todo
+            | KnowledgeSent pl -> 
+                    let updatedNK = List.filter (fun p -> List.exists ((=) p) pl) state.NewKnowledge
+                    { state with NewKnowledge = updatedNK }
             | _ -> state
 
     let clearTempBeliefs state =
@@ -160,6 +163,28 @@ module HandlePercepts =
         else
             state
                 
+    let shouldSharePercept (state:State) percept = // FINISH THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        match percept with
+        | VertexProbed (vertexName, value) -> 
+            if state.World.ContainsKey(vertexName) then 
+                let vertex = state.World.[vertexName]
+                if vertex.Value.IsNone then 
+                    true
+                else
+                    false
+            else
+                false
+        | VertexSeen (vertexName, ownedBy) -> true
+        | EdgeSeen (edgeValue, node1, node2) -> true
+        | EnemySeen enemy -> true
+        | _ -> false
+
+
+    let selectSharedPercepts percepts (state:State) =
+        let propagatedPercepts = List.filter (shouldSharePercept state) percepts
+        { state with 
+                NewKnowledge = state.NewKnowledge @ propagatedPercepts
+        }
                 
 
         (* let updateState : State -> Percept list -> State *)
@@ -171,9 +196,47 @@ module HandlePercepts =
                                 |> updateLastPos state
                                 |> updateProbeCount state
                                 |> updateExploredCount state
+                                |> selectSharedPercepts percepts
 
         match percepts with
         | [NewRoundPercept|_] -> newRoundPercepts
         | _ -> handlePercepts state percepts
 
-        
+//        let updateTraversedEdgeCost (oldState : State) (newState : State) =
+//            match (oldState.Self.Node, newState.LastAction, newState.LastActionResult) with
+//            | (fromVertex, Goto toVertex, Successful) -> 
+//                let edge = (Some (oldState.Self.Energy.Value - newState.Self.Energy.Value), fromVertex, toVertex)
+//                { newState with 
+//                    World = addEdge edge newState.World
+//                    NewEdges = edge :: newState.NewEdges 
+//                }
+//            | _ -> newState
+
+
+//let shouldSharePercept (state:State) percept =
+//            match percept with
+//            | VertexProbed (vp,d) -> 
+//                if state.World.ContainsKey(vp) then
+//                    let v = state.World.Item vp
+//                    if v.Value.IsNone then 
+//                        true
+//                    else 
+//                        false
+//                else 
+//                    false
+//            | EdgeSeen es -> false
+//            | VertexSeen (vp,t) -> 
+//                not (state.World.ContainsKey(vp))                
+//            | EnemySeen { Name = name; Role = Some _ } ->
+//                let isSame agent =
+//                    match agent with
+//                    | { Role = Some _; Name = agentName } -> agentName = name
+//                    | _ -> false
+//
+//                not <| List.exists isSame state.EnemyData
+//            | _ -> false
+//
+//        let selectSharedPercepts state (percepts:Percept list) =
+//            let propagatedPercepts = List.filter (shouldSharePercept state) percepts
+//            let newPercepts = state.NewEdges
+//            propagatedPercepts @ List.map EdgeSeen state.NewEdges

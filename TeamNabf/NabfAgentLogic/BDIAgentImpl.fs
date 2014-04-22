@@ -8,7 +8,7 @@
 
     type BDIAgentImpl(State,DesireTree,Planner) =
         class
-            
+           
             inherit BDIAgent<Percept,State,AgentAction,Intention,Solution>(State,DesireTree,Planner)
                 override this.AnalyzePercept(percepts, state) = updateState state percepts
             
