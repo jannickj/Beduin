@@ -6,9 +6,10 @@ module ActionSpecifications =
     open Constants
 
     type ActionSpecification =
-        { ActionType    : Action
-        ; Preconditions : (State -> bool) list
-        ; Postcondition : (State -> State)        
+        { ActionType    : Action 
+        ; Preconditions : (State -> bool) list 
+        ; Effect        : State -> State
+        ; Cost          : State -> int
         } 
     
     let isNotDisabled state = state.Self.Status = Normal
@@ -52,15 +53,18 @@ module ActionSpecifications =
             |> List.find (fun (cost, name) -> name = destination) 
             |> fst
 
+        let cost state = decide Constants.ACTION_COST_CHEAP (edgeCost state)
+
         let updateState state = 
             let self = { state.Self with Node = destination }
-            let newSelf = deductEnergy (decide Constants.ACTION_COST_CHEAP (edgeCost state)) { state with Self = self}
+            let newSelf = deductEnergy (cost state) { state with Self = self}
             { state with Self = newSelf}
 
         let canMoveTo state = (state.Self.Energy.Value - definiteCost (edgeCost state)) >= 0
         { ActionType    = Goto destination
         ; Preconditions = [ canMoveTo; isNotDisabled ]
-        ; Postcondition = updateState
+        ; Effect        = updateState
+        ; Cost          = cost
         }
 
     let attackAction (enemyAgent : AgentName) =
@@ -74,7 +78,8 @@ module ActionSpecifications =
         
         { ActionType    = Attack enemyAgent
         ; Preconditions = [ canAttack; enoughEnergy Constants.ACTION_COST_EXPENSIVE; isNotDisabled ]
-        ; Postcondition = updateState
+        ; Effect        = updateState
+        ; Cost          = fun _ -> Constants.ACTION_COST_EXPENSIVE
         }
 
     let rechargeAction =
@@ -83,7 +88,8 @@ module ActionSpecifications =
             { state with Self = { state.Self with Energy = Some newEnergy} }
         { ActionType    = Recharge
         ; Preconditions = [  ]
-        ; Postcondition = updateState
+        ; Effect        = updateState
+        ; Cost = fun _ -> 1
         }       
 
     let repairAction (damagedAgent : AgentName) =
@@ -104,7 +110,8 @@ module ActionSpecifications =
 
         { ActionType    = Repair damagedAgent
         ; Preconditions = [ canRepair; fun state -> enoughEnergy (repairCost state) state ]
-        ; Postcondition = updateState
+        ; Effect        = updateState
+        ; Cost          = fun state -> repairCost state
         }
 
     let probeAction vertexOption =
@@ -123,7 +130,8 @@ module ActionSpecifications =
 
         { ActionType    = Probe vertexOption
         ; Preconditions = [ vertexUnProbed; enoughEnergy Constants.ACTION_COST_CHEAP; isNotDisabled ]
-        ; Postcondition = updateState
+        ; Effect        = updateState
+        ; Cost          = fun _ -> Constants.ACTION_COST_CHEAP
         }
 
     let inspectAction agentNameOption =
@@ -143,7 +151,8 @@ module ActionSpecifications =
 
         { ActionType    = Inspect agentNameOption
         ; Preconditions = [ enemiesNotInspected; enoughEnergy Constants.ACTION_COST_EXPENSIVE; isNotDisabled ]
-        ; Postcondition = updateState
+        ; Effect        = updateState
+        ; Cost          = fun _ -> Constants.ACTION_COST_EXPENSIVE
         }
 
     let parryAction =
@@ -156,5 +165,41 @@ module ActionSpecifications =
 
         { ActionType    = Parry
         ; Preconditions = [ saboteurPresent; enoughEnergy Constants.ACTION_COST_EXPENSIVE; isNotDisabled ]
-        ; Postcondition = updateState
+        ; Effect        = updateState
+        ; Cost          = fun _ -> Constants.ACTION_COST_EXPENSIVE
         }
+
+    let isApplicable state actionSpec = 
+        List.forall (fun pred -> pred state) actionSpec.Preconditions
+
+    let agentsAt node agentList =
+        List.filter (fun enemy -> enemy.Node = node) agentList
+        |> List.map (fun enemy -> enemy.Name)
+
+    let gotoActions (state : State) = 
+        List.map moveAction <| getNeighbourIds state.Self.Node state.World
+    
+    let attackActions (state : State) = 
+        List.map attackAction <| agentsAt state.Self.Node state.EnemyData
+
+    let rechargeActions state = [rechargeAction]
+
+    let repairActions (state : State) = 
+        List.map repairAction <| agentsAt state.Self.Node state.FriendlyData
+
+    let probeActions state = [probeAction None]
+
+    let inspectActions state = [inspectAction None]
+
+    let parryActions state = [parryAction]
+
+    let commonActions state = gotoActions state @ rechargeActions state
+
+    let roleActions state =
+        match state.Self.Role with
+        | Some Explorer  -> probeActions state   @ commonActions state 
+        | Some Inspector -> inspectActions state @ commonActions state 
+        | Some Repairer  -> repairActions state  @ commonActions state 
+        | Some Saboteur  -> attackActions state  @ commonActions state 
+        | Some Sentinel  -> parryActions state   @ commonActions state 
+        | None -> failwith "agent role is unknown"
