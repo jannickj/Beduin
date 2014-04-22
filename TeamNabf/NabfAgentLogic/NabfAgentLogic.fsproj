@@ -47,8 +47,10 @@
     <Compile Include="Planning.fs" />
     <Compile Include="MarsCommunicator.fs" />
     <Compile Include="MasterCommunicator.fs" />
+    <Compile Include="HandlePercepts.fs" />
     <Compile Include="BDIAgentImpl.fs" />
     <Compile Include="AgentInterfaces.fs" />
+    <Compile Include="AgentClientLib.fs" />
     <Compile Include="AgentLogicClient.fs" />
   </ItemGroup>
   <ItemGroup>
