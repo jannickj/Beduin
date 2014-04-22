@@ -28,7 +28,7 @@
                 match msg with
                 | ActionRequest ((deadline,curtime,id),percepts) -> 
                     lock actionLock (fun () -> curActId <- id)
-                    lock perceptLock (fun () -> awaitingPercepts <- awaitingPercepts@percepts) 
+                    lock perceptLock (fun () -> awaitingPercepts <- awaitingPercepts@(NewRoundPercept::percepts)) 
                     NewPerceptsEvent.Trigger(this, new EventArgs()) 
                     ActuatorReadyEvent.Trigger(this, new EventArgs())                 
                 | _ -> ()

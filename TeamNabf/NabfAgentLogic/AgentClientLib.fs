@@ -19,9 +19,10 @@ module AgentClientLib =
 
     let buildInitState (name, simData:SimStartData) =
             {   World = Map.empty
-            ;   Self =  {   Energy = Some 0
-                        ;   MaxEnergy = Some 0
+            ;   Self =  {   Energy = Some 0                        
                         ;   Health = Some 0
+                        ;   MaxEnergy = Some 0
+                        ;   MaxEnergyDisabled = Some 0
                         ;   MaxHealth = Some 0
                         ;   Name = name
                         ;   Node = ""
@@ -33,16 +34,23 @@ module AgentClientLib =
                         }
             ;   FriendlyData = []
             ;   EnemyData = List.Empty
+            ;   InspectedEnemies = Set.empty
             ;   SimulationStep = 0
             ;   LastPosition = ""
             ;   NewVertices = []
             ;   NewEdges = []
             ;   LastStepScore = 0
-            ;   LastAction = Skip
-            ;   LastActionResult = Successful
             ;   Money = 0
             ;   Score = 0
-            ;   TeamZoneScore = 0
             ;   ThisZoneScore = 0
+            ;   LastActionResult = Successful
+            ;   LastAction = Skip
+            ;   TeamZoneScore = 0
             ;   Jobs = []
+            ;   TotalNodeCount = 0
+            ;   ExploredCount = 0
+            ;   MyExploredCount = 0
+            ;   MyProbedCount = 0
+            ;   ProbedCount = 0  
+            ;   NewKnowledge = []          
             } : State

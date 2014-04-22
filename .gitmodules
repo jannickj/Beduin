@@ -4,7 +4,6 @@
 [submodule "XmasEngine"]
 	path = XmasEngine
 	url = https://github.com/jannickj/XmasEngine.git
-	ignore = dirty
 [submodule "FsPlanning"]
 	path = FsPlanning
 	url = https://github.com/srnjcbsn/FsPlanning.git

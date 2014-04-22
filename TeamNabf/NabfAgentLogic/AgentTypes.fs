@@ -41,6 +41,7 @@ module AgentTypes =
         { Energy      : Option<int>
         ; Health      : Option<int>
         ; MaxEnergy   : Option<int>
+        ; MaxEnergyDisabled : Option<int>
         ; MaxHealth   : Option<int>
         ; Name        : string
         ; Node        : string
@@ -108,6 +109,12 @@ module AgentTypes =
         ; SimRole        :   AgentRole
 //        ; SimTotalSteps  :   int
         }
+    
+    type JobPercept =
+        | AddedOrChangedJob of Job
+        | RemovedJob of Job
+        | AcceptedJob of JobID*VertexName
+        | FiredFrom of JobID 
 
     type Percept =
         | EnemySeen         of Agent
@@ -121,7 +128,11 @@ module AgentTypes =
         | ZoneScore         of int
         | Team              of TeamState
         | Self              of Agent
+        | NewRoundPercept
         | AgentRolePercept  of AgentRolePercept
+        | KnowledgeSent     of Percept list
+        
+        | JobPercept        of JobPercept
 
     type SimulationID = int
 
@@ -151,12 +162,9 @@ module AgentTypes =
     
 
     type AgentServerMessage =
-        | AddedOrChangedJob of Job
-        | RemovedJob of Job
-        | AcceptedJob of JobID*VertexName
+        | JobMessage of JobPercept
         | SharedPercepts of Percept list
         | RoundChanged of int
-        | FiredFrom of JobID
 
     type MarsServerMessage =  
         | ActionRequest of ActionRequestData * Percept list
@@ -192,6 +200,7 @@ module AgentTypes =
             MyExploredCount  : int
             MyProbedCount    : int
             ProbedCount      : int
+            NewKnowledge     : Percept list
         }
 
     type OptionFunc = State -> (bool*Option<Action>)
