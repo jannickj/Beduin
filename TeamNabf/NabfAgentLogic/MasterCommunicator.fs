@@ -39,6 +39,11 @@
                 member this.PerformAction action =
                     match action with
                     | Communicate act ->
+                        match act with
+                        | ShareKnowledge pl ->
+                            //lock perceptLock (fun () -> 
+                            ()
+                        | _ -> ()
                         //lock actionLock (fun () -> NewActionEvent.Trigger(this, new UnaryValueEvent<_>((id,act))))
                         ()
                     | _ -> ()
