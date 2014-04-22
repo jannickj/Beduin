@@ -10,13 +10,11 @@ module ExplorerTree =
                 [
                     Desire(findNewZone)
 
-                    Conditional(,Desire(findNodeToProbe))
+                    Desire(findNodeToProbePhase1)
 
                     Desire(applyToOccupyJob)
 
                     Desire(workOnOccupyJob)
 
-                    Desire(findNodeToProbe)
-
-                    Desire
+                    Desire(findNodeToProbeUnconditional)
                 ]

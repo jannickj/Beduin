@@ -31,19 +31,19 @@ module DesireTree =
     let getTree : DesireTree<State,Intention> =
             ManyDesires 
                 [
-                    //Desire(onlyOneJob)
+                    Desire(onlyOneJob)
 
                     ////Desire(postDefenceJob)
 
                     ////Desire(postAttackJob)
 
-                    //Desire(getRepaired)
+                    Desire(getRepaired)
 
                     ////Desire(postDisruptJob)
 
-                    //getRoleDesires
+                    getRoleDesires
 
                     Desire(exploreMap)
 
-                    //Desire(generateMinimumValue)
+                    Desire(generateMinimumValue)
                 ]

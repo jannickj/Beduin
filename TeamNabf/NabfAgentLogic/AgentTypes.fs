@@ -189,6 +189,7 @@ module AgentTypes =
             ExploredCount    : int
             MyExploredCount  : int
             ProbedCount      : int
+            MyProbedCount    : int
         }
 
     type OptionFunc = State -> (bool*Option<Action>)
