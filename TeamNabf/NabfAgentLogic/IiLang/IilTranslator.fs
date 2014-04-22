@@ -342,20 +342,20 @@ namespace NabfAgentLogic.IiLang
                     let percepts = List.concat <| List.map parseIilPercept tail
                     AgentServerMessage <| SharedPercepts percepts
                 | "newNotice" ->
-                    AgentServerMessage <| (AddedOrChangedJob <| parseIilJob tail)
+                    AgentServerMessage <| (JobMessage <| (AddedOrChangedJob <| parseIilJob tail))
                 | "noticeUpdated" ->
-                    AgentServerMessage <| (AddedOrChangedJob <| parseIilJob tail)
+                    AgentServerMessage <| (JobMessage <| (AddedOrChangedJob <| parseIilJob tail))
                 | "noticeRemoved" ->
-                    AgentServerMessage <| (RemovedJob <| parseIilJob tail)
+                    AgentServerMessage <| (JobMessage <| (RemovedJob <| parseIilJob tail))
                 | "roundChanged" ->
                     let [Numeral roundid] = data
                     AgentServerMessage <| (RoundChanged  <| (int roundid))
                 | "receivedJob" ->
                     let [Percept ("noticeId", [Numeral rjobid]); Percept ("whichNodeNameToGoTo", [Identifier nodename])] = tail
-                    AgentServerMessage <| (AcceptedJob <| ((int rjobid),nodename))
+                    AgentServerMessage <| (JobMessage <| (AcceptedJob <| ((int rjobid),nodename)))
                 | "firedFromJob" ->
                     let [Percept ("noticeId", [Numeral jobId])] = tail
-                    AgentServerMessage <| (FiredFrom (int jobId))
+                    AgentServerMessage <| (JobMessage <| (FiredFrom (int jobId)))
                 | _ ->  raise <| InvalidIilException ("iilServerMessage", data)
             | _ -> failwith "nonono"
         
