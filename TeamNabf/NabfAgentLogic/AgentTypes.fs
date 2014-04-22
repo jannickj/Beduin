@@ -114,6 +114,7 @@ module AgentTypes =
         | Team              of TeamState
         | Self              of Agent
         | AgentRolePercept  of AgentRolePercept
+        | KnowledgeSent     of Percept list
         
 
     type SimulationID = int
@@ -189,6 +190,7 @@ module AgentTypes =
             ExploredCount    : int
             MyExploredCount  : int
             ProbedCount      : int
+            NewKnowledge     : Percept list
         }
 
     type OptionFunc = State -> (bool*Option<Action>)
