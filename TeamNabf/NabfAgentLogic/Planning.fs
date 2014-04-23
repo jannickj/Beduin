@@ -46,17 +46,29 @@ module AgentPlanning =
                 member self.FormulatePlan (state, intent) = 
                     let (_,_,goals) = intent
                     match goals with
-                    | (Plan p)::_ -> None
-                    | (Requirement r)::_ -> None
-                    | [] -> None
-                    //formulatePlan state goal
-                member self.PlanWorking (state, intent, solution) = true //planWorking state goal plan
-                member self.RepairPlan (state, intent, solution) = None //repairPlan state goal plan
-                member self.SolutionFinished (state, intent, solution) = false //solutionFinished state goal
-                member self.NextAction (state, intent, solution) = (Perform Skip,(0,[])) //nextAction state goal solution
+                    | (Plan p)::_ -> Some (0, (p state))
+                    | (Requirement r)::_ -> 
+                        let plan = (formulatePlan state r)
+                        match plan with
+                        | Some p -> Some (0, p)
+                        | None -> None
+                    | [] -> Some (0, [])
+                member self.PlanWorking (state, intent, solution) = planWorking state intent solution
+                member self.RepairPlan (state, intent, solution) = repairPlan state intent solution
+                member self.SolutionFinished (state, intent, solution) = 
+                    let (_,_,goals) = intent
+                    let (idx,plan) = solution
+                    match plan with
+                    | [] -> (List.length goals - 1) = idx
+                    | _ -> false
+                    //false //solutionFinished state intent
+                member self.NextAction (state, intent, solution) = 
+                    let (idx,plan) = solution
+                    let (act, newPlan) = nextAction state intent plan
+                    (act,(idx,newPlan))
         end
                     
-//           type ProgressionPlanner() =
+//      type ProgressionPlanner() =
 //        class
 //            interface Planner<State, AgentAction, Intention, Solution> with
 //                member this.FormulatePlan(state, goal) = None
