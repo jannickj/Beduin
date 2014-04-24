@@ -1,10 +1,11 @@
 ﻿namespace NabfAgentLogic
-module AgentPlanning =
+module Planning =
     open FsPlanning.Searching
     open ActionSpecifications
     open NabfAgentLogic.AgentTypes
     open Graphing.Graph
     open FsPlanning.Agent.Planning
+    open Logging
 
     let agentProblem (state : State) goalTest = 
         { InitialState = state
@@ -23,13 +24,17 @@ module AgentPlanning =
     let perform actionspec = Perform actionspec.ActionType
        
     let formulatePlan state intent = 
-        let (_,_,goals) = intent
+        let (name,_,goals) = intent
+        logImportant ("Planning to " + name)
         match goals with
         | (Plan p)::_ -> Some (0, (p state))
         | (Requirement r)::_ -> 
             let plan = solve aStar <| agentProblem state r
             match plan with
-            | Some sol -> Some (0,List.map perform sol.Path)
+            | Some sol -> 
+                let actions = List.map perform sol.Path
+                logImportant ("Found plan: "+sprintf "%A" actions)                
+                Some (0,actions)
             | None -> None
         | [] -> Some (0, [])
         
@@ -44,15 +49,7 @@ module AgentPlanning =
         let (_,_,goals) = intent
         let (idx,plan) = solution
         match plan with
-        | [] -> 
-            let islastgoal = (List.length goals - 1) = idx
-            if islastgoal then
-                let finalgoal = goals.[idx]
-                match finalgoal with
-                | Requirement r -> r state
-                | _ -> true
-            else
-                false    
+        | [] -> (List.length goals - 1) = idx
         | _ -> false
     
     let nextAction state intent solution =
@@ -64,7 +61,8 @@ module AgentPlanning =
     type AgentPlanner()  =  // : FsPlanning.Agent.Planning.Planner<State, ActionSpecification, (State -> bool), Action list> = 
         class
             interface Planner<State, AgentAction, Intention, Solution> with 
-                member self.FormulatePlan (state, intent) = formulatePlan state intent                    
+                member self.FormulatePlan (state, intent) = 
+                    formulatePlan state intent                    
                 member self.PlanWorking (state, intent, solution) = planWorking state intent solution
                 member self.RepairPlan (state, intent, solution) = repairPlan state intent solution
                 member self.SolutionFinished (state, intent, solution) = solutionFinished state intent solution

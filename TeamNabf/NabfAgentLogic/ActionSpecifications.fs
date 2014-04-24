@@ -4,6 +4,7 @@ module ActionSpecifications =
     open NabfAgentLogic.AgentTypes
     open Graphing.Graph
     open Constants
+    open Logging
 
     [<CustomEquality>]
     [<CustomComparison>]
@@ -71,7 +72,9 @@ module ActionSpecifications =
         let updateState state = 
             let self = { state.Self with Node = destination }
             let newSelf = deductEnergy (cost state) { state with Self = self}
-            { state with Self = newSelf}
+            logImportant (sprintf "%A" (Set.filter (fun (o,_) -> Option.isSome o) state.World.[destination].Edges))
+            let exploredNodes = if  ( Set.forall (fun (value, _) -> value = Option.None) state.World.[destination].Edges ) then 1 else 0
+            { state with Self = newSelf; MyExploredCount = state.MyExploredCount + exploredNodes}
 
         let canMoveTo state = (state.Self.Energy.Value - definiteCost (edgeCost state)) >= 0
         { ActionType    = Goto destination
@@ -138,7 +141,8 @@ module ActionSpecifications =
 
         let updateState state = { state with 
                                         World = addVertexValue (realVertex state) 0 state.World;
-                                        Self = deductEnergy Constants.ACTION_COST_CHEAP state 
+                                        Self = deductEnergy Constants.ACTION_COST_CHEAP state
+                                        MyProbedCount = state.MyProbedCount + 1
                                 }
 
         { ActionType    = Probe vertexOption

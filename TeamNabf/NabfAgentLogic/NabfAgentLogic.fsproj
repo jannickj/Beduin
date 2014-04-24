@@ -40,8 +40,8 @@
     <Compile Include="Graphing\Graph.fsi" />
     <Compile Include="Graphing\Graph.fs" />
     <Compile Include="AgentTypes.fs" />
-    <Compile Include="ActionSpecifications.fs" />
     <Compile Include="Logging.fs" />
+    <Compile Include="ActionSpecifications.fs" />
     <Compile Include="IiLang\IiLang.fs" />
     <Compile Include="IiLang\IilTranslator.fs" />
     <Compile Include="Logic\LogicLib.fs" />

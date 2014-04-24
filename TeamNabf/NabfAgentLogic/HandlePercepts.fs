@@ -110,16 +110,16 @@ module HandlePercepts =
             let edge = (Some (oldState.Self.Energy.Value - newState.Self.Energy.Value), fromVertex, toVertex)
             { newState with 
                 World = addEdge edge newState.World
-                NewEdges = edge :: newState.NewEdges 
+                //NewEdges = edge :: newState.NewEdges 
             }
         | _ -> newState
 
-    let updateEdgeCosts (lastState:State) (state:State) =
-        match (state.LastAction, state.LastActionResult) with
-        | (Goto _, Successful) ->
-            let state4 = updateTraversedEdgeCost lastState state
-            state4
-        | _ -> updateTraversedEdgeCost lastState state
+//    let updateEdgeCosts (lastState:State) (state:State) =
+//        match (state.LastAction, state.LastActionResult) with
+//        | (Goto _, Successful) ->
+//            let state4 = updateTraversedEdgeCost lastState state
+//            state4
+//        | _ -> updateTraversedEdgeCost lastState state
 
     let updateLastPos (lastState:State) (state:State) =
         { state with LastPosition = lastState.Self.Node }
@@ -134,9 +134,10 @@ module HandlePercepts =
                             | _ -> false
         let resultSuccessful = state.LastActionResult = ActionResult.Successful
         let getProbedVertex = lastState.Self.Node
-        let notAlreadyProbed = lastState.World.[getProbedVertex].Value = Option.None
-
+        
+        let notAlreadyProbed = lastState.World.ContainsKey getProbedVertex && lastState.World.[getProbedVertex].Value = Option.None
         if probeAction && resultSuccessful && notAlreadyProbed then 
+
             { state with 
                 MyProbedCount = state.MyProbedCount + 1    
                 ProbedCount = state.ProbedCount + 1
@@ -153,7 +154,7 @@ module HandlePercepts =
         let getGotoVertex = match state.LastAction with
                             | Action.Goto node -> node
                             | _ -> ""
-        let notAlreadyExplored = Set.forall (fun (value, _) -> value = Option.None) lastState.World.[getGotoVertex].Edges
+        let notAlreadyExplored = lastState.World.ContainsKey getGotoVertex && ( Set.forall (fun (value, _) -> value = Option.None) lastState.World.[getGotoVertex].Edges )
 
         if gotoAction && resultSuccessful && notAlreadyExplored then 
             { state with 
@@ -192,10 +193,10 @@ module HandlePercepts =
         let clearedState = clearTempBeliefs state
         let handlePercepts state percepts = List.fold handlePercept state percepts
         let newRoundPercepts = handlePercepts clearedState percepts
-                                |> updateEdgeCosts state
                                 |> updateLastPos state
                                 |> updateProbeCount state
                                 |> updateExploredCount state
+                                |> updateTraversedEdgeCost state
                                 |> selectSharedPercepts percepts
 
         match percepts with

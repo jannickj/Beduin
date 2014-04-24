@@ -14,6 +14,7 @@
     open IiLang.IilTranslator
     open IiLang.IiLangDefinitions
     open AgentClientLib
+    open Planning
 
     type public AgentLogicClient(name) as this = class 
         
@@ -69,8 +70,9 @@
                         SendAgentServerEvent.Trigger(this, new UnaryValueEvent<IilAction>(subscribeAction))
                         
                         let initState = buildInitState (name, sData)
-                        //Add agent to desires
-                        //this.agent = new BDIAgentImpl(initState, 
+                        let desireTree = DesireTree.getTree
+                        let planner = new AgentPlanner()
+                        this.agent <- new BDIAgentImpl(initState, desireTree, planner)
                         this.agent.AddAcuator(MarsCom)
                         this.agent.AddSensor(MarsCom)
                         ()

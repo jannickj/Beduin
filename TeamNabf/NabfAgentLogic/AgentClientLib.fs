@@ -18,6 +18,7 @@ module AgentClientLib =
         IiLang.IiLangDefinitions.buildIilAction (IiLang.IilTranslator.buildIilMetaAction act id)
 
     let buildInitState (name, simData:SimStartData) =
+            
             {   World = Map.empty
             ;   Self =  {   Energy = Some 0                        
                         ;   Health = Some 0
@@ -47,7 +48,7 @@ module AgentClientLib =
             ;   LastAction = Skip
             ;   TeamZoneScore = 0
             ;   Jobs = []
-            ;   TotalNodeCount = 0
+            ;   TotalNodeCount = simData.SimVertices
             ;   ExploredCount = 0
             ;   MyExploredCount = 0
             ;   MyProbedCount = 0
