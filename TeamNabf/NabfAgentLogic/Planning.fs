@@ -63,7 +63,7 @@ module Planning =
             interface Planner<State, AgentAction, Intention, Solution> with 
                 member self.FormulatePlan (state, intent) = 
                     formulatePlan state intent                    
-                member self.PlanWorking (state, intent, solution) = planWorking state intent solution
+                //member self.PlanWorking (state, intent, solution) = planWorking state intent solution
                 member self.RepairPlan (state, intent, solution) = repairPlan state intent solution
                 member self.SolutionFinished (state, intent, solution) = solutionFinished state intent solution
                 member self.NextAction (state, intent, solution) = nextAction state intent solution
