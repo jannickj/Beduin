@@ -6,12 +6,20 @@ module Saboteur =
     open LogicLib
 
     ///////////////////////////////////Helper functions//////////////////////////////////////
-        
+    let calculateDesireAttackJob (j:Job) (s:State) = 
+        let ((_,value,_,_),_) = j
+        value
    
 
     ////////////////////////////////////////Logic////////////////////////////////////////////
 
-    let applyToAttackJob (s:State) = None
+    let applyToAttackJob (s:State) = 
+        let applicationList = createApplicationList s JobType.AttackJob calculateDesireAttackJob
+        Some(
+                "apply to all attack jobs"
+                , Communication
+                , [Plan(fun state -> applicationList)]
+            )
     
     let doAttackJob (s:State) = None
     
@@ -27,9 +35,9 @@ module Saboteur =
                 )
              
     
-    let applyToDisruptJob (s:State) = None
+    let applyToDisruptJob (s:State) = None //advanced feature
     
-    let doDisruptJobThenParryIfEnemiesClose (s:State) = None
+    let doDisruptJobThenParryIfEnemiesClose (s:State) = None //advanced feature
     
     let findAgentToDestroy (s:State) = 
         Some(
