@@ -185,6 +185,7 @@ module AgentTypes =
             LastAction       : Action
             TeamZoneScore    : int
             Jobs             : Job list
+            MyJobs           : (JobID*VertexName) list
             TotalNodeCount   : int
             ExploredCount    : int
             MyExploredCount  : int
