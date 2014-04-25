@@ -164,25 +164,38 @@ module HandlePercepts =
         else
             state
                 
-    let shouldSharePercept (state:State) percept = // FINISH THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    let shouldSharePercept oldState (state:State) percept = // FINISH THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         match percept with
         | VertexProbed (vertexName, value) -> 
-            if state.World.ContainsKey(vertexName) then 
-                let vertex = state.World.[vertexName]
+            if oldState.World.ContainsKey(vertexName) then 
+                let vertex = oldState.World.[vertexName]
                 if vertex.Value.IsNone then 
                     true
                 else
                     false
             else
-                false
-        | VertexSeen (vertexName, ownedBy) -> true
-        | EdgeSeen (edgeValue, node1, node2) -> true
-        | EnemySeen enemy -> true
+                true
+        | VertexSeen (vertexName, ownedBy) -> not (oldState.World.ContainsKey(vertexName))
+        | EdgeSeen (edgeValue, node1, node2) -> 
+            let edge = Set.filter (fun (_, endNode) -> endNode = node2) oldState.World.[node1].Edges
+
+            if edge.Count = 1 then 
+                                match edge.MaximumElement with
+                                | (value, _) -> value.IsNone
+                                | _ -> false
+            else
+                raise(System.Exception("Handle edge seen percept - found a wrong number of the given edge in the world."))
+        | EnemySeen { Role = role ; Name = name} -> 
+            let agentIsKnown agentData = 
+                match agentData with
+                | { Name = agentDataName ; Role = Some _ } -> agentDataName = name
+                | _ -> false
+            not (List.exists agentIsKnown oldState.EnemyData)
         | _ -> false
 
 
-    let selectSharedPercepts percepts (state:State) =
-        let propagatedPercepts = List.filter (shouldSharePercept state) percepts
+    let selectSharedPercepts percepts oldState (state:State) =
+        let propagatedPercepts = List.filter (shouldSharePercept oldState state) percepts
         { state with 
                 NewKnowledge = state.NewKnowledge @ propagatedPercepts
         }
@@ -197,7 +210,7 @@ module HandlePercepts =
                                 |> updateProbeCount state
                                 |> updateExploredCount state
                                 |> updateTraversedEdgeCost state
-                                |> selectSharedPercepts percepts
+                                |> selectSharedPercepts percepts state
 
         match percepts with
         | [NewRoundPercept|_] -> newRoundPercepts
