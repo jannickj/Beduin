@@ -8,7 +8,7 @@ module InspectorTree =
     let getInspectorDesires : DesireTree<State,Intention> = 
             ManyDesires 
                 [
-                    Desire(spontanousInspect)
+                    Desire(spontanousInspectAgent)
 
                     Desire(applyToOccupyJob)
 

@@ -8,6 +8,8 @@ module RepairerTree =
     let getRepairerDesires : DesireTree<State,Intention> = 
             ManyDesires 
                 [
+                    Desire(spontanousRepairNearbyDamagedAgent)
+
                     Desire(applyToRepairJob)
 
                     Desire(doRepairJob)

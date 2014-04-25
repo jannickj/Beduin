@@ -3,26 +3,25 @@ module Inspector =
 
     open FsPlanning.Agent.Planning
     open AgentTypes
-    open Graphing.Graph
+    open LogicLib
 
     ///////////////////////////////////Helper functions//////////////////////////////////////
-    let nodeListContains n (nl:string list) =
-        (List.tryFind (fun s -> s = n) nl).IsSome
 
-    let agentHasBeenInspected aName state =
-        (List.tryFind (fun ag -> ag.Role.IsSome && ag.Name = aName) state.EnemyData).IsSome
    
 
     ////////////////////////////////////////Logic////////////////////////////////////////////
 
     
-    let spontanousInspect (s:State) = 
-        let neighbourNodes = List.append (getNeighbourIds s.Self.Node s.World) [s.Self.Node]
-        let nearbyEnemies = List.filter (fun a -> nodeListContains a.Node neighbourNodes) s.EnemyData 
-        let uninspectedEnemies = List.filter (fun a -> a.Role.IsNone) nearbyEnemies
-        match nearbyEnemies with
+    let spontanousInspectAgent (s:State) = 
+        let uninspectedNearbyEnemies = List.filter (fun a -> a.Role.IsNone) (nearbyEnemies s s.Self)
+        match uninspectedNearbyEnemies with
         | [] -> None
-        | head::tail -> Some("inspect agent" + head.Name, Activity, [Requirement(fun state -> agentHasBeenInspected head.Name state)])
+        | head::tail ->     
+            Some(
+                    "inspect agent " + head.Name
+                    , Activity
+                    , [Requirement(fun state -> agentHasFulfilledRequirement head.Name state (fun ag -> ag.Role.IsSome))]
+                )
 
     let applyToOccupyJob (s:State) = None
     
@@ -32,4 +31,14 @@ module Inspector =
     
     let doDisruptJob (s:State) = None //advanced feature
     
-    let findAgentToInspect (s:State) = None
+    let findAgentToInspect (s:State) = 
+        Some(
+                "find and inspect an agent"
+                , Activity
+                , [Requirement(
+                    fun state ->  
+                        match s.LastAction with
+                        | (Inspect _) -> true
+                        | _ -> false
+                )]
+            )
