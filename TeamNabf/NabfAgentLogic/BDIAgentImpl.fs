@@ -8,5 +8,3 @@
             
             override this.AnalyzePercept(percept, state) = state
             override this.FilterIntention((intA, intB)) = Conflictive
-
-            //I hate Jannick
