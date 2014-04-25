@@ -186,6 +186,7 @@ module AgentTypes =
             TeamZoneScore    : int
             Jobs             : Job list
             TotalNodeCount   : int
+            ExploredVertices : VertexName Set
             ExploredCount    : int
             MyExploredCount  : int
             ProbedCount      : int
