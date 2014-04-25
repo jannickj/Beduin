@@ -260,8 +260,11 @@ namespace NabfProject.NoticeBoardModel
             {
                 if (n.ContentIsEqualTo(notice))
                 {
+                    if (n.GetAgentsApplied().Contains(a))
+                        _agentToNotice.Add(a, n);
+
                     n.Apply(desirability, a);
-                    _agentToNotice.Add(a, n);
+
                     break;
                 }
             }

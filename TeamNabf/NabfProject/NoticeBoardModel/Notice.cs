@@ -89,11 +89,16 @@ namespace NabfProject.NoticeBoardModel
 
         public void Apply(int desirability, NabfAgent a)
         {
-			if (!_agentsApplied.Contains(a))
-			{
-				_agentsToDesirability.Add(a, desirability);
-				_agentsApplied.Add(a);
-			}
+            if (!_agentsApplied.Contains(a))
+            {
+                _agentsToDesirability.Add(a, desirability);
+                _agentsApplied.Add(a);
+            }
+            else
+            {
+                _agentsToDesirability.Remove(a);
+                _agentsToDesirability.Add(a, desirability);
+            }
         }
         public void UnApply(NabfAgent a, NoticeBoard nb)
         {
