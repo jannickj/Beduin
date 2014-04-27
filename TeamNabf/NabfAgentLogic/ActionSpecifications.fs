@@ -64,7 +64,7 @@ module ActionSpecifications =
         { ActionType = Communicate action
         ; Preconditions = []
         ; Effect = fun state -> state
-        ; Cost = 0
+        ; Cost = fun _ -> 0
         }
 
     let moveAction (destination : VertexName) = 

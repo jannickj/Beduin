@@ -5,11 +5,12 @@
     open Graphing.Graph
     open NabfAgentLogic.Logging
     open HandlePercepts
+    open NabfAgentLogic.Planning
 
     type BDIAgentImpl(State,DesireTree,Planner) =
         class
            
-            inherit BDIAgent<Percept,State,AgentAction,Intention,Solution>(State,DesireTree,Planner)
+            inherit BDIAgent<Percept,State,AgentAction,Intention,Plan>(State,DesireTree,Planner)
                 override this.AnalyzePercept(percepts, state) = updateState state percepts
             
                 override this.FilterIntention(intA, intB) = Conflictive
