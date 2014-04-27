@@ -43,7 +43,7 @@ module Planning =
         let (idx,plan) = solution
         true
 
-    let repairPlan state goal plan = None
+    let repairPlan state goal plan = Some plan
 
     let solutionFinished state intent solution = 
         let (_,_,goals) = intent

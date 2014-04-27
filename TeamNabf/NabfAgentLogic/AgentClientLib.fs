@@ -48,10 +48,12 @@ module AgentClientLib =
             ;   LastAction = Skip
             ;   TeamZoneScore = 0
             ;   Jobs = []
+            ;   MyJobs = []
             ;   TotalNodeCount = simData.SimVertices
             ;   ExploredCount = 0
             ;   MyExploredCount = 0
             ;   MyProbedCount = 0
             ;   ProbedCount = 0  
-            ;   NewKnowledge = []          
+            ;   NewKnowledge = []
+            ;   ExploredVertices = Set.empty
             } : State

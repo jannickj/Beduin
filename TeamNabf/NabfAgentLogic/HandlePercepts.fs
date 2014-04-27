@@ -218,15 +218,19 @@ module HandlePercepts =
             else
                 true
         | VertexSeen (vertexName, ownedBy) -> not (oldState.World.ContainsKey(vertexName))
-        | EdgeSeen (edgeValue, node1, node2) -> 
-            let edge = Set.filter (fun (_, endNode) -> endNode = node2) oldState.World.[node1].Edges
-
-            if edge.Count = 1 then 
-                                match edge.MaximumElement with
-                                | (value, _) -> value.IsNone
-                                | _ -> false
-            else
-                raise(System.Exception("Handle edge seen percept - found a wrong number of the given edge in the world."))
+        | EdgeSeen (edgeValue, node1, node2) ->
+//            if oldState.World.ContainsKey(node1) then
+//                let edge = Set.filter (fun (_, endNode) -> endNode = node2) oldState.World.[node1].Edges
+//
+//                if edge.Count = 1 then 
+//                                    match edge.MaximumElement with
+//                                    | (value, _) -> value.IsNone
+//                                    | _ -> false
+//                else
+//                    raise(System.Exception("Handle edge seen percept - found a wrong number of the given edge in the world."))
+//            else
+//                false
+            false
 
         | EnemySeen { Role = role ; Name = name} -> //Should be shared when we learn of the agents role, as well as every time it is spotted!! TODO!!!
             let agentIsKnown agentData = 
@@ -243,13 +247,12 @@ module HandlePercepts =
         { state with 
                 NewKnowledge = state.NewKnowledge @ propagatedPercepts
         }
-                
-
-        (* let updateState : State -> Percept list -> State *)
+    
+    (* let updateState : State -> Percept list -> State *)
     let updateState state percepts = 
         let clearedState = clearTempBeliefs state
         let handlePercepts state percepts = List.fold handlePercept state percepts
-        let newRoundPercepts = handlePercepts clearedState percepts
+        let newRoundPercepts s = handlePercepts s percepts
                                 |> updateLastPos state
                                 |> updateProbeCount state
                                 |> updateExploredCount state
@@ -257,6 +260,6 @@ module HandlePercepts =
                                 |> selectSharedPercepts percepts state
 
         match percepts with
-        | [NewRoundPercept|_] -> newRoundPercepts
+        | NewRoundPercept::_ -> newRoundPercepts clearedState
         | _ -> handlePercepts state percepts
-
+        
