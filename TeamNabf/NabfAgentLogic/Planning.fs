@@ -1,11 +1,15 @@
 ﻿namespace NabfAgentLogic
 module Planning =
-    open FsPlanning.Searching
     open ActionSpecifications
+    open FsPlanning.Searching
     open NabfAgentLogic.AgentTypes
     open Graphing.Graph
     open FsPlanning.Agent.Planning
     open Logging
+
+    type Plan = (ActionSpecification list) * (Goal list)
+
+    let flip f x y = f y x
 
     let agentProblem (state : State) goalTest = 
         { InitialState = state
@@ -15,68 +19,77 @@ module Planning =
         ; StepCost     = fun state action -> action.Cost state
         }
 
-//    abstract member FormulatePlan : ('TState * 'TGoal) -> 'TSolution option
-//    abstract member PlanWorking : ('TState * 'TGoal * 'TSolution) -> bool
-//    abstract member RepairPlan : ('TState * 'TGoal * 'TSolution) -> 'TSolution option
-//    abstract member SolutionFinished : ('TState * 'TGoal * 'TSolution) -> bool
-//    abstract member NextAction : ('TState * 'TGoal * 'TSolution) -> 'TAction * 'TSolution
+    //let perform actionspec = Perform actionspec.ActionType
 
-    let perform actionspec = Perform actionspec.ActionType
-       
-    let formulatePlan state intent = 
-        let (name,_,goals) = intent
-        logImportant ("Planning to " + name)
+    let makePlan state goals =
         match goals with
-        | (Plan p)::_ -> Some (0, (p state))
-        | (Requirement r)::_ -> 
+        | (Plan plan) :: _ -> Some (List.map actionSpecification <| plan state, goals)
+        | (Requirement r) :: _ -> 
             let plan = solve aStar <| agentProblem state r
             match plan with
             | Some sol -> 
-                let actions = List.map perform sol.Path
-                logImportant ("Found plan: "+sprintf "%A" actions)                
-                Some (0,actions)
+                let actions = sol.Path
+                logImportant (sprintf "Found plan: %A" actions)                
+                Some (actions, goals)
             | None -> None
-        | [] -> Some (0, [])
-        
-    let planWorking state intent solution =
-        let (_,_,goals) = intent
-        let (idx,plan) = solution
-        true
+        | [] -> Some ([], goals)
+       
+    let formulatePlan (state : State) intent = 
+        let (name,_,goals) = intent
+        logImportant ("Planning to " + name)
+        makePlan state goals
 
-    let repairPlan state goal plan = None
+    let rec repairPlanHelper state plan = 
+
+        let restPlan state action actionList =
+            let restOfPlan = repairPlanHelper state actionList
+            match restOfPlan with
+                | Some plan -> Some <| action :: plan
+                | None -> None
+
+        match plan with
+        | action :: tail when isApplicable state action ->
+            restPlan state action tail
+        | action :: tail ->
+            let gluePlan = solve aStar <| agentProblem state (flip isApplicable action)
+            match gluePlan with
+            | Some solution -> restPlan state action (solution.Path @ tail)
+            | None -> None
+        | _ -> Some plan
+
+    let repairPlan state intent (plan : Plan) = 
+        let (path, goals) = plan
+        let newPlan = repairPlanHelper state path
+
+        match newPlan with
+        | Some p -> Some (p, goals)
+        | None -> None
 
     let solutionFinished state intent solution = 
-        let (_,_,goals) = intent
-        let (idx,plan) = solution
-        match plan with
-        | [] -> (List.length goals - 1) = idx
+        match solution with
+        | (_, [Requirement req]) -> req state
+        | (_, []) -> true
         | _ -> false
     
-    let nextAction state intent solution =
-        let (idx,plan) = solution
+    let rec nextAction state (intent : Intention) (plan : Plan) =
         match plan with
-        | act::rest -> (act,(idx,rest))
-        | [] -> failwith "No next action for empty plan"
+        | (action :: rest, goals) -> Some (action.ActionType, (rest, goals))
+        | ([], (Requirement req) :: t) when req state -> 
+            match makePlan state t with
+            | Some newPlan -> nextAction state intent newPlan
+            | None -> None
+        | _ -> None
 
-    type AgentPlanner()  =  // : FsPlanning.Agent.Planning.Planner<State, ActionSpecification, (State -> bool), Action list> = 
+    type AgentPlanner() =
         class
-            interface Planner<State, AgentAction, Intention, Solution> with 
+            interface Planner<State, AgentAction, Intention, Plan> with 
                 member self.FormulatePlan (state, intent) = 
-                    formulatePlan state intent                    
-                member self.PlanWorking (state, intent, solution) = planWorking state intent solution
-                member self.RepairPlan (state, intent, solution) = repairPlan state intent solution
-                member self.SolutionFinished (state, intent, solution) = solutionFinished state intent solution
-                member self.NextAction (state, intent, solution) = nextAction state intent solution
+                    formulatePlan state intent
+                member self.RepairPlan (state, intent, solution) = 
+                    repairPlan state intent solution
+                member self.SolutionFinished (state, intent, solution) = 
+                    solutionFinished state intent solution
+                member self.NextAction (state, intent, solution) = 
+                    nextAction state intent solution
         end
-                    
-//      type ProgressionPlanner() =
-//        class
-//            interface Planner<State, AgentAction, Intention, Solution> with
-//                member this.FormulatePlan(state, goal) = None
-//                member this.PlanWorking(state, goal, solution) = true
-//                member this.RepairPlan (state, goal, solution) = None
-//                member this.SolutionFinished (state, goal, solution) = false
-//                member this.NextAction (state, goal, solution) = (Perform Skip,"Some Solution")
-//
-//        end
  
