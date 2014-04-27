@@ -178,12 +178,12 @@ module AgentTypes =
 
     type State =
         { 
-            World            : Graph; 
-            Self             : Agent; 
-            FriendlyData     : Agent list;         
-            EnemyData        : Agent list; 
-            InspectedEnemies : AgentName Set;
-            SimulationStep   : int;
+            World            : Graph
+            Self             : Agent
+            FriendlyData     : Agent list     
+            EnemyData        : Agent list
+            InspectedEnemies : AgentName Set
+            SimulationStep   : int
             LastPosition     : VertexName
             NewVertices      : SeenVertex list
             NewEdges         : Edge list
@@ -195,7 +195,9 @@ module AgentTypes =
             LastAction       : Action
             TeamZoneScore    : int
             Jobs             : Job list
+            MyJobs           : (JobID * VertexName) list
             TotalNodeCount   : int
+            ExploredVertices : VertexName Set //Update this when we explore a vertex!! TODO!!!!!!
             ExploredCount    : int
             MyExploredCount  : int
             MyProbedCount    : int

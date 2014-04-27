@@ -47,7 +47,7 @@
                                                             curActId)
                         NewActionEvent.Trigger(this, new UnaryValueEvent<_>((id,act)))
                     | _ -> ()
-                member this.IsReady =  lock actionLock (fun () -> actionSent = curActId)
+                member this.IsReady =  lock actionLock (fun () -> actionSent <> curActId)
 
                 [<CLIEvent>]
                 member this.ActuatorReady = ActuatorReadyEvent.Publish
