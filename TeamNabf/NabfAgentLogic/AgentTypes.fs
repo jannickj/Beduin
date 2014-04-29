@@ -114,6 +114,7 @@ module AgentTypes =
         | Team              of TeamState
         | Self              of Agent
         | AgentRolePercept  of AgentRolePercept
+        | KnowledgeSent     of Percept list
         
 
     type SimulationID = int
@@ -190,6 +191,7 @@ module AgentTypes =
             ExploredVertices : VertexName Set
             ExploredCount    : int
             MyExploredCount  : int
+            NewKnowledge     : Percept list
             ProbedCount      : int
             MyProbedCount    : int
         }

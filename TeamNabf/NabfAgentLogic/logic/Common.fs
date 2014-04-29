@@ -5,6 +5,9 @@ module Common =
     open AgentTypes
     open LogicLib
 
+    
+
+
     ///////////////////////////////////Helper functions//////////////////////////////////////
         
     //Try to find any repair jobs put up by the agent itself.
@@ -50,6 +53,8 @@ module Common =
     //Find a node of at leas value 8 to stand on.
     let generateMinimumValue (s:State) = Some("find a good node to occupy.",Activity,[Requirement(fun state -> state.World.[state.Self.Node].Value.Value >= 8)])
 
+    let shareKnowledge (s:State) : Option<Intention> =
+         Some ("share my knowledge", Communication, [Plan (fun s -> [(Communicate <| ShareKnowledge ( s.NewKnowledge))] )])
     
     let workOnOccupyJob (s:State) =
         let myJobs = List.map (fun (id,_) -> getJobFromJobID s id) s.MyJobs
