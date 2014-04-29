@@ -184,7 +184,6 @@ module Explorer =
 
     let applyToOccupyJob (s:State) = None
 
-    let workOnOccupyJob (s:State) = None
 
     let findNodeToProbeUnconditional (s:State) = 
         if s.ProbedCount < s.TotalNodeCount

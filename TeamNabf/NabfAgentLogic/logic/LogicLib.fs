@@ -23,13 +23,16 @@ module LogicLib =
     let nearbyAllies state = 
         List.filter (fun a -> nodeListContains a.Node (neighbourNodes state state.Self)) state.FriendlyData 
 
-    let getJobsByType state (jobtype:JobType) : Job list = List.filter 
-                                                            (
-                                                                fun j -> 
-                                                                    match j with
-                                                                    | ((_, _, jt, _), _) when jt = jobtype -> true
-                                                                    | _ -> false
-                                                            ) state.Jobs
+    let getJobsByType (jobtype:JobType) (jobs) : Job list = 
+        List.filter 
+            (
+                fun j -> 
+                    match j with
+                    | ((_, _, jt, _), _) when jt = jobtype -> true
+                    | _ -> false
+            ) jobs
+
+
 
     let getJobId (job:Job) =
         let ((id, _, _, _),_) = job
@@ -37,6 +40,7 @@ module LogicLib =
 
     let getJobFromJobID (s:State) (jid:JobID) : Job =
         (List.filter (fun j -> (getJobId j).Value = jid) s.Jobs).Head
+
 
     let excludeLesserJobs (s:State) calculateDesire (jobs:Job list) =
         if (s.MyJobs.IsEmpty) then
@@ -50,6 +54,6 @@ module LogicLib =
         Communicate(ApplyJob(id,desire))     
         
     let createApplicationList state jobtype calculateDesire = 
-        List.map (fun (job:Job) -> (createApplication (getJobId job).Value (calculateDesire job state))) (excludeLesserJobs state calculateDesire (getJobsByType state jobtype))
+        List.map (fun (job:Job) -> (createApplication (getJobId job).Value (calculateDesire job state))) (excludeLesserJobs state calculateDesire (getJobsByType jobtype state.Jobs))
 
     //let isPartOfOccupyJob n (s:State) = List.exists (fun (j:Job) -> j ) s.Jobs
