@@ -20,18 +20,29 @@ module Saboteur =
                 , Communication
                 , [Plan(fun state -> applicationList)]
             )
-    
-    let doAttackJob (s:State) = None
-    
-    let spontanousAttackAgent (s:State) = 
-        let enemiesNearby = List.filter (fun a -> true) (nearbyEnemies s s.Self)
+
+    let spontanouslyAttackAgentOnMyNode (s:State) = 
+        let enemiesNearby = List.filter (fun a -> a.Node = s.Self.Node) s.EnemyData
         match enemiesNearby with
         | [] -> None
         | head::tail ->     
             Some(
                     "attack agent " + head.Name
                     , Activity
-                    , [Requirement(fun state -> agentHasFulfilledRequirement head.Name state (fun ag -> ag.Status = EntityStatus.Disabled))]
+                    , [Requirement( agentHasFulfilledRequirement head.Name (fun ag -> ag.Status = EntityStatus.Disabled) )]
+                )
+    
+    let doAttackJob (s:State) = None
+    
+    let spontanouslyAttackAgent (s:State) = 
+        let enemiesNearby = List.filter (fun a -> a.Status <> Disabled) (nearbyEnemies s s.Self)
+        match enemiesNearby with
+        | [] -> None
+        | head::tail ->     
+            Some(
+                    "attack agent " + head.Name
+                    , Activity
+                    , [Requirement(agentHasFulfilledRequirement head.Name (fun ag -> ag.Status = EntityStatus.Disabled))]
                 )
              
     

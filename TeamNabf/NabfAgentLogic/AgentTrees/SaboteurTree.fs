@@ -9,10 +9,12 @@ module SaboteurTree =
             ManyDesires 
                 [
                     Desire(applyToAttackJob)
+                                    
+                    Desire(spontanouslyAttackAgentOnMyNode)
 
                     Desire(doAttackJob)
 
-                    Desire(spontanousAttackAgent)
+                    Desire(spontanouslyAttackAgent)
 
                     Desire(applyToDisruptJob)
 

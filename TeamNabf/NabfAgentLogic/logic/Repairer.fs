@@ -4,6 +4,7 @@ module Repairer =
     open FsPlanning.Agent.Planning
     open AgentTypes
     open LogicLib
+    open Constants
 
     ///////////////////////////////////Helper functions//////////////////////////////////////
     let calculateDesireRepairJob (j:Job) (s:State) = 
@@ -13,19 +14,19 @@ module Repairer =
 
     ////////////////////////////////////////Logic////////////////////////////////////////////
 
-    let spontanousRepairNearbyDamagedAgent (s:State) = 
-        let nearbyDamagedAgent = List.filter (fun a -> a.Health.Value < (a.MaxHealth.Value / 2)) (nearbyAllies s)
+    let spontanouslyRepairNearbyDamagedAgent (s:State) = 
+        let nearbyDamagedAgent = List.filter (fun a -> (float a.Health.Value) < ((float a.MaxHealth.Value) * SPONTANOUS_REPAIR_PERCENTAGE)) (nearbyAllies s)
         match nearbyDamagedAgent with
         | [] -> None
         | head::tail ->     
             Some(
                     "repair agent " + head.Name
                     , Activity
-                    , [Requirement(fun state -> agentHasFulfilledRequirement head.Name state (fun ag -> ag.Health = ag.MaxHealth))]
+                    , [Requirement(agentHasFulfilledRequirement head.Name (fun ag -> ag.Health = ag.MaxHealth))]
                 )
 
     let applyToRepairJob (s:State) = 
-        let applicationList = createApplicationList s JobType.AttackJob calculateDesireRepairJob
+        let applicationList = createApplicationList s JobType.RepairJob calculateDesireRepairJob
         Some(
                 "apply to all repair jobs"
                 , Communication

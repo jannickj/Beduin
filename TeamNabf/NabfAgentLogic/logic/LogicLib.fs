@@ -11,13 +11,16 @@ module LogicLib =
     let listContains element elementList =
         (List.tryFind (fun s -> s = element) elementList).IsSome
 
-    let agentHasFulfilledRequirement aName state func =
+    let agentHasFulfilledRequirement aName func state =
         (List.tryFind (fun ag -> (func ag) && ag.Name = aName) state.EnemyData).IsSome
         
     let neighbourNodes state (self:Agent) = 
         List.append (getNeighbourIds self.Node state.World) [self.Node]
 
     let nearbyEnemies state source = 
+        List.filter (fun a -> nodeListContains a.Node (neighbourNodes state source)) state.EnemyData 
+                
+    let enemiesOnSource state source = 
         List.filter (fun a -> nodeListContains a.Node (neighbourNodes state source)) state.EnemyData 
         
     let nearbyAllies state = 
@@ -50,6 +53,21 @@ module LogicLib =
         Communicate(ApplyJob(id,desire))     
         
     let createApplicationList state jobtype calculateDesire = 
-        List.map (fun (job:Job) -> (createApplication (getJobId job).Value (calculateDesire job state))) (excludeLesserJobs state calculateDesire (getJobsByType state jobtype))
+        List.map (
+                    fun (job:Job) -> 
+                        let id = (getJobId job).Value
+                        let desire = (calculateDesire job state)
+                        (createApplication id desire)
+                 ) 
+                 (excludeLesserJobs state calculateDesire (getJobsByType state jobtype))
+
+    let getJobValueFromJoblist (list:(JobID*_) list) (s:State) : int =
+        let (id,_) = list.Head
+        let ((_,value,_,_),_) = (getJobFromJobID s id)
+        value
+
+    let getDistanceToJob (targetNode:VertexName) (s:State) : float =
+        1.0//make my functionality
+
 
     //let isPartOfOccupyJob n (s:State) = List.exists (fun (j:Job) -> j ) s.Jobs

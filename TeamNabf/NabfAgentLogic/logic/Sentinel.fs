@@ -14,7 +14,7 @@ module Sentinel =
     ////////////////////////////////////////Logic////////////////////////////////////////////
 
     let applyToOccupyJob (s:State) = 
-        let applicationList = createApplicationList s JobType.AttackJob calculateDesireOccupyJob
+        let applicationList = createApplicationList s JobType.OccupyJob calculateDesireOccupyJob
         Some(
                 "apply to all occupy jobs"
                 , Communication
@@ -23,6 +23,6 @@ module Sentinel =
     
     let doOccupyJobThenParryIfEnemiesClose (s:State) = None             
     
-    let applyToDisruptJob (s:State) = None
+    let applyToDisruptJob (s:State) = None //advanced feature
     
-    let doDisruptJobThenParryIfEnemiesClose (s:State) = None
+    let doDisruptJobThenParryIfEnemiesClose (s:State) = None //advanced feature

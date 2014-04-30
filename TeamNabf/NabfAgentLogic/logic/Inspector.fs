@@ -4,11 +4,28 @@ module Inspector =
     open FsPlanning.Agent.Planning
     open AgentTypes
     open LogicLib
+    open Constants
+
+    let personalValueMod = 0.1 //to be calculated from the state
+    let distanceToJobMod = 0.1 //to be calculated from the state 
 
     ///////////////////////////////////Helper functions//////////////////////////////////////
     let calculateDesireOccupyJob (j:Job) (s:State) = 
-        let ((_,value,_,_),_) = j
-        value
+        let ((_,newValue,_,_),(jobData)) = j      
+        let oldJobValue = 
+                            if (s.MyJobs.IsEmpty) then
+                                0
+                            else
+                                (getJobValueFromJoblist s.MyJobs s)
+
+        let jobTargetNode = 
+            match jobData with
+            | OccupyJob (_,zone) -> zone.Head
+        
+
+        let distanceToJob = (getDistanceToJob jobTargetNode s)
+
+        int <| (((float newValue) * personalValueMod) - (float oldJobValue))    +     (-(distanceToJob * distanceToJobMod))    +    INSPECTOR_OCCUPYJOB_MOD
    
 
     ////////////////////////////////////////Logic////////////////////////////////////////////
@@ -22,11 +39,11 @@ module Inspector =
             Some(
                     "inspect agent " + head.Name
                     , Activity
-                    , [Requirement(fun state -> agentHasFulfilledRequirement head.Name state (fun ag -> ag.Role.IsSome))]
+                    , [Requirement(agentHasFulfilledRequirement head.Name (fun ag -> ag.Role.IsSome))]
                 )
 
     let applyToOccupyJob (s:State) = 
-        let applicationList = createApplicationList s JobType.AttackJob calculateDesireOccupyJob
+        let applicationList = createApplicationList s JobType.OccupyJob calculateDesireOccupyJob
         Some(
                 "apply to all occupy jobs"
                 , Communication
