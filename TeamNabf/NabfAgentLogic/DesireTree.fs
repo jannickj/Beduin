@@ -31,6 +31,7 @@ module DesireTree =
     let getTree : DesireTree<State,Intention> =
             ManyDesires 
                 [
+                    Desire(shareKnowledge)
                     Desire(onlyOneJob)
 
                     ////Desire(postDefenceJob)

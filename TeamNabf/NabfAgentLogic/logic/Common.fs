@@ -3,6 +3,10 @@ module Common =
 
     open FsPlanning.Agent.Planning
     open AgentTypes
+    open LogicLib
+
+    
+
 
     ///////////////////////////////////Helper functions//////////////////////////////////////
         
@@ -48,3 +52,22 @@ module Common =
 
     //Find a node of at leas value 8 to stand on.
     let generateMinimumValue (s:State) = Some("find a good node to occupy.",Activity,[Requirement(fun state -> state.World.[state.Self.Node].Value.Value >= 8)])
+
+    let shareKnowledge (s:State) : Option<Intention> =
+         Some ("share my knowledge", Communication, [Plan (fun s -> [(Communicate <| ShareKnowledge ( s.NewKnowledge))] )])
+    
+    let workOnOccupyJob (s:State) =
+        let myJobs = List.map (fun (id,_) -> getJobFromJobID s id) s.MyJobs
+        let myOccupyJobs = getJobsByType JobType.OccupyJob myJobs
+        match myOccupyJobs with
+        | ((id,_,_,_),_)::_ -> 
+            let (_,node) = List.find (fun (jid,_) -> id.Value = jid) s.MyJobs
+            Some
+                (   "occupy node " + node
+                ,   Activity
+                ,   [
+                        Requirement <| fun state -> state.Self.Node = node
+                    ,   Plan <| fun _ -> [Perform Recharge]
+                    ]
+                )
+        | [] -> None

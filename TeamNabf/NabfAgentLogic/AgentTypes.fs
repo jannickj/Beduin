@@ -86,7 +86,7 @@ module AgentTypes =
         | AttackJob = 4
 
     type JobData =
-        | OccupyJob of VertexName list * VertexName list
+        | OccupyJob of VertexName list * VertexName list //(agentPositions,zone)
         | RepairJob of VertexName * AgentName
         | DisruptJob of VertexName
         | AttackJob of VertexName list //Change to single vertex?
@@ -114,6 +114,7 @@ module AgentTypes =
         | Team              of TeamState
         | Self              of Agent
         | AgentRolePercept  of AgentRolePercept
+        | KnowledgeSent     of Percept list
         
 
     type SimulationID = int
@@ -190,6 +191,7 @@ module AgentTypes =
             ExploredVertices : VertexName Set
             ExploredCount    : int
             MyExploredCount  : int
+            NewKnowledge     : Percept list
             ProbedCount      : int
             MyProbedCount    : int
         }
