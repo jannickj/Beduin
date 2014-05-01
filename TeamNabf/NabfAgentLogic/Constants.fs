@@ -4,22 +4,32 @@
         ///////////////////////////////
         /// Agent constants
         ///////////////////////////////
+        let STEPS_BEFORE_ROLE_DONT_MATTER_DISRUPT_TIER0 = 0.0
         let STEPS_BEFORE_ROLE_DONT_MATTER_DISRUPT_TIER1 = 20.0
         let STEPS_BEFORE_ROLE_DONT_MATTER_DISRUPT_TIER2 = 30.0
         let STEPS_BEFORE_ROLE_DONT_MATTER_OCCUPY_TIER1 = 50.0
         let STEPS_BEFORE_ROLE_DONT_MATTER_OCCUPY_TIER2 = 70.0
 
+        //lower means distance between agent and job matters less
+        let DISTANCE_TO_OCCUPY_JOB_MOD = 0.1
+        let DISTANCE_TO_REPAIR_JOB_MOD = 0.01
+        let DISTANCE_TO_DISRUPT_JOB_MOD = 0.1
+        let DISTANCE_TO_ATTACK_JOB_MOD = 0.1
+
+        let DESIRE_COST_OF_MOVING_THROUGH_ONE_ENEMY_NODE = 0.02 //job value will be multiplied by 1.0*this_constant. This constant may not be negative and not exceed 1.0
+
+        //don't change these. Modify the above constants as what they actually do is clearly understood
         let REPAIRER_OCCUPYJOB_MOD = -0.0
         let SENTINEL_OCCUPYJOB_MOD = 10.0 + (STEPS_BEFORE_ROLE_DONT_MATTER_OCCUPY_TIER1 / 10.0)
         let INSPECTOR_OCCUPYJOB_MOD = 10.0
         let SABOTEUR_OCCUPYJOB_MOD = -0.0
         let EXPLORER_OCCUPYJOB_MOD = 10.0
 
-
+        //don't change these. Modify the above constants as what they actually do is clearly understood
         let REPAIRER_DISRUPTJOB_MOD = -0.0
         let SENTINEL_DISRUPTJOB_MOD = 10.0 + (STEPS_BEFORE_ROLE_DONT_MATTER_DISRUPT_TIER2 / 10.0)
         let INSPECTOR_DISRUPTJOB_MOD = 10.0 + (STEPS_BEFORE_ROLE_DONT_MATTER_DISRUPT_TIER1 / 10.0)
-        let SABOTEUR_DISRUPTJOB_MOD = 10.0
+        let SABOTEUR_DISRUPTJOB_MOD = 10.0 + (STEPS_BEFORE_ROLE_DONT_MATTER_DISRUPT_TIER0 / 10.0)
         let EXPLORER_DISRUPTJOB_MOD = 10.0 + (STEPS_BEFORE_ROLE_DONT_MATTER_DISRUPT_TIER1 / 10.0)
 
         

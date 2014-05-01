@@ -8,8 +8,22 @@ module Repairer =
 
     ///////////////////////////////////Helper functions//////////////////////////////////////
     let calculateDesireRepairJob (j:Job) (s:State) = 
-        let ((_,value,_,_),_) = j
-        value
+        let ((_,newValue,_,_),(jobData)) = j      
+        let oldJobValue = 
+                            if (s.MyJobs.IsEmpty) then
+                                0
+                            else
+                                (getJobValueFromJoblist s.MyJobs s)
+
+        let jobTargetNode = 
+            match jobData with
+            | RepairJob (node,_) -> node
+        
+
+        let (distanceToJob,personalValueMod) = (getDistanceToJobAndNumberOfEnemyNodes jobTargetNode s)
+        
+
+        int <| (((float newValue) * personalValueMod) - (float oldJobValue))    +     (-(distanceToJob * DISTANCE_TO_REPAIR_JOB_MOD))    +    REPAIRER_REPAIRJOB_MOD
    
 
     ////////////////////////////////////////Logic////////////////////////////////////////////

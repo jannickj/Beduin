@@ -4,6 +4,8 @@ module LogicLib =
     open FsPlanning.Agent.Planning
     open AgentTypes
     open Graphing.Graph
+    open Constants
+    open FsPlanning.Searching
 
     let nodeListContains n (nl:string list) =
         (List.tryFind (fun s -> s = n) nl).IsSome
@@ -66,8 +68,16 @@ module LogicLib =
         let ((_,value,_,_),_) = (getJobFromJobID s id)
         value
 
-    let getDistanceToJob (targetNode:VertexName) (s:State) : float =
-        1.0//make my functionality
+    //pathfind through the graph. When the path is found, count it's length and register each node which is held by an enemy
+    //returns: (dist to job * number of enemy node)
+    let getDistanceToJobAndNumberOfEnemyNodes (targetNode:VertexName) (s:State) =
+        let number_of_enemy_nodes = 0.0
+        let distance_to_job = 1.0
+        
+
+        (distance_to_job   ,   1.0  -  (number_of_enemy_nodes  *  DESIRE_COST_OF_MOVING_THROUGH_ONE_ENEMY_NODE)) 
+
+    
 
 
     //let isPartOfOccupyJob n (s:State) = List.exists (fun (j:Job) -> j ) s.Jobs

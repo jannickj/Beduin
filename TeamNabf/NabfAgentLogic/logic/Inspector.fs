@@ -6,8 +6,7 @@ module Inspector =
     open LogicLib
     open Constants
 
-    let personalValueMod = 0.1 //to be calculated from the state
-    let distanceToJobMod = 0.1 //to be calculated from the state 
+    let distanceToOccupyJobMod = 0.1
 
     ///////////////////////////////////Helper functions//////////////////////////////////////
     let calculateDesireOccupyJob (j:Job) (s:State) = 
@@ -23,9 +22,10 @@ module Inspector =
             | OccupyJob (_,zone) -> zone.Head
         
 
-        let distanceToJob = (getDistanceToJob jobTargetNode s)
+        let (distanceToJob,personalValueMod) = (getDistanceToJobAndNumberOfEnemyNodes jobTargetNode s)
+        
 
-        int <| (((float newValue) * personalValueMod) - (float oldJobValue))    +     (-(distanceToJob * distanceToJobMod))    +    INSPECTOR_OCCUPYJOB_MOD
+        int <| (((float newValue) * personalValueMod) - (float oldJobValue))    +     (-(distanceToJob * DISTANCE_TO_OCCUPY_JOB_MOD))    +    INSPECTOR_OCCUPYJOB_MOD
    
 
     ////////////////////////////////////////Logic////////////////////////////////////////////

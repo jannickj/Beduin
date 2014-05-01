@@ -4,12 +4,26 @@ module Saboteur =
     open FsPlanning.Agent.Planning
     open AgentTypes
     open LogicLib
+    open Constants
 
     ///////////////////////////////////Helper functions//////////////////////////////////////
     let calculateDesireAttackJob (j:Job) (s:State) = 
-        let ((_,value,_,_),_) = j
-        value
-   
+        let ((_,newValue,_,_),(jobData)) = j      
+        let oldJobValue = 
+                            if (s.MyJobs.IsEmpty) then
+                                0
+                            else
+                                (getJobValueFromJoblist s.MyJobs s)
+
+        let jobTargetNode = 
+            match jobData with
+            | AttackJob (zone) -> zone.Head
+        
+
+        let (distanceToJob,personalValueMod) = (getDistanceToJobAndNumberOfEnemyNodes jobTargetNode s)
+        
+
+        int <| (((float newValue) * personalValueMod) - (float oldJobValue))    +     (-(distanceToJob * DISTANCE_TO_ATTACK_JOB_MOD))    +    SABOTEUR_ATTACKJOB_MOD
 
     ////////////////////////////////////////Logic////////////////////////////////////////////
 
