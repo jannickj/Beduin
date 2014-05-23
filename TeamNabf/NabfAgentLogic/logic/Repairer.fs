@@ -22,7 +22,7 @@ module Repairer =
 
         let (distanceToJob,personalValueMod) = (getDistanceToJobAndNumberOfEnemyNodes jobTargetNode s)
         
-
+        //final desire
         int <| (((float newValue) * personalValueMod) - (float oldJobValue))    +     (-(distanceToJob * DISTANCE_TO_REPAIR_JOB_MOD))    +    REPAIRER_REPAIRJOB_MOD
    
 
@@ -36,7 +36,7 @@ module Repairer =
             Some(
                     "repair agent " + head.Name
                     , Activity
-                    , [Requirement(agentHasFulfilledRequirement head.Name (fun ag -> ag.Health = ag.MaxHealth))]
+                    , [Requirement(fun state -> agentHasFulfilledRequirementFriendlies head.Name state (fun ag -> ag.Health = ag.MaxHealth))]
                 )
 
     let applyToRepairJob (s:State) = 
@@ -47,4 +47,23 @@ module Repairer =
                 , [Plan(fun state -> applicationList)]
             )
     
-    let workOnRepairJob (s:State) = None
+    let workOnRepairJob (s:State) = 
+        let myJobs = List.map (fun (id,_) -> getJobFromJobID s id) s.MyJobs
+        let myRepairJobs = getJobsByType JobType.RepairJob myJobs
+        match myRepairJobs with
+        | ((id,_,_,_),_)::_ -> 
+            let (jobid,node) = List.find (fun (jid,_) -> id.Value = jid) s.MyJobs
+            let (_,RepairJob(_,agent)) = (getJobFromJobID s jobid) : Job
+            Some
+                (   "repair agent " + agent + " on node " + node
+                ,   Activity
+                ,   [
+                        Requirement(fun s -> s.Self.Node = node)
+                        ; Requirement(
+                                    fun state ->  
+                                        match s.LastAction with
+                                        | (Repair _) -> true
+                                        | _ -> false
+                )]
+                )
+        | [] -> None

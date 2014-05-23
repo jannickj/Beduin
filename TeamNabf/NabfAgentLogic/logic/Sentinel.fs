@@ -22,7 +22,7 @@ module Sentinel =
 
         let (distanceToJob,personalValueMod) = (getDistanceToJobAndNumberOfEnemyNodes jobTargetNode s)
         
-
+        //final desire
         int <| (((float newValue) * personalValueMod) - (float oldJobValue))    +     (-(distanceToJob * DISTANCE_TO_OCCUPY_JOB_MOD))    +    SENTINEL_OCCUPYJOB_MOD
    
 

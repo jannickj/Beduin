@@ -22,7 +22,7 @@ module Saboteur =
 
         let (distanceToJob,personalValueMod) = (getDistanceToJobAndNumberOfEnemyNodes jobTargetNode s)
         
-
+        //final desire
         int <| (((float newValue) * personalValueMod) - (float oldJobValue))    +     (-(distanceToJob * DISTANCE_TO_ATTACK_JOB_MOD))    +    SABOTEUR_ATTACKJOB_MOD
 
     ////////////////////////////////////////Logic////////////////////////////////////////////
@@ -43,7 +43,7 @@ module Saboteur =
             Some(
                     "attack agent " + head.Name
                     , Activity
-                    , [Requirement( agentHasFulfilledRequirement head.Name (fun ag -> ag.Status = EntityStatus.Disabled) )]
+                    , [Requirement(fun state -> agentHasFulfilledRequirementEnemies head.Name state (fun ag -> ag.Status = EntityStatus.Disabled) )]
                 )
     
     let workOnAttackJob (s:State) = None
@@ -56,7 +56,7 @@ module Saboteur =
             Some(
                     "attack agent " + head.Name
                     , Activity
-                    , [Requirement(agentHasFulfilledRequirement head.Name (fun ag -> ag.Status = EntityStatus.Disabled))]
+                    , [Requirement(fun state -> agentHasFulfilledRequirementEnemies head.Name state (fun ag -> ag.Status = EntityStatus.Disabled))]
                 )
              
     

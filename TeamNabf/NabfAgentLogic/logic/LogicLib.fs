@@ -13,8 +13,13 @@ module LogicLib =
     let listContains element elementList =
         (List.tryFind (fun s -> s = element) elementList).IsSome
 
-    let agentHasFulfilledRequirement aName func state =
+    //WARNING: DEPRECATED
+    let agentHasFulfilledRequirementEnemies aName state func =
         (List.tryFind (fun ag -> (func ag) && ag.Name = aName) state.EnemyData).IsSome
+    
+    //WARNING: DEPRECATED
+    let agentHasFulfilledRequirementFriendlies aName state func =
+        (List.tryFind (fun ag -> (func ag) && ag.Name = aName) state.FriendlyData).IsSome
         
     let neighbourNodes state (self:Agent) = 
         List.append (getNeighbourIds self.Node state.World) [self.Node]

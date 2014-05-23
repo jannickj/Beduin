@@ -24,7 +24,7 @@ module Inspector =
 
         let (distanceToJob,personalValueMod) = (getDistanceToJobAndNumberOfEnemyNodes jobTargetNode s)
         
-
+        //final desire
         int <| (((float newValue) * personalValueMod) - (float oldJobValue))    +     (-(distanceToJob * DISTANCE_TO_OCCUPY_JOB_MOD))    +    INSPECTOR_OCCUPYJOB_MOD
    
 
@@ -39,7 +39,7 @@ module Inspector =
             Some(
                     "inspect agent " + head.Name
                     , Activity
-                    , [Requirement(agentHasFulfilledRequirement head.Name (fun ag -> ag.Role.IsSome))]
+                    , [Requirement(fun state -> agentHasFulfilledRequirementEnemies head.Name state (fun ag -> ag.Role.IsSome) )]
                 )
 
     let applyToOccupyJob (s:State) = 
