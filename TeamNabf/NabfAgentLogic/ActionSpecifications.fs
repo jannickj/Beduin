@@ -69,12 +69,18 @@ module ActionSpecifications =
 
     let moveAction (destination : VertexName) = 
         let edgeCost state = 
-            state.World.[state.Self.Node].Edges 
-            |> Set.toList 
-            |> List.find (fun (cost, name) -> name = destination) 
-            |> fst
+            //logInfo <| sprintf "At: %A, neighbours: %A, destination: %A" state.Self.Node state.World.[state.Self.Node].Edges destination
+            let neighbour = 
+                state.World.[state.Self.Node].Edges 
+                |> Set.toList 
+                |> List.tryFind (fun (_, name) -> name = destination)
 
-        let cost state = decide Constants.ACTION_COST_CHEAP (edgeCost state)
+            match neighbour with
+            | Some (cost, _) -> Some cost
+            | None -> None
+        
+
+        let cost state = decide Constants.ACTION_COST_CHEAP (edgeCost state).Value
 
         let updateState state = 
             let self = { state.Self with Node = destination }
@@ -83,7 +89,11 @@ module ActionSpecifications =
             let exploredNodes = if  ( Set.forall (fun (value, _) -> value = Option.None) state.World.[destination].Edges ) then 1 else 0
             { state with Self = newSelf; MyExploredCount = state.MyExploredCount + exploredNodes}
 
-        let canMoveTo state = (state.Self.Energy.Value - definiteCost (edgeCost state)) >= 0
+        let canMoveTo state = 
+            match edgeCost state with
+            | Some cost -> (state.Self.Energy.Value - definiteCost cost) >= 0
+            | None -> false
+
         { ActionType    = Perform <| Goto destination
         ; Preconditions = [ canMoveTo; isNotDisabled ]
         ; Effect        = updateState
