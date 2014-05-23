@@ -87,7 +87,7 @@ module AgentTypes =
         | AttackJob = 4
 
     type JobData =
-        | OccupyJob of VertexName list * VertexName list
+        | OccupyJob of VertexName list * VertexName list //(agentPositions,zone)
         | RepairJob of VertexName * AgentName
         | DisruptJob of VertexName
         | AttackJob of VertexName list //Change to single vertex?
@@ -200,9 +200,9 @@ module AgentTypes =
             ExploredVertices : VertexName Set //Update this when we explore a vertex!! TODO!!!!!!
             ExploredCount    : int
             MyExploredCount  : int
-            MyProbedCount    : int
+
             ProbedCount      : int
-            NewKnowledge     : Percept list
+            MyProbedCount    : int
         }
 
     type OptionFunc = State -> (bool*Option<Action>)

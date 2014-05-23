@@ -51,6 +51,11 @@
     <Compile Include="Logic\Saboteur.fs" />
     <Compile Include="Logic\Sentinel.fs" />
     <Compile Include="Logic\Inspector.fs" />
+    <Compile Include="AgentTrees\ExplorerTree.fs" />
+    <Compile Include="AgentTrees\InspectorTree.fs" />
+    <Compile Include="AgentTrees\RepairerTree.fs" />
+    <Compile Include="AgentTrees\SaboteurTree.fs" />
+    <Compile Include="AgentTrees\SentinelTree.fs" />
     <Compile Include="DesireTree.fs" />
     <Compile Include="Planning.fs" />
     <Compile Include="MarsCommunicator.fs" />

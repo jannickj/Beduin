@@ -5,11 +5,11 @@ module DesireTree =
     open FsPlanning.Agent.Planning
     open AgentTypes
     open Common
-    open Explorer
-    open Repairer
-    open Sentinel
-    open Saboteur
-    open Inspector
+    open ExplorerTree
+    open RepairerTree
+    open SentinelTree
+    open SaboteurTree
+    open InspectorTree
 
     let isRole (r:Option<AgentRole>)(s:State) = s.Self.Role = r
 
@@ -31,21 +31,20 @@ module DesireTree =
     let getTree : DesireTree<State,Intention> =
             ManyDesires 
                 [
-                    //Desire(SharePercept)
-
-                    //Desire(onlyOneJob)
+                    Desire(shareKnowledge)
+                    Desire(onlyOneJob)
 
                     ////Desire(postDefenceJob)
 
                     ////Desire(postAttackJob)
 
-                    //Desire(getRepaired)
+                    Desire(getRepaired)
 
                     ////Desire(postDisruptJob)
 
-                    //getRoleDesires
+                    getRoleDesires
 
                     Desire(exploreMap)
 
-                    //Desire(generateMinimumValue)
+                    Desire(generateMinimumValue)
                 ]
