@@ -50,11 +50,9 @@ module Inspector =
                 , [Plan(fun state -> applicationList)]
             )
     
-    let doOccupyJob (s:State) = None    
-    
     let applyToDisruptJob (s:State) = None //advanced feature
     
-    let doDisruptJob (s:State) = None //advanced feature
+    let workOnDisruptJob (s:State) = None //advanced feature
     
     let findAgentToInspect (s:State) = 
         Some(

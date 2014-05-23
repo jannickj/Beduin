@@ -46,7 +46,7 @@ module Saboteur =
                     , [Requirement( agentHasFulfilledRequirement head.Name (fun ag -> ag.Status = EntityStatus.Disabled) )]
                 )
     
-    let doAttackJob (s:State) = None
+    let workOnAttackJob (s:State) = None
     
     let spontanouslyAttackAgent (s:State) = 
         let enemiesNearby = List.filter (fun a -> a.Status <> Disabled) (nearbyEnemies s s.Self)
@@ -62,7 +62,7 @@ module Saboteur =
     
     let applyToDisruptJob (s:State) = None //advanced feature
     
-    let doDisruptJobThenParryIfEnemiesClose (s:State) = None //advanced feature
+    let workOnDisruptJobThenParryIfEnemiesClose (s:State) = None //advanced feature
     
     let findAgentToDestroy (s:State) = 
         Some(

@@ -36,8 +36,8 @@ module Sentinel =
                 , [Plan(fun state -> applicationList)]
             )
     
-    let doOccupyJobThenParryIfEnemiesClose (s:State) = None             
+    let workOnOccupyJobThenParryIfEnemiesClose (s:State) = None             
     
     let applyToDisruptJob (s:State) = None //advanced feature
     
-    let doDisruptJobThenParryIfEnemiesClose (s:State) = None //advanced feature
+    let workOnDisruptJobThenParryIfEnemiesClose (s:State) = None //advanced feature

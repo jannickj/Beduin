@@ -12,5 +12,5 @@ module RepairerTree =
 
                     Desire(applyToRepairJob)
 
-                    Desire(doRepairJob)
+                    Desire(workOnRepairJob)
                 ]
