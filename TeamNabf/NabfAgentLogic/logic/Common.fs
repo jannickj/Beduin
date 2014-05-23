@@ -67,7 +67,7 @@ module Common =
                 ,   Activity
                 ,   [
                         Requirement <| fun state -> state.Self.Node = node
-                    ,   Plan <| fun _ -> [Perform Recharge]
+                    ;   Plan <| fun _ -> [Perform Recharge]
                     ]
                 )
         | [] -> None

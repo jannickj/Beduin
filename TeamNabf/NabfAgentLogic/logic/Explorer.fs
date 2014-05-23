@@ -17,6 +17,20 @@ module Explorer =
 
     ///////////////////////////////////Helper functions//////////////////////////////////////
         
+
+    let rec mergeZones (zone:VertexName list) (overlapping:Job list) =
+        match overlapping with
+        | (_,JobData.OccupyJob(_,oldZone)) :: tail -> mergeZones (List.append oldZone zone) tail
+        | _ -> zone
+
+
+    let rec removeDuplicates (zone:VertexName list) (result:VertexName list) =
+        match zone with
+        | head :: tail -> 
+                        let target = List.tryFind (fun n -> n = head) tail
+                        if target.IsSome then removeDuplicates tail result else removeDuplicates tail (head::result)
+        | [] -> result
+
     //Check if any jobs contain the current vertex.
     let checkZoneCandidate (s:State) =
         let occupyJobs = List.filter (fun (((_,_,jobtype,_),data):Job) -> jobtype = JobType.OccupyJob) s.Jobs
@@ -169,15 +183,24 @@ module Explorer =
                                                Requirement(fun state -> isDoneExploring origin Set.empty state); 
                                                Plan(fun state ->
                                                     let zone = findZone Set.empty (Set [origin]) s
-                                                    let subGraph = List.map (fun n -> state.World.[n]) (Set.toList zone)
                                                     let overlapping = getOverlappingJobs s.Jobs (Set.toList zone)
                                                     match overlapping with
                                                     | [] -> 
+                                                        let subGraph = List.map (fun n -> state.World.[n]) (Set.toList zone)
                                                         let agentPositions = findAgentPlacement subGraph s.World
                                                         let agentsNeeded = agentPositions.Length
                                                         let zoneValue = calcZoneValue state agentsNeeded zone
                                                         [Communicate( CreateJob( (None,zoneValue,JobType.OccupyJob,agentsNeeded),OccupyJob(agentPositions,Set.toList zone) ) )]
-                                                    | head::tail -> [] //Job overlaps w. other job(s), merge them & add/remove.  
+                                                    | head::tail -> 
+                                                        let removeIds = List.map ( fun ((id:Option<JobID>,_,_,_),_) -> if id.IsSome then id.Value else -1) overlapping
+                                                        let merged = removeDuplicates (mergeZones (Set.toList zone) overlapping) []
+                                                        let subGraph = List.map (fun n -> state.World.[n]) merged
+                                                        let agentPositions = findAgentPlacement subGraph s.World
+                                                        let agentsNeeded = agentPositions.Length
+                                                        let zoneValue = calcZoneValue state agentsNeeded (Set.ofList merged)
+                                                        let addZone = [Communicate( CreateJob( (None,zoneValue,JobType.OccupyJob,agentsNeeded),OccupyJob(agentPositions,merged) ) )] 
+                                                        let removeZones = List.map (fun id -> Communicate(RemoveJob(id))) removeIds
+                                                        List.concat [removeZones;addZone]
                                                )])
         else
             None

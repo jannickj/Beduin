@@ -28,13 +28,13 @@ module LogicLib =
     let nearbyAllies state = 
         List.filter (fun a -> nodeListContains a.Node (neighbourNodes state state.Self)) state.FriendlyData 
 
-    let getJobsByType state (jobtype:JobType) : Job list = List.filter 
-                                                            (
-                                                                fun j -> 
-                                                                    match j with
-                                                                    | ((_, _, jt, _), _) when jt = jobtype -> true
-                                                                    | _ -> false
-                                                            ) state.Jobs
+    let getJobsByType (jobtype:JobType) (list : Job list) : Job list = List.filter 
+                                                                        (
+                                                                            fun j -> 
+                                                                                match j with
+                                                                                | ((_, _, jt, _), _) when jt = jobtype -> true
+                                                                                | _ -> false
+                                                                        ) list
 
     let getJobId (job:Job) =
         let ((id, _, _, _),_) = job
@@ -61,7 +61,7 @@ module LogicLib =
                         let desire = (calculateDesire job state)
                         (createApplication id desire)
                  ) 
-                 (excludeLesserJobs state calculateDesire (getJobsByType state jobtype))
+                 (excludeLesserJobs state calculateDesire (getJobsByType jobtype state.Jobs))
 
     let getJobValueFromJoblist (list:(JobID*_) list) (s:State) : int =
         let (id,_) = list.Head
