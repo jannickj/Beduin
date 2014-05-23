@@ -48,14 +48,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Test.fs" />
-    <Compile Include="DijkstraTest.fs" />
-    <Compile Include="IiLangTest.fs" />
-    <Compile Include="AgentLogicClientTest.fs" />
-    <Compile Include="IilPerceivingTest.fs" />
-    <Compile Include="ExploreTest.fs" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\JSLibrary\JSLibrary\JSLibrary\JSLibrary.csproj">
       <Name>JSLibrary</Name>
       <Project>{02121c4a-b1fb-46b8-bde8-c5c6ca28c036}</Project>
