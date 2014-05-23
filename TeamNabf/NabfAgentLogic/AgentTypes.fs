@@ -200,7 +200,7 @@ module AgentTypes =
             ExploredVertices : VertexName Set //Update this when we explore a vertex!! TODO!!!!!!
             ExploredCount    : int
             MyExploredCount  : int
-
+            NewKnowledge     : Percept list
             ProbedCount      : int
             MyProbedCount    : int
         }
