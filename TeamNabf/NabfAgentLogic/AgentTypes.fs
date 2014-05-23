@@ -7,9 +7,8 @@ module AgentTypes =
     type TeamName = string
     type AgentName = string
 
-    //To be done
-    type Intention = string
-    type Solution = string
+   
+    
 
     type ActionResult =
         | Successful
@@ -42,6 +41,7 @@ module AgentTypes =
         { Energy      : Option<int>
         ; Health      : Option<int>
         ; MaxEnergy   : Option<int>
+        ; MaxEnergyDisabled : Option<int>
         ; MaxHealth   : Option<int>
         ; Name        : string
         ; Node        : string
@@ -102,6 +102,20 @@ module AgentTypes =
     type SeenVertex = VertexName * TeamName option
     type AgentRolePercept = AgentName * AgentRole * int
 
+    type SimStartData =
+        { SimId          :   int
+        ; SimEdges       :   int
+        ; SimVertices    :   int
+        ; SimRole        :   AgentRole
+//        ; SimTotalSteps  :   int
+        }
+    
+    type JobPercept =
+        | AddedOrChangedJob of Job
+        | RemovedJob of Job
+        | AcceptedJob of JobID*VertexName
+        | FiredFrom of JobID 
+
     type Percept =
         | EnemySeen         of Agent
         | VertexSeen        of SeenVertex
@@ -114,8 +128,11 @@ module AgentTypes =
         | ZoneScore         of int
         | Team              of TeamState
         | Self              of Agent
+        | NewRoundPercept
         | AgentRolePercept  of AgentRolePercept
+        | KnowledgeSent     of Percept list
         
+        | JobPercept        of JobPercept
 
     type SimulationID = int
 
@@ -142,21 +159,12 @@ module AgentTypes =
     type ActionID = int
     type ActionRequestData = Deadline * CurrentTime * ActionID
     
-    type SimStartData =
-        { SimId          :   int
-        ; SimEdges       :   int
-        ; SimVertices    :   int
-        ; SimRole        :   AgentRole
-//        ; SimTotalSteps  :   int
-        }
+    
 
     type AgentServerMessage =
-        | AddedOrChangedJob of Job
-        | RemovedJob of Job
-        | AcceptedJob of JobID*VertexName
+        | JobMessage of JobPercept
         | SharedPercepts of Percept list
         | RoundChanged of int
-        | FiredFrom of JobID
 
     type MarsServerMessage =  
         | ActionRequest of ActionRequestData * Percept list
@@ -170,11 +178,12 @@ module AgentTypes =
 
     type State =
         { 
-            World            : Graph; 
-            Self             : Agent; 
-            FriendlyData     : Agent list;         
-            EnemyData        : Agent list; 
-            SimulationStep   : int;
+            World            : Graph
+            Self             : Agent
+            FriendlyData     : Agent list     
+            EnemyData        : Agent list
+            InspectedEnemies : AgentName Set
+            SimulationStep   : int
             LastPosition     : VertexName
             NewVertices      : SeenVertex list
             NewEdges         : Edge list
@@ -186,8 +195,29 @@ module AgentTypes =
             LastAction       : Action
             TeamZoneScore    : int
             Jobs             : Job list
+            MyJobs           : (JobID * VertexName) list
+            TotalNodeCount   : int
+            ExploredVertices : VertexName Set //Update this when we explore a vertex!! TODO!!!!!!
+            ExploredCount    : int
+            MyExploredCount  : int
+            MyProbedCount    : int
+            ProbedCount      : int
+            NewKnowledge     : Percept list
         }
 
     type OptionFunc = State -> (bool*Option<Action>)
 
     type DecisionRank = int
+
+    type IntentionType =
+        | Communication
+        | Activity
+        | Inherent
+
+    type Goal = 
+        | Plan of (State -> AgentAction list)
+        | Requirement of (State -> bool)
+
+
+    type Intention = string*IntentionType*(Goal list)
+    type Solution = int * (AgentAction list)

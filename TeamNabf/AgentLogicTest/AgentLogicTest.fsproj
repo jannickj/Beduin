@@ -48,17 +48,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Test.fs" />
-    <Compile Include="DijkstraTest.fs" />
-    <Compile Include="IiLangTest.fs" />
-    <Compile Include="AgentLogicClientTest.fs" />
-    <Compile Include="IilPerceivingTest.fs" />
-    <Compile Include="ExploreTest.fs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\XmasEngine\JSLibrary\JSLibrary\JSLibrary\JSLibrary.csproj">
-      <Project>{02121C4A-B1FB-46B8-BDE8-C5C6CA28C036}</Project>
+    <ProjectReference Include="..\..\JSLibrary\JSLibrary\JSLibrary\JSLibrary.csproj">
       <Name>JSLibrary</Name>
+      <Project>{02121c4a-b1fb-46b8-bde8-c5c6ca28c036}</Project>
+      <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\NabfAgentLogic\NabfAgentLogic.fsproj">
       <Project>{039EE1F6-4FD5-4DC7-97ED-4D3E5E8B9C20}</Project>
