@@ -10,6 +10,12 @@
     type BDIAgentImpl(State,DesireTree,Planner) =
         class
            
+<<<<<<< HEAD
+            inherit BDIAgent<Percept,State,AgentAction,Intention,Solution>(State,DesireTree,Planner)
+            override this.AnalyzePercept(percepts, state) = updateState state percepts
+            override this.FilterIntention(intA, intB) = Conflictive
+        end
+=======
             inherit BDIAgent<Percept,State,AgentAction,Intention,Plan>(State,DesireTree,Planner)
                 override this.AnalyzePercept(percepts, state) = updateState state percepts
             
@@ -18,3 +24,4 @@
             
         
     end
+>>>>>>> c945f2844f70b0f582f6fb7004c97a19e0dfe6c1

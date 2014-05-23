@@ -9,7 +9,7 @@ module ActionSpecifications =
     [<CustomEquality>]
     [<CustomComparison>]
     type ActionSpecification =
-        { ActionType    : Action 
+        { ActionType    : AgentAction
         ; Preconditions : (State -> bool) list 
         ; Effect        : State -> State
         ; Cost          : State -> int
@@ -60,14 +60,27 @@ module ActionSpecifications =
         | Some result -> result
         | None -> failwith "removeFromList: Element not found"
 
+    let communicationAction action =
+        { ActionType = Communicate action
+        ; Preconditions = []
+        ; Effect = fun state -> state
+        ; Cost = fun _ -> 0
+        }
+
     let moveAction (destination : VertexName) = 
         let edgeCost state = 
-            state.World.[state.Self.Node].Edges 
-            |> Set.toList 
-            |> List.find (fun (cost, name) -> name = destination) 
-            |> fst
+            //logInfo <| sprintf "At: %A, neighbours: %A, destination: %A" state.Self.Node state.World.[state.Self.Node].Edges destination
+            let neighbour = 
+                state.World.[state.Self.Node].Edges 
+                |> Set.toList 
+                |> List.tryFind (fun (_, name) -> name = destination)
 
-        let cost state = decide Constants.ACTION_COST_CHEAP (edgeCost state)
+            match neighbour with
+            | Some (cost, _) -> Some cost
+            | None -> None
+        
+
+        let cost state = decide Constants.ACTION_COST_CHEAP (edgeCost state).Value
 
         let updateState state = 
             let self = { state.Self with Node = destination }
@@ -76,8 +89,12 @@ module ActionSpecifications =
             let exploredNodes = if  ( Set.forall (fun (value, _) -> value = Option.None) state.World.[destination].Edges ) then 1 else 0
             { state with Self = newSelf; MyExploredCount = state.MyExploredCount + exploredNodes}
 
-        let canMoveTo state = (state.Self.Energy.Value - definiteCost (edgeCost state)) >= 0
-        { ActionType    = Goto destination
+        let canMoveTo state = 
+            match edgeCost state with
+            | Some cost -> (state.Self.Energy.Value - definiteCost cost) >= 0
+            | None -> false
+
+        { ActionType    = Perform <| Goto destination
         ; Preconditions = [ canMoveTo; isNotDisabled ]
         ; Effect        = updateState
         ; Cost          = cost
@@ -92,7 +109,7 @@ module ActionSpecifications =
             let updateAtt = { List.head attacked with Status = Disabled }
             { state with EnemyData = updateAtt::rest; Self = deductEnergy Constants.ACTION_COST_EXPENSIVE state}
         
-        { ActionType    = Attack enemyAgent
+        { ActionType    = Perform <| Attack enemyAgent
         ; Preconditions = [ canAttack; enoughEnergy Constants.ACTION_COST_EXPENSIVE; isNotDisabled ]
         ; Effect        = updateState
         ; Cost          = fun _ -> Constants.ACTION_COST_EXPENSIVE
@@ -102,7 +119,7 @@ module ActionSpecifications =
         let updateState state = 
             let newEnergy = state.Self.Energy.Value + (int ((float state.Self.MaxEnergy.Value) * RECHARGE_FACTOR)) 
             { state with Self = { state.Self with Energy = Some newEnergy} }
-        { ActionType    = Recharge
+        { ActionType    = Perform <| Recharge
         ; Preconditions = [  ]
         ; Effect        = updateState
         ; Cost = fun _ -> 1
@@ -124,7 +141,7 @@ module ActionSpecifications =
                          Self = deductEnergy (repairCost state) state 
             }
 
-        { ActionType    = Repair damagedAgent
+        { ActionType    = Perform <| Repair damagedAgent
         ; Preconditions = [ canRepair; fun state -> enoughEnergy (repairCost state) state ]
         ; Effect        = updateState
         ; Cost          = fun state -> repairCost state
@@ -145,7 +162,7 @@ module ActionSpecifications =
                                         MyProbedCount = state.MyProbedCount + 1
                                 }
 
-        { ActionType    = Probe vertexOption
+        { ActionType    = Perform <| Probe vertexOption
         ; Preconditions = [ vertexUnProbed; enoughEnergy Constants.ACTION_COST_CHEAP; isNotDisabled ]
         ; Effect        = updateState
         ; Cost          = fun _ -> Constants.ACTION_COST_CHEAP
@@ -166,7 +183,7 @@ module ActionSpecifications =
                     Self = deductEnergy Constants.ACTION_COST_EXPENSIVE state
             }
 
-        { ActionType    = Inspect agentNameOption
+        { ActionType    = Perform <| Inspect agentNameOption
         ; Preconditions = [ enemiesNotInspected; enoughEnergy Constants.ACTION_COST_EXPENSIVE; isNotDisabled ]
         ; Effect        = updateState
         ; Cost          = fun _ -> Constants.ACTION_COST_EXPENSIVE
@@ -180,7 +197,7 @@ module ActionSpecifications =
         let saboteurPresent state = 
             List.exists (fun enemy -> enemy.Node = state.Self.Node && (enemy.Role = None || enemy.Role = Some Saboteur)) state.EnemyData
 
-        { ActionType    = Parry
+        { ActionType    = Perform <| Parry
         ; Preconditions = [ saboteurPresent; enoughEnergy Constants.ACTION_COST_EXPENSIVE; isNotDisabled ]
         ; Effect        = updateState
         ; Cost          = fun _ -> Constants.ACTION_COST_EXPENSIVE
@@ -220,3 +237,9 @@ module ActionSpecifications =
         | Some Saboteur  -> attackActions state  @ commonActions state 
         | Some Sentinel  -> parryActions state   @ commonActions state 
         | None -> failwith "agent role is unknown"
+
+    let actionSpecification (action : AgentAction) =
+        match action with
+        | Communicate comm -> communicationAction comm
+        | _ -> raise (System.NotImplementedException ())
+
