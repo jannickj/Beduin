@@ -24,9 +24,9 @@ module Planning =
             
         { InitialState = state
         ; GoalTest     = wrappedGoalTest goalTest
-//        ; Actions      = fun state -> List.filter (isApplicable state) (roleActions state)
-        ; Actions      = fun state -> testfun state
-                                      List.filter (isApplicable state) (roleActions state)
+        ; Actions      = fun state -> List.filter (isApplicable state) (roleActions state)
+//        ; Actions      = fun state -> testfun state
+//                                      List.filter (isApplicable state) (roleActions state)
         ; Result       = fun state action -> action.Effect state
         ; StepCost     = fun state action -> action.Cost state
         }
