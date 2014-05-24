@@ -118,7 +118,7 @@ module HandlePercepts =
                 let addAgentRole name (role:Option<AgentRole>) = 
                     if (List.exists (fun (a:Agent) -> a.Name = name) state.EnemyData) then addEnemyRole name role
                     elif (List.exists (fun (a:Agent) -> a.Name = name) state.FriendlyData) then addFriendlyRole name role
-                    else addNothing name role //Fix this!! TODO!!!!
+                    else addNothing name role
                                             
                 match agentRole with
                 | (name, role, certainty) -> if certainty = 100 then addAgentRole name (Some role)

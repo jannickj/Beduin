@@ -10,10 +10,16 @@ module Planning =
     type Plan = (ActionSpecification list) * (Goal list)
 
     let flip f x y = f y x
+    let wrappedGoalTest goalTest state = 
+        try goalTest state with
+        | ex -> logError <| sprintf "goal test: %A \nfailed with:\n %A" goalTest ex
+                false
 
     let agentProblem (state : State) goalTest = 
+        
+            
         { InitialState = state
-        ; GoalTest     = goalTest
+        ; GoalTest     = wrappedGoalTest goalTest
         ; Actions      = fun state -> List.filter (isApplicable state) (roleActions state)
         ; Result       = fun state action -> action.Effect state
         ; StepCost     = fun state action -> action.Cost state
@@ -78,7 +84,7 @@ module Planning =
 
     let solutionFinished state intent solution = 
         match solution with
-        | (_, [Requirement req]) -> req state
+        | (_, [Requirement req]) ->  wrappedGoalTest req state
         | (_, []) -> true
         | _ -> false
     
