@@ -52,7 +52,7 @@ module Planning =
             restPlan (action.Effect state) action tail
         | action :: tail ->
             logInfo <| sprintf "Inconsistency found! state does not satisfy %A" action.ActionType
-            logInfo <| sprintf "Energy = %A; Last action = %A; last result = %A" state.Self.Energy.Value state.LastAction state.LastActionResult
+            logInfo <| sprintf "the following errors were found: %A" (unSatisfiedPreconditions state action)
             let gluePlan = solve aStar <| agentProblem state (flip isApplicable action)
             match gluePlan with
             | Some {Cost = _; Path = []} -> restPlan (action.Effect state) action tail
