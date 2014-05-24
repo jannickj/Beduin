@@ -15,12 +15,18 @@ module Planning =
         | ex -> logError <| sprintf "goal test: %A \nfailed with:\n %A" goalTest ex
                 false
 
+    let testfun state = 
+        let actions = roleActions state
+        let unsat = unSatisfiedPreconditions state (List.head actions)
+        logError <| sprintf "%A" unsat
+
     let agentProblem (state : State) goalTest = 
-        
             
         { InitialState = state
         ; GoalTest     = wrappedGoalTest goalTest
-        ; Actions      = fun state -> List.filter (isApplicable state) (roleActions state)
+//        ; Actions      = fun state -> List.filter (isApplicable state) (roleActions state)
+        ; Actions      = fun state -> testfun state
+                                      List.filter (isApplicable state) (roleActions state)
         ; Result       = fun state action -> action.Effect state
         ; StepCost     = fun state action -> action.Cost state
         }

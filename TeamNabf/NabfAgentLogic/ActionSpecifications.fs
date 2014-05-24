@@ -173,9 +173,9 @@ module ActionSpecifications =
             | None -> state.Self.Node
         
         let vertexUnProbed state = 
-            match Option.isSome state.World.[realVertex state].Value with
-            | true -> Success
-            | false -> Failure <| sprintf "Vertex %A is already probed" (realVertex state)
+            match state.World.[realVertex state].Value with
+            | None -> Success
+            | Some _ -> Failure <| sprintf "Vertex %A is already probed" (realVertex state)
 
         let updateState state = { state with 
                                         World = addVertexValue (realVertex state) 0 state.World;
