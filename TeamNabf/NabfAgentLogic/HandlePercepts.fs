@@ -38,7 +38,8 @@ module HandlePercepts =
                     else
                         { state with EnemyData = updateAgentList enemy state.EnemyData }
                 
-            | VertexSeen seenVertex -> state //Update state with the agents controlling vertices we can see      TODO!!!!!!!!!!!!!!!!!!!
+            | VertexSeen seenVertex -> 
+                { state with NewVertices = seenVertex::state.NewVertices} 
 
             | VertexProbed (name, value) ->
                 { state with 
@@ -91,7 +92,38 @@ module HandlePercepts =
                     
                     
             | NewRoundPercept -> state //is here for simplicity, should not do anything
-            | AgentRolePercept agentRole -> state // todo
+
+            | AgentRolePercept agentRole -> 
+                         
+                let addRole name role (list:Agent list) = 
+                    let agent = (List.filter (fun (a:Agent) -> a.Name = name) list).Head
+                    let others = List.filter (fun (a:Agent) -> a.Name <> name) list
+
+                    if agent.Role = role then list
+                    else 
+                        let newAgent = { agent with Role = role}
+                        newAgent::others
+
+                let addEnemyRole name role = 
+                    let updatedData = addRole name role state.EnemyData
+                    { state with EnemyData = updatedData}
+
+                let addFriendlyRole name role = 
+                    let updatedData = addRole name role state.FriendlyData
+                    { state with FriendlyData = updatedData}
+
+                let addNothing (name:string) (role:Option<AgentRole>) =
+                    state
+
+                let addAgentRole name (role:Option<AgentRole>) = 
+                    if (List.exists (fun (a:Agent) -> a.Name = name) state.EnemyData) then addEnemyRole name role
+                    elif (List.exists (fun (a:Agent) -> a.Name = name) state.FriendlyData) then addFriendlyRole name role
+                    else addNothing name role
+                                            
+                match agentRole with
+                | (name, role, certainty) -> if certainty = 100 then addAgentRole name (Some role)
+                                                else state// We might want to add functionality for certainty < 100%
+                | _ -> state
 
             | JobPercept job -> 
                 let jobIDFromHeader (header:JobHeader) =

@@ -37,10 +37,10 @@
   <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets" Condition=" Exists('$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets')" />
   <ItemGroup>
     <Compile Include="Constants.fs" />
+    <Compile Include="Logging.fs" />
     <Compile Include="Graphing\Graph.fsi" />
     <Compile Include="Graphing\Graph.fs" />
     <Compile Include="AgentTypes.fs" />
-    <Compile Include="Logging.fs" />
     <Compile Include="ActionSpecifications.fs" />
     <Compile Include="IiLang\IiLang.fs" />
     <Compile Include="IiLang\IilTranslator.fs" />
@@ -51,6 +51,11 @@
     <Compile Include="Logic\Saboteur.fs" />
     <Compile Include="Logic\Sentinel.fs" />
     <Compile Include="Logic\Inspector.fs" />
+    <Compile Include="AgentTrees\ExplorerTree.fs" />
+    <Compile Include="AgentTrees\InspectorTree.fs" />
+    <Compile Include="AgentTrees\RepairerTree.fs" />
+    <Compile Include="AgentTrees\SaboteurTree.fs" />
+    <Compile Include="AgentTrees\SentinelTree.fs" />
     <Compile Include="DesireTree.fs" />
     <Compile Include="Planning.fs" />
     <Compile Include="MarsCommunicator.fs" />
@@ -70,12 +75,7 @@
     <Reference Include="System.Xml" />
     <ProjectReference Include="..\..\JSLibrary\JSLibrary\JSLibrary\JSLibrary.csproj">
       <Name>JSLibrary</Name>
-      <Project>{02121c4a-b1fb-46b8-bde8-c5c6ca28c036}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\XmasEngine\XmasProject\XmasEngineExtensions\XmasEngineExtensions.csproj">
-      <Project>{F0965EBC-FEAF-4445-A43B-998D0A8D249D}</Project>
-      <Name>XmasEngineExtensions</Name>
+      <Project>{02121C4A-B1FB-46B8-BDE8-C5C6CA28C036}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\FsPlanning\FsPlanning\FsPlanning\FsPlanning.fsproj">
       <Project>{06CC68A7-84B7-4352-8700-FD9F79DAA71B}</Project>
