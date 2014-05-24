@@ -13,7 +13,13 @@
             inherit BDIAgent<Percept,State,AgentAction,Intention,Plan>(State,DesireTree,Planner)
                 override this.AnalyzePercept(percepts, state) = updateState state percepts
             
-                override this.FilterIntention(intA, intB) = Conflictive
+                override this.FilterIntention(intA, intB) = 
+                    match intA with
+                    | (_, Communication, _)
+                    | (_, Inherent, _) -> Harmonic
+                    | (_, Activity, _) -> match intB with
+                                            | (_, Activity, _) -> Conflictive
+                                            | _ -> Harmonic
 
             
         

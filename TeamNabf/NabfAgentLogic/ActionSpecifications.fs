@@ -160,6 +160,7 @@ module ActionSpecifications =
                                         World = addVertexValue (realVertex state) 0 state.World;
                                         Self = deductEnergy Constants.ACTION_COST_CHEAP state
                                         MyProbedCount = state.MyProbedCount + 1
+                                        LastAction = Action.Probe (Some(state.Self.Node))
                                 }
 
         { ActionType    = Perform <| Probe vertexOption

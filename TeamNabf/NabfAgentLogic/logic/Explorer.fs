@@ -39,7 +39,7 @@ module Explorer =
 
     let hasExploredPhase1 (s:State) = (float s.ExploredCount) > ( EXPLORE_FACTOR_LIGHT * (float s.TotalNodeCount) )
 
-    let onHighValueNode (s:State) = s.World.[s.Self.Node].Value.Value >= ZONE_ORIGIN_VALUE
+    let onHighValueNode (s:State) = s.World.[s.Self.Node].Value.IsSome && s.World.[s.Self.Node].Value.Value >= ZONE_ORIGIN_VALUE
 
     let nodePartOfZone (s:State) =
         let occupyJobs = (List.filter (fun ((_,_,jType,_),_) -> jType = JobType.OccupyJob) s.Jobs)
@@ -212,7 +212,10 @@ module Explorer =
         if s.ProbedCount < s.TotalNodeCount
             then
                 let myOldProbedCount = s.MyProbedCount
-                Some("probe one more node.",Activity,[Requirement(fun state -> state.MyProbedCount > myOldProbedCount)])
+                Some("probe one more node.",Activity,[Requirement(fun state -> match state.LastAction with 
+                                                                                                       | Probe _ -> true
+                                                                                                       | _ -> false
+                                                                                                       )])
             else
                 None
 
