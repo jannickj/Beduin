@@ -8,7 +8,7 @@ module Planning =
     open Logging
 
     type Plan = (ActionSpecification list) * (Goal list)
-
+    let test = 1
     let flip f x y = f y x
 
     let agentProblem (state : State) goalTest = 
