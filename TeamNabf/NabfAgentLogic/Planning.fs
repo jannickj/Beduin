@@ -41,7 +41,7 @@ module Planning =
 
         { InitialState = state
         ; GoalTest     = wrappedGoalTest <| goalTest goalFunc
-        ; Actions      = fun state -> List.filter (isApplicable state) (roleActions state)
+        ; Actions      = fun state -> testfun state; List.filter (isApplicable state) (roleActions state)
         ; Result       = fun state action -> action.Effect state
         ; StepCost     = fun state action -> action.Cost state
         ; Heuristic    = goalCount goalFunc
@@ -133,11 +133,18 @@ module Planning =
             match makePlan state goals with
             | Some newPlan -> nextAction state intent newPlan
             | None -> None
+        | ([], (MultiGoal goals) :: t) when goalTest goals state -> 
+            match makePlan state t with
+            | Some newPlan -> nextAction state intent newPlan
+            | None -> None
+        | ([], (MultiGoal goals) :: t) -> 
+            match makePlan state (snd plan) with
+            | Some newPlan -> nextAction state intent newPlan
+            | None -> None
         | ([], (Plan p) :: t) ->
             match makePlan state t with
             | Some newPlan -> nextAction state intent newPlan
             | None -> None
-
         | _ -> None
 
     type AgentPlanner() =
