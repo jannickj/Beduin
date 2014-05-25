@@ -5,7 +5,7 @@ module Explorer =
     open AgentTypes
     open Graphing.Graph
     open Constants
-
+    open Logging
     type ZoneVertex = 
         {   
             Vertex          : Vertex
@@ -37,7 +37,7 @@ module Explorer =
         let l = List.filter (fun ((_,OccupyJob(_,vertices)):Job) -> (List.exists (fun (vn:VertexName) -> s.Self.Node = vn ) vertices)) occupyJobs
         l <> []
 
-    let hasExploredPhase1 (s:State) = (float s.ExploredCount) > ( EXPLORE_FACTOR_LIGHT * (float s.TotalNodeCount) )
+    let hasExploredPhase1 (s:State) = (float s.MyExploredCount) > ( EXPLORE_FACTOR_LIGHT * (float s.TotalNodeCount) )
 
     let onHighValueNode (s:State) = s.World.[s.Self.Node].Value.IsSome && s.World.[s.Self.Node].Value.Value >= ZONE_ORIGIN_VALUE
 
@@ -46,7 +46,7 @@ module Explorer =
         let occupyJobSet = Set.ofList (List.concat (List.map (fun (_,OccupyJob(l,_)) -> l) occupyJobs))
         Set.contains s.Self.Node occupyJobSet
 
-    let nodeHostile (s:State) = true // Not implemented yet!
+    let nodeHostile (s:State) = false // Not implemented yet!
 
     let newZoneFound (s:State) = (onHighValueNode s) && not (nodePartOfZone s) && not (nodeHostile s)
 
@@ -63,6 +63,19 @@ module Explorer =
             findZone newExplored newFrontier s
         else
             findZone explored newFrontier s 
+
+    //Find a zone To Explore
+    let rec zoneToExplore  (s:State) (explore,frontier) = 
+        if Set.isEmpty frontier then explore else
+        let node = Set.maxElement frontier
+        let newFrontier = Set.remove node frontier
+        let newExplore = Set.add node explore
+        if hasValueHigherThan node ZONE_BORDER_VALUE s then
+            let neighbours = Set.difference (Set.map (fun (_,st) -> st) s.World.[node].Edges) explore
+            let realFrontier = Set.union neighbours newFrontier
+            zoneToExplore s (newExplore,realFrontier)
+        else
+            zoneToExplore s (newExplore,newFrontier)
 
 
     //Recursively check if a zone has been explored
@@ -175,19 +188,27 @@ module Explorer =
     
     ////////////////////////////////////////Logic////////////////////////////////////////////
 
-    let findNewZone (s:State) = 
-        if (newZoneFound s)
+    let findNewZone (inputState:State) = 
+        if (newZoneFound inputState)
         then
-            let origin = s.Self.Node
+            let origin = inputState.Self.Node
             Some("probe a new zone.",Activity,[
-                                               Requirement(fun state -> isDoneExploring origin Set.empty state); 
+                                               Requirement(fun state -> 
+                                                                          let zone = zoneToExplore state (Set.empty,Set [origin])
+                                                                          let vals = List.map (fun z -> (z,state.World.[z].Value)) <| Set.toList zone
+                                                                          let withVal = List.filter (fun (_,value) -> Option.isSome value) vals 
+                                                                          Set.forall (fun z -> state.World.[z].Value.IsSome) zone
+//                                                                        isDoneExploring origin Set.empty state
+                                                            ); 
                                                Plan(fun state ->
-                                                    let zone = findZone Set.empty (Set [origin]) s
-                                                    let overlapping = getOverlappingJobs s.Jobs (Set.toList zone)
+                                                    let exploredZone = zoneToExplore state (Set.empty,Set [origin])
+                                                    let zone = Set.filter (fun z -> hasValueHigherThan z ZONE_BORDER_VALUE state) exploredZone
+                                                    //let zone = findZone Set.empty (Set [origin]) state
+                                                    let overlapping = getOverlappingJobs state.Jobs (Set.toList zone)
                                                     match overlapping with
                                                     | [] -> 
                                                         let subGraph = List.map (fun n -> state.World.[n]) (Set.toList zone)
-                                                        let agentPositions = findAgentPlacement subGraph s.World
+                                                        let agentPositions = findAgentPlacement subGraph state.World
                                                         let agentsNeeded = agentPositions.Length
                                                         let zoneValue = calcZoneValue state agentsNeeded zone
                                                         [Communicate( CreateJob( (None,zoneValue,JobType.OccupyJob,agentsNeeded),OccupyJob(agentPositions,Set.toList zone) ) )]
@@ -195,7 +216,7 @@ module Explorer =
                                                         let removeIds = List.map ( fun ((id:Option<JobID>,_,_,_),_) -> if id.IsSome then id.Value else -1) overlapping
                                                         let merged = removeDuplicates (mergeZones (Set.toList zone) overlapping) []
                                                         let subGraph = List.map (fun n -> state.World.[n]) merged
-                                                        let agentPositions = findAgentPlacement subGraph s.World
+                                                        let agentPositions = findAgentPlacement subGraph state.World
                                                         let agentsNeeded = agentPositions.Length
                                                         let zoneValue = calcZoneValue state agentsNeeded (Set.ofList merged)
                                                         let addZone = [Communicate( CreateJob( (None,zoneValue,JobType.OccupyJob,agentsNeeded),OccupyJob(agentPositions,merged) ) )] 
@@ -211,7 +232,6 @@ module Explorer =
     let findNodeToProbeUnconditional (s:State) = 
         if s.ProbedCount < s.TotalNodeCount
             then
-                let myOldProbedCount = s.MyProbedCount
                 Some("probe one more node.",Activity,[Requirement(fun state -> match state.LastAction with 
                                                                                                        | Probe _ -> true
                                                                                                        | _ -> false

@@ -49,100 +49,100 @@ namespace NabfProject.AI
         public override void BeforeDeserialize(XmlReader reader, StreamReader sreader)
         {
             MemoryStream memstream = new MemoryStream();
-            MemoryStream tempStream = new MemoryStream();
-            Stream stream = sreader.BaseStream;
-            debugStream = new MemoryStream();
-            streamSplitter = new StreamSplitter(stream, debugStream);
-            buffer = new byte[bufferSize];
-            int bytesRead = -1;
-            int data = -1;
-            bool remainingDataInBuffer = false;
-            int storeIterator = -1;
-            int bufferIterator = -1;
-            bool remainingDataStored = false;
-            bool messageStored = store.Length != 0;
-            bool incompleteMessageInStore = true;
-            bool incompleteMessageInBuffer = true;
-            bool debug = false;
+            //MemoryStream tempStream = new MemoryStream();
+            //Stream stream = sreader.BaseStream;
+            //debugStream = new MemoryStream();
+            //streamSplitter = new StreamSplitter(stream, debugStream);
+            //buffer = new byte[bufferSize];
+            //int bytesRead = -1;
+            //int data = -1;
+            //bool remainingDataInBuffer = false;
+            //int storeIterator = -1;
+            //int bufferIterator = -1;
+            //bool remainingDataStored = false;
+            //bool messageStored = store.Length != 0;
+            //bool incompleteMessageInStore = true;
+            //bool incompleteMessageInBuffer = true;
+            //bool debug = false;
 
 
 
-            if (messageStored) //Message stored, append data from stream to store and read from store 
-            {
-                ReadFromStoreToMemstream(memstream, ref data, ref storeIterator, ref remainingDataStored, ref incompleteMessageInStore);
+            //if (messageStored) //Message stored, append data from stream to store and read from store 
+            //{
+            //    ReadFromStoreToMemstream(memstream, ref data, ref storeIterator, ref remainingDataStored, ref incompleteMessageInStore);
 
-                //While message not complete
-                if (incompleteMessageInStore)
-                {
-                    while (incompleteMessageInBuffer)
-                    {
-                        ReadFromStreamToBuffer(stream, ref bytesRead);
+            //    //While message not complete
+            //    if (incompleteMessageInStore)
+            //    {
+            //        while (incompleteMessageInBuffer)
+            //        {
+            //            ReadFromStreamToBuffer(stream, ref bytesRead);
 
-                        ReadFromBufferToMemstream(memstream, bytesRead, ref data, ref remainingDataInBuffer, ref bufferIterator, ref incompleteMessageInBuffer);
-                    }
+            //            ReadFromBufferToMemstream(memstream, bytesRead, ref data, ref remainingDataInBuffer, ref bufferIterator, ref incompleteMessageInBuffer);
+            //        }
 
-                    //If something left in buffer
-                    if (remainingDataInBuffer)
-                    {
-                        StashBufferInStore(bytesRead, ref bufferIterator);
-                    }
-                }
+            //        //If something left in buffer
+            //        if (remainingDataInBuffer)
+            //        {
+            //            StashBufferInStore(bytesRead, ref bufferIterator);
+            //        }
+            //    }
 
-                //Move content in store to front
-                if (remainingDataStored)
-                {
-                    MoveStoreContentToFront(tempStream, ref data, ref storeIterator);
+            //    //Move content in store to front
+            //    if (remainingDataStored)
+            //    {
+            //        MoveStoreContentToFront(tempStream, ref data, ref storeIterator);
 
-                }
-                else
-                    store = new MemoryStream();
+            //    }
+            //    else
+            //        store = new MemoryStream();
                                         
-            }
-            else if (!messageStored) //No message stored, read directly from stream.
-            {
-                //While message not ended
-                while (incompleteMessageInBuffer)
-                {
-                    ReadFromStreamToBuffer(stream, ref bytesRead);
+            //}
+            //else if (!messageStored) //No message stored, read directly from stream.
+            //{
+            //    //While message not ended
+            //    while (incompleteMessageInBuffer)
+            //    {
+            //        ReadFromStreamToBuffer(stream, ref bytesRead);
 
-                    ReadFromBufferToMemstream(memstream, bytesRead, ref data, ref remainingDataInBuffer, ref bufferIterator, ref incompleteMessageInBuffer);
-                }
-                ///If something left in buffer
-                if (remainingDataInBuffer)
-                {
-                    StashBufferInStore(bytesRead, ref bufferIterator);
-                }
+            //        ReadFromBufferToMemstream(memstream, bytesRead, ref data, ref remainingDataInBuffer, ref bufferIterator, ref incompleteMessageInBuffer);
+            //    }
+            //    ///If something left in buffer
+            //    if (remainingDataInBuffer)
+            //    {
+            //        StashBufferInStore(bytesRead, ref bufferIterator);
+            //    }
 
-            }         
+            //}         
 
             //Simple yet ineffective version
-
-            //do
-            //{
-            //    data = sreader.BaseStream.ReadByte();
-            //    if (data == 0)
-            //        break;
-            //    else
-            //        memstream.WriteByte((byte)data);
-            //} while (true);
-
-            if (debug)
+            int data;
+            do
             {
-                string agent = "Nabf1";
-                FileStream fs = new FileStream("Debug/debugXmlMessages"+agent+".txt", FileMode.Append);
-                                
-                byte[] buf = new byte[8192];
-                debugStream.Position = 0;
+                data = sreader.BaseStream.ReadByte();
+                if (data == 0)
+                    break;
+                else
+                    memstream.WriteByte((byte)data);
+            } while (true);
 
-                for (; ; )
-                {
-                    int numRead = debugStream.Read(buf, 0, buf.Length);
-                    if (numRead == 0)
-                        break;
-                    fs.Write(buf, 0, numRead);
-                }
-                fs.Close();
-            }
+            //if (debug)
+            //{
+            //    string agent = "Nabf1";
+            //    FileStream fs = new FileStream("Debug/debugXmlMessages"+agent+".txt", FileMode.Append);
+                                
+            //    byte[] buf = new byte[8192];
+            //    debugStream.Position = 0;
+
+            //    for (; ; )
+            //    {
+            //        int numRead = debugStream.Read(buf, 0, buf.Length);
+            //        if (numRead == 0)
+            //            break;
+            //        fs.Write(buf, 0, numRead);
+            //    }
+            //    fs.Close();
+            //}
 
             memstream.Position = 0;
             this.ChangeReader(XmlReader.Create(memstream, new XmlReaderSettings() { ConformanceLevel = ConformanceLevel.Fragment }));

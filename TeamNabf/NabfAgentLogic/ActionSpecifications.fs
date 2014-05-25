@@ -104,7 +104,7 @@ module ActionSpecifications =
             let newSelf = deductEnergy (cost state) { state with Self = self}
             //logImportant (sprintf "%A" (Set.filter (fun (o,_) -> Option.isSome o) state.World.[destination].Edges))
             let exploredNodes = if  ( Set.forall (fun (value, _) -> value = Option.None) state.World.[destination].Edges ) then 1 else 0
-            { state with Self = newSelf; MyExploredCount = state.MyExploredCount + exploredNodes}
+            { state with Self = newSelf; MyExploredCount = state.MyExploredCount + exploredNodes; LastAction = Action.Goto destination}
 
         let canMoveTo state = 
             match edgeCost state with
@@ -127,7 +127,9 @@ module ActionSpecifications =
         let updateState state =
             let attacked, rest = List.partition (fun e -> e.Name = enemyAgent) state.EnemyData 
             let updateAtt = { List.head attacked with Status = Disabled }
-            { state with EnemyData = updateAtt::rest; Self = deductEnergy Constants.ACTION_COST_EXPENSIVE state}
+            { state with EnemyData = updateAtt::rest; 
+                         Self = deductEnergy Constants.ACTION_COST_EXPENSIVE state
+                         LastAction = Action.Attack enemyAgent}
         
         { ActionType    = Perform <| Attack enemyAgent
         ; Preconditions = [ canAttack; enoughEnergy Constants.ACTION_COST_EXPENSIVE; isNotDisabled ]
@@ -138,7 +140,7 @@ module ActionSpecifications =
     let rechargeAction =
         let updateState state = 
             let newEnergy = state.Self.Energy.Value + (int ((float state.Self.MaxEnergy.Value) * RECHARGE_FACTOR)) 
-            { state with Self = { state.Self with Energy = Some newEnergy} }
+            { state with Self = { state.Self with Energy = Some newEnergy}; LastAction = Recharge }
         { ActionType    = Perform <| Recharge
         ; Preconditions = [  ]
         ; Effect        = updateState
@@ -158,6 +160,7 @@ module ActionSpecifications =
             let updateAgent = { repairedAgent with Health = repairedAgent.MaxHealth; Status = Normal }
             { state with FriendlyData = updateAgent :: rest;
                          Self = deductEnergy (repairCost state) state 
+                         LastAction = Action.Repair damagedAgent
             }
 
         { ActionType    = Perform <| Repair damagedAgent
@@ -177,11 +180,14 @@ module ActionSpecifications =
             | None -> Success
             | Some _ -> Failure <| sprintf "Vertex %A is already probed" (realVertex state)
 
-        let updateState state = { state with 
-                                        World = addVertexValue (realVertex state) 0 state.World;
+        let updateState state = 
+                                let vertex = (realVertex state)
+                                let newWorld = addVertexValue vertex 0 state.World
+                                { state with 
+                                        World = newWorld
                                         Self = deductEnergy Constants.ACTION_COST_CHEAP state
-                                        MyProbedCount = state.MyProbedCount + 1
-                                        LastAction = Action.Probe (Some(state.Self.Node))
+                                        Probed = Set.add vertex state.Probed
+                                        LastAction = Action.Probe vertexOption
                                 }
 
         { ActionType    = Perform <| Probe vertexOption
@@ -206,6 +212,7 @@ module ActionSpecifications =
             { state with 
                     InspectedEnemies = Set.union state.InspectedEnemies (agentNames state |> Set.ofList);
                     Self = deductEnergy Constants.ACTION_COST_EXPENSIVE state
+                    LastAction = Action.Inspect agentNameOption
             }
 
         { ActionType    = Perform <| Inspect agentNameOption

@@ -24,7 +24,7 @@ module Common =
 
     //Try to make it so the agent has explored one more node
     let exploreMap (s:State) = 
-        if s.ExploredCount < s.TotalNodeCount
+        if s.MyExploredCount < s.TotalNodeCount
         then
             let count = s.MyExploredCount
             Some("explore one more node.",Activity,[Requirement(fun state -> state.MyExploredCount > count)])

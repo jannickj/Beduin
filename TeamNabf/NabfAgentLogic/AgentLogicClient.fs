@@ -22,6 +22,7 @@
         [<DefaultValue>] val mutable private agent : BDIAgentImpl
         
         let MarsCom = new MarsCommunicator()
+        let MasterCom = new MasterCommunicator()
         let mutable simID = -1
                      
         let SendAgentServerEvent = new Event<UnaryValueHandler<IilAction>, UnaryValueEvent<IilAction>>()
@@ -33,10 +34,16 @@
         do
             MarsCom.NewAction.Add(fun evt ->
                 let id,act = evt.Value 
-                let iilContainer =  buildIilActionContainer act (float id)
+                let iilContainer = buildIilActionContainer act (float id)
                 let iilAction = buildIilAction iilContainer
                 SendMarsServerEvent.Trigger(this,new UnaryValueEvent<IilAction>(iilAction))
                 ())
+            MasterCom.NewAction.Add(fun evt ->
+                let act = evt.Value
+                let iilContainer = buildIilMetaAction act simID
+                let iilAction = buildIilAction iilContainer
+                SendAgentServerEvent.Trigger(this,new UnaryValueEvent<IilAction>(iilAction))
+                )
             ()
         member private this.protectedExecute (name, action, returnedOnError) =
                 try
@@ -60,7 +67,8 @@
                 match ServerMessage with
                 | Some (AgentServerMessage msg) ->
                     match msg with
-                    | _ -> ()
+                    | _ ->  MasterCom.SetMessage(msg)
+                            ()
                 | Some (MarsServerMessage msg) ->
                     match msg with
                     | SimulationEnd _ -> ()                       
@@ -75,6 +83,8 @@
                         this.agent <- new BDIAgentImpl(initState, desireTree, planner)
                         this.agent.AddAcuator(MarsCom)
                         this.agent.AddSensor(MarsCom)
+                        this.agent.AddAcuator(MasterCom)
+                        this.agent.AddSensor(MasterCom)
                         ()
                     | msg -> 
                         MarsCom.SetMessage (msg)

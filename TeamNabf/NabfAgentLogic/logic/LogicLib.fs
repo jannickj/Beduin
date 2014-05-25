@@ -5,13 +5,16 @@ module LogicLib =
     open AgentTypes
     open Graphing.Graph
     open Constants
-    open FsPlanning.Searching
+    open FsPlanning.Search
 
     let nodeListContains n (nl:string list) =
         (List.tryFind (fun s -> s = n) nl).IsSome
 
     let listContains element elementList =
         (List.tryFind (fun s -> s = element) elementList).IsSome
+
+    let probedVertices (world : Graph) =
+        List.choose (fun (name,vertex:Vertex)-> if vertex.Value.IsSome then Some name else None ) <| Map.toList world
 
     //WARNING: DEPRECATED
     let agentHasFulfilledRequirementEnemies aName state func =

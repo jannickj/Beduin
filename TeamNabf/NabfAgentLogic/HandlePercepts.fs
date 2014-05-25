@@ -5,6 +5,7 @@ module HandlePercepts =
     open AgentTypes
     open Graphing.Graph
     open NabfAgentLogic.Logging
+    open NabfAgentLogic.LogicLib
 
 (* handlePercept State -> Percept -> State *)
     let handlePercept state percept =
@@ -69,7 +70,6 @@ module HandlePercepts =
             | Team team ->
                 { state with 
                     TeamZoneScore = team.ZoneScore
-                    Money = team.Money
                     LastStepScore = team.LastStepScore
                     Score = team.Score
                 }
@@ -200,24 +200,24 @@ module HandlePercepts =
 
     let updateJobs knownJobs (state:State) =
         { state with Jobs = knownJobs }
-
     let updateProbeCount (lastState:State) (state:State) =
-            
-        let probeAction = match state.LastAction with
-                            | Action.Probe param -> true
-                            | _ -> false
-        let resultSuccessful = state.LastActionResult = ActionResult.Successful
-        let getProbedVertex = lastState.Self.Node
-        
-        let notAlreadyProbed = lastState.World.ContainsKey getProbedVertex && lastState.World.[getProbedVertex].Value = Option.None
-        if probeAction && resultSuccessful && notAlreadyProbed then 
-
-            { state with 
-                MyProbedCount = state.MyProbedCount + 1    
-                ProbedCount = state.ProbedCount + 1
-            }
-        else
-            state
+        { state with ProbedCount = List.length <| LogicLib.probedVertices state.World }
+//    let updateProbeCount (lastState:State) (state:State) =
+//            
+//        let probeAction = match state.LastAction with
+//                            | Action.Probe param -> true
+//                            | _ -> false
+//        let resultSuccessful = state.LastActionResult = ActionResult.Successful
+//        let getProbedVertex = lastState.Self.Node
+//        
+//        let notAlreadyProbed = lastState.World.ContainsKey getProbedVertex && lastState.World.[getProbedVertex].Value = Option.None
+//        if probeAction && resultSuccessful && notAlreadyProbed then 
+//
+//            { state with   
+//                ProbedCount = state.ProbedCount + 1
+//            }
+//        else
+//            state
 
     let updateExploredCount (lastState:State) (state:State) =
             
@@ -232,8 +232,7 @@ module HandlePercepts =
 
         if gotoAction && resultSuccessful && notAlreadyExplored then 
             { state with 
-                MyExploredCount = state.MyExploredCount + 1    
-                ExploredCount = state.ExploredCount + 1
+                MyExploredCount = state.MyExploredCount + 1  
             }
         else
             state

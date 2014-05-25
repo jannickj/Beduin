@@ -1,7 +1,8 @@
 ﻿namespace NabfAgentLogic
 module Planning =
     open ActionSpecifications
-    open FsPlanning.Searching
+    open FsPlanning.Search.Problem
+    open FsPlanning.Search.Astar
     open NabfAgentLogic.AgentTypes
     open Graphing.Graph
     open FsPlanning.Agent.Planning
@@ -33,22 +34,30 @@ module Planning =
 
     //let perform actionspec = Perform actionspec.ActionType
 
-    let makePlan state goals =
-        match goals with
-        | (Plan plan) :: _ -> Some (List.map actionSpecification <| plan state, goals)
-        | (Requirement r) :: _ -> 
-            let plan = solve aStar <| agentProblem state r
-            match plan with
-            | Some sol -> 
-                let actions = sol.Path
-                logImportant (sprintf "Found plan: %A" <| List.map (fun action -> action.ActionType) actions)                
-                Some (actions, goals)
-            | None -> None
-        | [] -> Some ([], goals)
+    let makePlan initstate goals =
+        let state = { initstate with LastAction = Skip }
+        if state.Self.Node <> "" then
+            match goals with
+            | (Plan plan) :: _ -> Some (List.map actionSpecification <| plan state, goals)
+            | (Requirement r) :: _ -> 
+                let plan = solve aStar <| agentProblem state r
+                match plan with
+                | Some sol -> 
+                    let actions = sol.Path
+                    logImportant (sprintf "Found plan: %A" <| List.map (fun action -> action.ActionType) actions)                
+                    Some (actions, goals)
+                | _ -> None
+            | [] -> Some ([], goals)
+        else None
        
     let formulatePlan (state : State) intent = 
-        let (name,_,goals) = intent
-        logImportant ("Planning to " + name)
+        let (name,inttype,goals) = intent
+        match inttype with
+        | Communication -> 
+            logInfo ("Sending message " + name)
+        | Activity ->
+            logImportant ("Planning to " + name)
+        | _ -> ()
         makePlan state goals
 
     let rec repairPlanHelper state plan = 
@@ -63,7 +72,7 @@ module Planning =
         | action :: tail when isApplicable state action ->
             restPlan (action.Effect state) action tail
         | action :: tail ->
-            logInfo <| sprintf "Inconsistency found! state does not satisfy %A" action.ActionType
+            logImportant <| sprintf "Inconsistency found! state does not satisfy %A" action.ActionType
             logInfo <| sprintf "the following errors were found: %A" (unSatisfiedPreconditions state action)
             let gluePlan = solve aStar <| agentProblem state (flip isApplicable action)
             match gluePlan with
@@ -73,7 +82,7 @@ module Planning =
                 logInfo <| sprintf "Found glue plan %A" (List.map (fun action -> action.ActionType) (newAction :: newTail))
                 restPlan (newAction.Effect state) newAction (newTail @ action :: tail)
             | None ->
-                logInfo <| sprintf "Failed to find glue plan" 
+                logImportant <| sprintf "Failed to find glue plan" 
                 None
         | _ -> Some plan
 
@@ -101,6 +110,16 @@ module Planning =
             match makePlan state t with
             | Some newPlan -> nextAction state intent newPlan
             | None -> None
+        | ([], (Requirement req) :: t) when not <| req state ->
+            let (_,goals) = plan
+            match makePlan state goals with
+            | Some newPlan -> nextAction state intent newPlan
+            | None -> None
+        | ([], (Plan p) :: t) ->
+            match makePlan state t with
+            | Some newPlan -> nextAction state intent newPlan
+            | None -> None
+
         | _ -> None
 
     type AgentPlanner() =
