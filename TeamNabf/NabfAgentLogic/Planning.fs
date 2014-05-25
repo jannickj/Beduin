@@ -21,26 +21,39 @@ module Planning =
         let unsat = unSatisfiedPreconditions state (List.head actions)
         logError <| sprintf "%A" unsat
 
-    let agentProblem (state : State) goalTest = 
-            
+    let goalCount goalFun state cost =
+        List.length <| List.filter (fun func -> not <| func state) (goalFun state)
+
+    let agentProblem (state : State) goal = 
+        
+        let goalFunc = 
+            match goal with
+            | MultiGoal func  -> func 
+            | Requirement req -> fun _ -> [req]
+            | Plan _ -> failwith "Trying to search on predefined plan"
+
+        let goalTest goalFun state = 
+            List.forall (fun func -> func state) <| goalFun state
+
         { InitialState = state
-        ; GoalTest     = wrappedGoalTest goalTest
+        ; GoalTest     = wrappedGoalTest <| goalTest goalFunc
         ; Actions      = fun state -> List.filter (isApplicable state) (roleActions state)
-//        ; Actions      = fun state -> testfun state
-//                                      List.filter (isApplicable state) (roleActions state)
         ; Result       = fun state action -> action.Effect state
         ; StepCost     = fun state action -> action.Cost state
+        ; Heuristic    = goalCount goalFunc
         }
 
     //let perform actionspec = Perform actionspec.ActionType
 
     let makePlan initstate goals =
         let state = { initstate with LastAction = Skip }
+            
+
         if state.Self.Node <> "" then
             match goals with
             | (Plan plan) :: _ -> Some (List.map actionSpecification <| plan state, goals)
-            | (Requirement r) :: _ -> 
-                let plan = solve aStar <| agentProblem state r
+            | goal :: _ -> 
+                let plan = solve aStar <| agentProblem state goal
                 match plan with
                 | Some sol -> 
                     let actions = sol.Path
@@ -51,7 +64,7 @@ module Planning =
         else None
        
     let formulatePlan (state : State) intent = 
-        let (name,inttype,goals) = intent
+        let (name, inttype, goals) = intent
         match inttype with
         | Communication -> 
             logInfo ("Sending message " + name)
@@ -74,7 +87,7 @@ module Planning =
         | action :: tail ->
             logImportant <| sprintf "Inconsistency found! state does not satisfy %A" action.ActionType
             logInfo <| sprintf "the following errors were found: %A" (unSatisfiedPreconditions state action)
-            let gluePlan = solve aStar <| agentProblem state (flip isApplicable action)
+            let gluePlan = solve aStar <| agentProblem state (Requirement <| flip isApplicable action)
             match gluePlan with
             | Some {Cost = _; Path = []} -> restPlan (action.Effect state) action tail
             // If we find a non-empty glue plan [a; b; c], prepend it to the plan and continue recursing

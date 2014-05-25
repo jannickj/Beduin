@@ -12,6 +12,11 @@ module ActionSpecifications =
 
     type Condition = (State -> ConditionResult)
 
+    let condToBool condres =
+        match condres with
+        | Success -> true
+        | Failure _ -> false
+
     [<CustomEquality>]
     [<CustomComparison>]
     type ActionSpecification =
@@ -247,7 +252,6 @@ module ActionSpecifications =
 
     let isApplicable state actionSpec = 
         List.isEmpty <| unSatisfiedPreconditions state actionSpec
-//        List.forall (fun pred -> pred state = Success) actionSpec.Preconditions
 
     let agentsAt node agentList =
         List.filter (fun enemy -> enemy.Node = node) agentList
