@@ -46,5 +46,6 @@
         let UNKNOWN_EDGE_COST = 5
         let ZONE_ORIGIN_VALUE = 8
         let ZONE_BORDER_VALUE = 6
+        let MINIMUM_VALUE_VALUE = 8
 
         let EXPLORE_FACTOR_LIGHT = 0.7

@@ -4,7 +4,7 @@ module Common =
     open FsPlanning.Agent.Planning
     open AgentTypes
     open LogicLib
-
+    open Constants
     
 
 
@@ -19,7 +19,7 @@ module Common =
     ////////////////////////////////////////Logic////////////////////////////////////////////
 
     //An agent always wants to have exactly one goal
-    let onlyOneJob s = Some("have exactly 1 job.",Inherent,[Requirement(fun state -> state.Jobs.Length = 1)])
+    let onlyOneJob s = None//if s.Jobs.Length > 1 then Some("have exactly 1 job.",Inherent,[Plan(fun s -> [Perform(Recharge)])]) else None
 
     //Try to make it so the agent has explored one more node
     let exploreMap (s:State) = 
@@ -50,8 +50,8 @@ module Common =
         else
             None
 
-    //Find a node of at leas value 8 to stand on.
-    let generateMinimumValue (s:State) = Some("find a good node to occupy.",Activity,[Requirement(fun state -> state.World.[state.Self.Node].Value.Value >= 8)])
+    //Find a node of at least value 8 to stand on.
+    let generateMinimumValue (s:State) = Some("find a good node to occupy.",Activity,[Requirement(fun state -> state.World.[state.Self.Node].Value.IsSome && state.World.[state.Self.Node].Value.Value >= MINIMUM_VALUE_VALUE)])
 
     let shareKnowledge (s:State) : Option<Intention> =
          Some ("share my knowledge", Communication, [Plan (fun s -> [(Communicate <| ShareKnowledge ( s.NewKnowledge))] )])
