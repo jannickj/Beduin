@@ -193,18 +193,14 @@ module ZoneTest =
             member this.BonusFindZone2_LotsOfNoneNodesInASquare_LocateZone() =
                 let initialGraph =  [ ("a", { Identifier = "a"; Value = Some 10; Edges = [(Some 1, "b");(Some 1, "c");(Some 1, "d");(Some 1, "e")] |> Set.ofList }) 
                                     ; ("b", { Identifier = "b"; Value = None; Edges = [(Some 1, "a");(Some 1, "c");(Some 1, "e")] |> Set.ofList })
-                                    ; ("c", { Identifier = "c"; Value = Some 10; Edges = [(Some 1, "a");(Some 1, "b");(Some 1, "d")] |> Set.ofList })
-                                    ; ("d", { Identifier = "d"; Value = Some 0; Edges = [(Some 1, "a");(Some 1, "c");(Some 1, "e")] |> Set.ofList })
-                                    ; ("e", { Identifier = "e"; Value = Some 0; Edges = [(Some 1, "a");(Some 1, "b");(Some 1, "d")] |> Set.ofList })
+                                    ; ("c", { Identifier = "c"; Value = None; Edges = [(Some 1, "a");(Some 1, "b");(Some 1, "d")] |> Set.ofList })
+                                    ; ("d", { Identifier = "d"; Value = None; Edges = [(Some 1, "a");(Some 1, "c");(Some 1, "e")] |> Set.ofList })
+                                    ; ("e", { Identifier = "e"; Value = None; Edges = [(Some 1, "a");(Some 1, "b");(Some 1, "d")] |> Set.ofList })
                                     ] |> Map.ofList
-                let state = buildState "c" Explorer initialGraph
+                let state = buildState "a" Explorer initialGraph
                
-                let (Some (_,_,goal::goals)) = findNewZone state
-                let plan = makePlan state (goal::goals)
-               
-                let ap = agentProblem state goal
-                let node = Problem.initialNode ap
-                let children = Problem.childNodes ap node
+                let (Some (_,_,goals)) = findNewZone state
+                let plan = makePlan state (goals)
 
                 Assert.IsTrue (plan.IsSome)
                 ()

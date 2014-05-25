@@ -25,7 +25,7 @@ module Planning =
         let res = List.length <| List.filter (fun func -> not <| func state) (goalFun state)
         let len = List.length <| goalFun state
         logImportant <| sprintf "(%A / %A) goals satisfied" (len - res) len
-        res
+        (res, cost)
 
     
     let goalTest goalFun state = 
