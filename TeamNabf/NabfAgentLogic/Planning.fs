@@ -22,7 +22,14 @@ module Planning =
         logError <| sprintf "%A" unsat
 
     let goalCount goalFun state cost =
-        List.length <| List.filter (fun func -> not <| func state) (goalFun state)
+        let res = List.length <| List.filter (fun func -> not <| func state) (goalFun state)
+        let len = List.length <| goalFun state
+        logImportant <| sprintf "(%A / %A) goals satisfied" (len - res) len
+        res
+
+    
+    let goalTest goalFun state = 
+        List.forall (fun func -> func state) <| goalFun state
 
     let agentProblem (state : State) goal = 
         
@@ -31,9 +38,6 @@ module Planning =
             | MultiGoal func  -> func 
             | Requirement req -> fun _ -> [req]
             | Plan _ -> failwith "Trying to search on predefined plan"
-
-        let goalTest goalFun state = 
-            List.forall (fun func -> func state) <| goalFun state
 
         { InitialState = state
         ; GoalTest     = wrappedGoalTest <| goalTest goalFunc
@@ -113,6 +117,7 @@ module Planning =
     let solutionFinished state intent solution = 
         match solution with
         | (_, [Requirement req]) ->  wrappedGoalTest req state
+        | (_, [MultiGoal goalFun]) -> wrappedGoalTest (goalTest goalFun) state
         | (_, []) -> true
         | _ -> false
     
