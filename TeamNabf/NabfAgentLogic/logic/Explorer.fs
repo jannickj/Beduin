@@ -51,19 +51,7 @@ module Explorer =
     let newZoneFound (s:State) = (onHighValueNode s) && not (nodePartOfZone s) && not (nodeHostile s)
 
     let hasValueHigherThan node value (s:State) = s.World.[node].Value.IsSome && s.World.[node].Value.Value >= value
-
-    //Find a zone after it has been explored
-    let rec findZone explored frontier (s:State) = 
-        if Set.isEmpty frontier then explored else
-        let node = Set.maxElement frontier
-        let newFrontier = Set.remove node frontier
-        if (not (Set.contains node explored)) && (hasValueHigherThan node ZONE_BORDER_VALUE s)
-        then
-            let newExplored = Set.add node explored
-            findZone newExplored newFrontier s
-        else
-            findZone explored newFrontier s 
-
+    
     //Find a zone To Explore
     let rec zoneToExplore  (s:State) (explore,frontier) = 
         if Set.isEmpty frontier then explore else
@@ -109,6 +97,14 @@ module Explorer =
 
     let isIsland (vertex:Vertex) =
         vertex.Edges.Count = 1
+
+    let isOnlyIsland (graph:Graph) (zone:ZoneVertex list) =
+        zone.Length = 1 && isIsland zone.Head.Vertex
+
+    let getValue (v:Vertex) =
+        match v.Value with
+        | Some value -> value
+        | None -> 0
 
     //We always want to place an agent at the entrance to an island, so we lock that vertex.
     let shouldZoneVertexLockBasedOnIsland (graph:Graph) (vertex:ZoneVertex) =
@@ -173,10 +169,15 @@ module Explorer =
     //Find out where agents should be placed. This is the main function to be called by the logic.
     let findAgentPlacement (subgraph:Vertex List) (graph:Graph) =
         let zoneVertexList = List.map buildZoneVertex subgraph
-        let lockedZoneVertexList = List.map (fun zoneVertex -> {zoneVertex with Lock = (shouldZoneVertexLockBasedOnIsland graph zoneVertex); HasAgent = not (isIsland zoneVertex.Vertex)}) zoneVertexList
-        let agentPositionsCalculated = calcAgentPositions graph lockedZoneVertexList
-        let agentPositions = List.filter (fun zoneVertex -> zoneVertex.HasAgent ) agentPositionsCalculated
-        List.map (fun zoneVertex -> zoneVertex.Vertex.Identifier) agentPositions
+        if isOnlyIsland graph zoneVertexList 
+        then 
+            let (opt,neighbour) = subgraph.Head.Edges.MaximumElement
+            [neighbour] 
+        else
+            let lockedZoneVertexList = List.map (fun zoneVertex -> {zoneVertex with Lock = (shouldZoneVertexLockBasedOnIsland graph zoneVertex); HasAgent = not (isIsland zoneVertex.Vertex)}) zoneVertexList
+            let agentPositionsCalculated = calcAgentPositions graph lockedZoneVertexList
+            let agentPositions = List.filter (fun zoneVertex -> zoneVertex.HasAgent ) agentPositionsCalculated
+            List.map (fun zoneVertex -> zoneVertex.Vertex.Identifier) agentPositions
 
     let calcZoneValue  (state:State) (agents:int) (zone:string Set) =
         let hasEnemy = Set.exists (fun name -> List.exists (fun agent -> agent.Node = name) state.EnemyData) zone
@@ -201,7 +202,7 @@ module Explorer =
                                                                           let withVal = List.filter (fun (_,value) -> Option.isSome value) vals
                                                                           List.map (fun z -> (fun st -> state.World.[z].Value.IsSome)) <| Set.toList zone
                                                                           //Set.forall (fun z -> state.World.[z].Value.IsSome) zone
-//                                                                        isDoneExploring origin Set.empty state
+//                                                                        //isDoneExploring origin Set.empty state
                                                         ); 
                                                Plan(fun state ->
                                                     let exploredZone = zoneToExplore state (Set.empty,Set [origin])
