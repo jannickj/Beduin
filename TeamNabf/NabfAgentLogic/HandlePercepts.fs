@@ -251,18 +251,17 @@ module HandlePercepts =
                 true
         | VertexSeen (vertexName, ownedBy) -> not (oldState.World.ContainsKey(vertexName))
         | EdgeSeen (edgeValue, node1, node2) ->
-//            if oldState.World.ContainsKey(node1) then
-//                let edge = Set.filter (fun (_, endNode) -> endNode = node2) oldState.World.[node1].Edges
-//
-//                if edge.Count = 1 then 
-//                                    match edge.MaximumElement with
-//                                    | (value, _) -> value.IsNone
-//                                    | _ -> false
-//                else
-//                    raise(System.Exception("Handle edge seen percept - found a wrong number of the given edge in the world."))
-//            else
-//                false
-            false
+            if oldState.World.ContainsKey(node1) then
+                let edge = Set.filter (fun (_, endNode) -> endNode = node2) oldState.World.[node1].Edges
+                if edge.Count = 1 then 
+                                    match edge.MaximumElement with
+                                    | (value, _) -> value.IsNone
+                elif edge.Count = 0 then true
+                else
+                    raise(System.Exception("Handle edge seen percept - found "+ string(edge.Count) + " of the given edge in the world."))
+            else
+                false //Check this
+          
 
         | EnemySeen { Role = role ; Name = name} -> //Should be shared when we learn of the agents role, as well as every time it is spotted!! TODO!!!
             let agentIsKnown agentData = 
