@@ -74,3 +74,87 @@ module ZoneTest =
                 let plan = makePlan state goals
                 Assert.IsTrue (plan.IsSome)
                 ()
+
+            //           
+                //     A---B---C---D---E
+                //     |   |   |   |   |       
+                //     F---G---H---I---J
+                //             |    
+                //     K---L---M---N---O 
+                //     |   |   |   |   |  
+                //     P---Q---R---S---T
+                //        
+            [<Test>]
+            member this.FindZone_LotsOfNodes_LocateZone() =
+                let initialGraph =  [ ("a", { Identifier = "a"; Value = Some 1; Edges = [(None, "b");(None, "f")] |> Set.ofList }) 
+                                    ; ("b", { Identifier = "b"; Value = Some 1; Edges = [(None, "a");(None, "c");(None, "g")] |> Set.ofList })
+                                    ; ("c", { Identifier = "c"; Value = Some 1; Edges = [(None, "b");(None, "h");(None, "d")] |> Set.ofList })
+                                    ; ("d", { Identifier = "d"; Value = Some 1; Edges = [(None, "c");(None, "i");(None, "e")] |> Set.ofList })
+                                    ; ("e", { Identifier = "e"; Value = Some 1; Edges = [(None, "d");(None, "j")] |> Set.ofList })
+
+                                    ; ("f", { Identifier = "f"; Value = Some 1; Edges = [(None, "a");(None, "g")] |> Set.ofList }) 
+                                    ; ("g", { Identifier = "g"; Value = Some 1; Edges = [(None, "f");(None, "b");(None, "h")] |> Set.ofList })
+                                    ; ("h", { Identifier = "h"; Value = Some 1; Edges = [(None, "g");(None, "c");(None, "i");(None, "m")] |> Set.ofList })
+                                    ; ("i", { Identifier = "i"; Value = Some 1; Edges = [(None, "h");(None, "d");(None, "j")] |> Set.ofList })
+                                    ; ("j", { Identifier = "j"; Value = Some 1; Edges = [(None, "i");(None, "e")] |> Set.ofList })
+
+                                    ; ("k", { Identifier = "k"; Value = Some 1; Edges = [(None, "l");(None, "p")] |> Set.ofList }) 
+                                    ; ("l", { Identifier = "l"; Value = Some 1; Edges = [(None, "k");(None, "m");(None, "q")] |> Set.ofList })
+                                    ; ("m", { Identifier = "m"; Value = None; Edges = [(None, "h");(None, "l");(None, "n");(None, "r")] |> Set.ofList })
+                                    ; ("n", { Identifier = "n"; Value = Some 8; Edges = [(None, "m");(None, "o");(None, "s")] |> Set.ofList })
+                                    ; ("o", { Identifier = "o"; Value = Some 9; Edges = [(None, "n");(None, "t")] |> Set.ofList })
+
+                                    ; ("p", { Identifier = "p"; Value = Some 1; Edges = [(None, "k");(None, "q")] |> Set.ofList }) 
+                                    ; ("q", { Identifier = "q"; Value = None; Edges = [(None, "l");(None, "p");(None, "r")] |> Set.ofList })
+                                    ; ("r", { Identifier = "r"; Value = Some 8; Edges = [(None, "m");(None, "q");(None, "s")] |> Set.ofList })
+                                    ; ("s", { Identifier = "s"; Value = Some 9; Edges = [(None, "n");(None, "r");(None, "t")] |> Set.ofList })
+                                    ; ("t", { Identifier = "t"; Value = Some 10; Edges = [(None, "o");(None, "s")] |> Set.ofList })
+                                    ] |> Map.ofList
+                let state = buildState "t" Explorer initialGraph
+                let (Some (_,_,goals)) = findNewZone state
+                let plan = makePlan state goals
+                Assert.IsTrue (plan.IsSome)
+                ()
+
+            //           
+                //     A---B---C---D---E
+                //     |   |   |   |   |       
+                //     F---G---H---I---J
+                //             |    
+                //     K---L---M---N---O 
+                //     |   |   |   |   |  
+                //     P---Q---R---S---T
+                //        
+            [<Test>]
+            member this.CommunicateZone_LotsOfNodes_CorrectZoneCommunicated() =
+                let initialGraph =  [ ("a", { Identifier = "a"; Value = Some 1; Edges = [(None, "b");(None, "f")] |> Set.ofList }) 
+                                    ; ("b", { Identifier = "b"; Value = Some 1; Edges = [(None, "a");(None, "c");(None, "g")] |> Set.ofList })
+                                    ; ("c", { Identifier = "c"; Value = Some 1; Edges = [(None, "b");(None, "h");(None, "d")] |> Set.ofList })
+                                    ; ("d", { Identifier = "d"; Value = Some 1; Edges = [(None, "c");(None, "i");(None, "e")] |> Set.ofList })
+                                    ; ("e", { Identifier = "e"; Value = Some 1; Edges = [(None, "d");(None, "j")] |> Set.ofList })
+
+                                    ; ("f", { Identifier = "f"; Value = Some 1; Edges = [(None, "a");(None, "g")] |> Set.ofList }) 
+                                    ; ("g", { Identifier = "g"; Value = Some 1; Edges = [(None, "f");(None, "b");(None, "h")] |> Set.ofList })
+                                    ; ("h", { Identifier = "h"; Value = Some 1; Edges = [(None, "g");(None, "c");(None, "i");(None, "m")] |> Set.ofList })
+                                    ; ("i", { Identifier = "i"; Value = Some 1; Edges = [(None, "h");(None, "d");(None, "j")] |> Set.ofList })
+                                    ; ("j", { Identifier = "j"; Value = Some 1; Edges = [(None, "i");(None, "e")] |> Set.ofList })
+
+                                    ; ("k", { Identifier = "k"; Value = Some 1; Edges = [(None, "l");(None, "p")] |> Set.ofList }) 
+                                    ; ("l", { Identifier = "l"; Value = Some 1; Edges = [(None, "k");(None, "m");(None, "q")] |> Set.ofList })
+                                    ; ("m", { Identifier = "m"; Value = Some 5; Edges = [(None, "h");(None, "l");(None, "n");(None, "r")] |> Set.ofList })
+                                    ; ("n", { Identifier = "n"; Value = Some 8; Edges = [(None, "m");(None, "o");(None, "s")] |> Set.ofList })
+                                    ; ("o", { Identifier = "o"; Value = Some 9; Edges = [(None, "n");(None, "t")] |> Set.ofList })
+
+                                    ; ("p", { Identifier = "p"; Value = Some 1; Edges = [(None, "k");(None, "q")] |> Set.ofList }) 
+                                    ; ("q", { Identifier = "q"; Value = Some 5; Edges = [(None, "l");(None, "p");(None, "r")] |> Set.ofList })
+                                    ; ("r", { Identifier = "r"; Value = Some 8; Edges = [(None, "m");(None, "q");(None, "s")] |> Set.ofList })
+                                    ; ("s", { Identifier = "s"; Value = Some 9; Edges = [(None, "n");(None, "r");(None, "t")] |> Set.ofList })
+                                    ; ("t", { Identifier = "t"; Value = Some 10; Edges = [(None, "o");(None, "s")] |> Set.ofList })
+                                    ] |> Map.ofList
+                let state = buildState "t" Explorer initialGraph
+                let (Some (_,_,goals)) = findNewZone state
+                let plan = makePlan state goals
+                let (_,newgoals) = plan.Value
+                let newplan = makePlan state newgoals.Tail
+                Assert.IsTrue ((fst newplan.Value).Head.ActionType = Communicate(CreateJob((None,44,JobType.OccupyJob,3),OccupyJob(["n";"r";"t"],["n";"o";"r";"s";"t"]))))
+                ()
