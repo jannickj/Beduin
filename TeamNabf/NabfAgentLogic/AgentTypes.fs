@@ -256,7 +256,7 @@ module AgentTypes =
     type Goal = 
         | Plan of (State -> AgentAction list)
         | Requirement of (State -> bool)
-        | MultiGoal of (State -> (State -> bool) list)
+        | MultiRequirement of (State -> (State -> bool) list)
 
 
     type Intention = string*IntentionType*(Goal list)

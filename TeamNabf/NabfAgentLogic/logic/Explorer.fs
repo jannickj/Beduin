@@ -193,13 +193,16 @@ module Explorer =
         then
             let origin = inputState.Self.Node
             Some("probe a new zone.",Activity,[
-                                               Requirement(fun state -> 
+                                               MultiRequirement(
+                                                        fun state -> 
+                                                            
                                                                           let zone = zoneToExplore state (Set.empty,Set [origin])
                                                                           let vals = List.map (fun z -> (z,state.World.[z].Value)) <| Set.toList zone
-                                                                          let withVal = List.filter (fun (_,value) -> Option.isSome value) vals 
-                                                                          Set.forall (fun z -> state.World.[z].Value.IsSome) zone
+                                                                          let withVal = List.filter (fun (_,value) -> Option.isSome value) vals
+                                                                          List.map (fun z -> (fun st -> state.World.[z].Value.IsSome)) <| Set.toList zone
+                                                                          //Set.forall (fun z -> state.World.[z].Value.IsSome) zone
 //                                                                        isDoneExploring origin Set.empty state
-                                                            ); 
+                                                        ); 
                                                Plan(fun state ->
                                                     let exploredZone = zoneToExplore state (Set.empty,Set [origin])
                                                     let zone = Set.filter (fun z -> hasValueHigherThan z ZONE_BORDER_VALUE state) exploredZone
