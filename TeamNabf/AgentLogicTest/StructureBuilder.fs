@@ -4,7 +4,7 @@ module StructureBuilder =
     
     let buildState node role world = 
         {   World = world
-            ;   Self =  {   Energy = Some 0                        
+            ;   Self =  {   Energy = Some 30                        
                         ;   Health = Some 0
                         ;   MaxEnergy = Some 30
                         ;   MaxEnergyDisabled = Some 30
