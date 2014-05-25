@@ -194,7 +194,7 @@ module Explorer =
         then
             let origin = inputState.Self.Node
             Some("probe a new zone.",Activity,[
-                                               MultiRequirement(
+                                               MultiGoal(
                                                         fun state -> 
                                                             
                                                                           let zone = zoneToExplore state (Set.empty,Set [origin])
