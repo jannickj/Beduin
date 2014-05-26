@@ -32,9 +32,9 @@ module Common =
 
 
     //Try to find any repair jobs put up by the agent itself.
-    let rec tryFindRepairJob (s:State) (knownJobs:Job list) =
+    let rec tryFindRepairJob (inputState:State) (knownJobs:Job list) =
             match knownJobs with
-            | (_ , rdata) :: tail -> if rdata = RepairJob(s.Self.Node,s.Self.Name) then Some knownJobs.Head else tryFindRepairJob s tail
+            | (_ , rdata) :: tail -> if rdata = RepairJob(inputState.Self.Node,inputState.Self.Name) then Some knownJobs.Head else tryFindRepairJob inputState tail
             | [] -> None
 
     ////////////////////////////////////////Logic////////////////////////////////////////////
@@ -43,43 +43,43 @@ module Common =
     let onlyOneJob s = None// Some("have exactly 1 job.",Inherent,[Requirement(fun state -> state.Jobs.Length = 1)])
 
     //Try to make it so the agent has explored one more node
-    let exploreMap (s:State) = 
-        if s.MyExploredCount < s.TotalNodeCount
+    let exploreMap (inputState:State) = 
+        if inputState.MyExploredCount < inputState.TotalNodeCount
         then
-            let count = s.MyExploredCount
+            let count = inputState.MyExploredCount
             Some("explore one more node.",Activity,[Requirement(fun state -> state.MyExploredCount > count)])
         else
             None
 
     //When disabled, post a repair job, then recharge while waiting for a repairer. Temporary version to be updated later.
     //Works by creating a plan to recharge one turn each turn.
-    let getRepaired (s:State) = 
-        if s.Self.Status = Disabled 
+    let getRepaired (inputState:State) = 
+        if inputState.Self.Status = Disabled 
         then
-            let j = tryFindRepairJob s s.Jobs
-            let myName = s.Self.Name
+            let j = tryFindRepairJob inputState inputState.Jobs
+            let myName = inputState.Self.Name
             match j with
             //I already created a job:
             | Some(_,RepairJob(_,myName)) -> 
                 Some("wait for a repairer.",Activity,[Plan(fun s -> [Perform(Recharge)])])
             //Otherwise, create the job, then start waiting
             | _ -> 
-                let here = s.Self.Node
+                let here = inputState.Self.Node
                 Some("get repaired.",Activity,[Plan(fun state -> [
-                                                                 Communicate( CreateJob( (None,5,JobType.RepairJob,1),RepairJob(s.Self.Node,s.Self.Name) ) )
+                                                                 Communicate( CreateJob( (None,5,JobType.RepairJob,1),RepairJob(state.Self.Node,state.Self.Name) ) )
                                                                  ]);Requirement(fun state -> state.LastAction = Recharge)])
         else
             None
 
     //Find a node of at leas value 8 to stand on.
-    let generateMinimumValue (s:State) = Some("find a good node to occupy.",Activity,[Requirement(fun state -> state.World.[state.Self.Node].Value.IsSome && state.World.[state.Self.Node].Value.Value >= MINIMUM_VALUE_VALUE)])
+    let generateMinimumValue (inputState:State) = Some("find a good node to occupy.",Activity,[Requirement(fun state -> state.World.[state.Self.Node].Value.IsSome && state.World.[state.Self.Node].Value.Value >= MINIMUM_VALUE_VALUE)])
 
     let shareKnowledge (s:State) : Option<Intention> =
-         Some ("share my knowledge", Communication, [Plan (fun s -> [(Communicate <| ShareKnowledge ( s.NewKnowledge))] )])
+         Some ("share my knowledge", Communication, [Plan (fun state -> [(Communicate <| ShareKnowledge ( state.NewKnowledge))] )])
     
     
-    let applyToOccupyJob  modifier (s:State) = 
-        let applicationList = createApplicationList s JobType.OccupyJob (calculateDesireOccupyJob modifier)
+    let applyToOccupyJob  modifier (inputState:State) = 
+        let applicationList = createApplicationList inputState JobType.OccupyJob (calculateDesireOccupyJob modifier)
         Some(
                 "apply to all occupy jobs"
                 , Communication
@@ -87,12 +87,12 @@ module Common =
             )
     
 
-    let workOnOccupyJob (s:State) =
-        let myJobs = List.map (fun (id,_) -> getJobFromJobID s id) s.MyJobs
+    let workOnOccupyJob (inputState:State) =
+        let myJobs = List.map (fun (id,_) -> getJobFromJobID inputState id) inputState.MyJobs
         let myOccupyJobs = getJobsByType JobType.OccupyJob myJobs
         match myOccupyJobs with
         | ((id,_,_,_),_)::_ -> 
-            let (_,node) = List.find (fun (jid,_) -> id.Value = jid) s.MyJobs
+            let (_,node) = List.find (fun (jid,_) -> id.Value = jid) inputState.MyJobs
             Some
                 (   "occupy node " + node
                 ,   Activity
