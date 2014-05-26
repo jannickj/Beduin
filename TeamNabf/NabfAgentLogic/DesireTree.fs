@@ -31,17 +31,17 @@ module DesireTree =
     let getTree : DesireTree<State,Intention> =
             ManyDesires 
                 [
-                    Desire  (
-                                (fun s ->        
-                                    if goto.IsSome && s.World.ContainsKey goto.Value then
-                                            Some <| (   "Find a node"
-                                                        ,   Activity
-                                                        ,   [Requirement <| fun (s:State) -> s.Self.Node =  goto.Value]
-                                                    )
-                                    else
-                                        None
-                                )
-                            )
+//                    Desire  (
+//                                (fun s ->        
+//                                    if goto.IsSome && s.World.ContainsKey goto.Value then
+//                                            Some <| (   "Find a node"
+//                                                        ,   Activity
+//                                                        ,   [Requirement <| fun (s:State) -> s.Self.Node =  goto.Value]
+//                                                    )
+//                                    else
+//                                        None
+//                                )
+//                            )
                     Desire(shareKnowledge)
                     Desire(onlyOneJob)
 //

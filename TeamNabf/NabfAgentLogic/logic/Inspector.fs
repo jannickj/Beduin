@@ -28,6 +28,9 @@ module Inspector =
         int <| (((float newValue) * personalValueMod) - (float oldJobValue))    +     (-(distanceToJob * DISTANCE_TO_OCCUPY_JOB_MOD))    +    INSPECTOR_OCCUPYJOB_MOD
    
 
+    let nodeHasUninspectedAgent (state:State) node =
+        List.exists (fun a -> a.Role.IsNone && a.Node = node) state.EnemyData
+
     ////////////////////////////////////////Logic////////////////////////////////////////////
 
     
@@ -39,7 +42,7 @@ module Inspector =
             Some(
                     "inspect agent " + head.Name
                     , Activity
-                    , [Requirement(fun state -> agentHasFulfilledRequirementEnemies head.Name state (fun ag -> ag.Role.IsSome) )]
+                    , [Requirement(((fun state -> agentHasFulfilledRequirementEnemies head.Name state (fun ag -> ag.Role.IsSome)),None) )]
                 )
 
     let applyToOccupyJob (inputState:State) = 
@@ -55,13 +58,4 @@ module Inspector =
     let workOnDisruptJob (inputState:State) = None //advanced feature
     
     let findAgentToInspect (inputState:State) = 
-        Some(
-                "find and inspect an agent"
-                , Activity
-                , [Requirement(
-                    fun state ->  
-                        match state.LastAction with
-                        | (Inspect _) -> true
-                        | _ -> false
-                )]
-            )
+        findAndDo inputState.Self.Node nodeHasUninspectedAgent "inspect an agent" inputState
