@@ -46,3 +46,8 @@ module FloydWarshall =
                     hMap <- hMap.Add((nameMap.[j],origin),v)
                     hMap <- hMap.Add((origin,nameMap.[j]),v)
         hMap
+
+    let rec floydWarshallList (map:Graph) (heuristicMap:Map<VertexName*VertexName,int>) (origins:VertexName list) =
+        match origins with
+        | head :: tail -> floydWarshallList map (floydWarshall map heuristicMap head) tail
+        | [] -> heuristicMap
