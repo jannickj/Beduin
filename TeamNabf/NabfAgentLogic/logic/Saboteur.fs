@@ -27,7 +27,7 @@ module Saboteur =
 
     ////////////////////////////////////////Logic////////////////////////////////////////////
 
-    let applyToAttackJob (s:State) = 
+    let applyToAttackJob (inputState:State) = 
         let applicationList = createApplicationList s JobType.AttackJob calculateDesireAttackJob
         Some(
                 "apply to all attack jobs"
@@ -35,8 +35,8 @@ module Saboteur =
                 , [Plan(fun state -> applicationList)]
             )
 
-    let spontanouslyAttackAgentOnMyNode (s:State) = 
-        let enemiesNearby = List.filter (fun a -> a.Node = s.Self.Node) s.EnemyData
+    let spontanouslyAttackAgentOnMyNode (inputState:State) = 
+        let enemiesNearby = List.filter (fun a -> a.Node = inputState.Self.Node) inputState.EnemyData
         match enemiesNearby with
         | [] -> None
         | head::tail ->     
@@ -46,10 +46,10 @@ module Saboteur =
                     , [Requirement(fun state -> agentHasFulfilledRequirementEnemies head.Name state (fun ag -> ag.Status = EntityStatus.Disabled) )]
                 )
     
-    let workOnAttackJob (s:State) = None
+    let workOnAttackJob (inputState:State) = None
     
-    let spontanouslyAttackAgent (s:State) = 
-        let enemiesNearby = List.filter (fun a -> a.Status <> Disabled) (nearbyEnemies s s.Self)
+    let spontanouslyAttackAgent (inputState:State) = 
+        let enemiesNearby = List.filter (fun a -> a.Status <> Disabled) (nearbyEnemies inputState inputState.Self)
         match enemiesNearby with
         | [] -> None
         | head::tail ->     
@@ -60,17 +60,17 @@ module Saboteur =
                 )
              
     
-    let applyToDisruptJob (s:State) = None //advanced feature
+    let applyToDisruptJob (inputState:State) = None //advanced feature
     
-    let workOnDisruptJobThenParryIfEnemiesClose (s:State) = None //advanced feature
+    let workOnDisruptJobThenParryIfEnemiesClose (inputState:State) = None //advanced feature
     
-    let findAgentToDestroy (s:State) = 
+    let findAgentToDestroy (inputState:State) = 
         Some(
                 "find and destroy an agent"
                 , Activity
                 , [Requirement(
                     fun state ->  
-                        match s.LastAction with
+                        match state.LastAction with
                         | (Attack _) -> true
                         | _ -> false
                 )]

@@ -28,8 +28,8 @@ module Repairer =
 
     ////////////////////////////////////////Logic////////////////////////////////////////////
 
-    let spontanouslyRepairNearbyDamagedAgent (s:State) = 
-        let nearbyDamagedAgent = List.filter (fun a -> (float a.Health.Value) < ((float a.MaxHealth.Value) * SPONTANOUS_REPAIR_PERCENTAGE)) (nearbyAllies s)
+    let spontanouslyRepairNearbyDamagedAgent (inputState:State) = 
+        let nearbyDamagedAgent = List.filter (fun a -> (float a.Health.Value) < ((float a.MaxHealth.Value) * SPONTANOUS_REPAIR_PERCENTAGE)) (nearbyAllies inputState)
         match nearbyDamagedAgent with
         | [] -> None
         | head::tail ->     
@@ -39,29 +39,29 @@ module Repairer =
                     , [Requirement(fun state -> agentHasFulfilledRequirementFriendlies head.Name state (fun ag -> ag.Health = ag.MaxHealth))]
                 )
 
-    let applyToRepairJob (s:State) = 
-        let applicationList = createApplicationList s JobType.RepairJob calculateDesireRepairJob
+    let applyToRepairJob (inputState:State) = 
+        let applicationList = createApplicationList inputState JobType.RepairJob calculateDesireRepairJob
         Some(
                 "apply to all repair jobs"
                 , Communication
                 , [Plan(fun state -> applicationList)]
             )
     
-    let workOnRepairJob (s:State) = 
-        let myJobs = List.map (fun (id,_) -> getJobFromJobID s id) s.MyJobs
+    let workOnRepairJob (inputState:State) = 
+        let myJobs = List.map (fun (id,_) -> getJobFromJobID inputState id) inputState.MyJobs
         let myRepairJobs = getJobsByType JobType.RepairJob myJobs
         match myRepairJobs with
         | ((id,_,_,_),_)::_ -> 
-            let (jobid,node) = List.find (fun (jid,_) -> id.Value = jid) s.MyJobs
-            let (_,RepairJob(_,agent)) = (getJobFromJobID s jobid) : Job
+            let (jobid,node) = List.find (fun (jid,_) -> id.Value = jid) inputState.MyJobs
+            let (_,RepairJob(_,agent)) = (getJobFromJobID inputState jobid) : Job
             Some
                 (   "repair agent " + agent + " on node " + node
                 ,   Activity
                 ,   [
-                        Requirement(fun s -> s.Self.Node = node)
+                        Requirement(fun state -> state.Self.Node = node)
                         ; Requirement(
                                     fun state ->  
-                                        match s.LastAction with
+                                        match state.LastAction with
                                         | (Repair _) -> true
                                         | _ -> false
                 )]

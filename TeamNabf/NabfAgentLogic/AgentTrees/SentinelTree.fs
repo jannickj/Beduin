@@ -11,9 +11,9 @@ module SentinelTree =
                 [
                     Desire(applyToOccupyJob)
 
-                    //Desire(workOnOccupyJobThenParryIfEnemiesClose)
+                    Desire(workOnOccupyJobThenParryIfEnemiesClose)
 
-                    Desire(workOnOccupyJob)
+                    //Desire(workOnOccupyJob)
 
                     Desire(applyToDisruptJob)
 
