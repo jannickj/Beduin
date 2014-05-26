@@ -6,6 +6,7 @@ module HandlePercepts =
     open Graphing.Graph
     open NabfAgentLogic.Logging
     open NabfAgentLogic.LogicLib
+    open NabfAgentLogic.Search.FloydWarshall
 
     
 
@@ -300,6 +301,14 @@ module HandlePercepts =
         { state with 
                 NewKnowledge = state.NewKnowledge @ propagatedPercepts
         }
+
+    let updateHeuristicsMap percepts oldState state =
+        if state.World.Count > oldState.World.Count then 
+            { state with
+                    HeuristicMap = floydWarshallComplete state.World
+            }
+        else
+            state
     
     (* let updateState : State -> Percept list -> State *)
     let updateState state percepts = 
@@ -311,6 +320,7 @@ module HandlePercepts =
                                 |> updateExploredCount state
                                 |> updateTraversedEdgeCost state
                                 |> selectSharedPercepts percepts state
+                                |> updateHeuristicsMap percepts state
 
         match percepts with
         | NewRoundPercept::_ -> newRoundPercepts clearedState

@@ -10,6 +10,8 @@ module ExplorerTree =
     let getExplorerDesires : DesireTree<State,Intention> = 
             ManyDesires 
                 [
+                    Desire(workOnOccupyJob)//Fix w. heuristic
+
                     Desire(findNewZone)
                     
                     
@@ -22,7 +24,6 @@ module ExplorerTree =
                                 ]
                         )
 
-                    Desire(workOnOccupyJob)//Fix w. heuristic
 
                     Desire(findNodeToProbe)
                 ]

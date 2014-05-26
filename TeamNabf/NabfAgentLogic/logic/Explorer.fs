@@ -6,6 +6,7 @@ module Explorer =
     open Graphing.Graph
     open Constants
     open Logging
+    open LogicLib
     type ZoneVertex = 
         {   
             Vertex          : Vertex
@@ -191,6 +192,10 @@ module Explorer =
         else
             fullvalue
     
+    let nodeIsUnprobed (state:State) node =
+        let n = state.World.[node] 
+        n.Value.IsNone
+
     ////////////////////////////////////////Logic////////////////////////////////////////////
 
     let findNewZone (inputState:State) = 
@@ -203,8 +208,9 @@ module Explorer =
                                 
                                 let zone = zoneToExplore state (Set.empty,Set [origin])
                                 let probed vertexName state = isProbed vertexName state.World
+                                let probedWithHeuristics vertexName = ((probed vertexName), Some(distanceBetweenAgentAndNode vertexName))
 
-                                List.map (probed) <| Set.toList zone
+                                List.map (probedWithHeuristics) <| Set.toList zone
                             ); 
                    Plan(fun state ->
                         let exploredZone = zoneToExplore state (Set.empty,Set [origin])
@@ -232,11 +238,13 @@ module Explorer =
         else
             None
 
-    let findNodeToProbe (s:State) = 
-        Some("probe one more node.",Activity,[Requirement(fun state ->  match state.LastAction with 
-                                                                        | Probe _ -> true
-                                                                        | _ -> false
-                                                                        )])
+    let findNodeToProbe (inputState:State) = 
+        findAndDo inputState.Self.Node nodeIsUnprobed "probe it" inputState
+
+//        Some("probe one more node.",Activity,[Requirement(fun state ->  match state.LastAction with 
+//                                                                        | Probe _ -> true
+//                                                                        | _ -> false
+//                                                                        )])
 
 
     let inPhase1 = hasExploredPhase1

@@ -2,6 +2,7 @@
 module FloydWarshall =
     
     open Graphing.Graph
+    open NabfAgentLogic.Logging
 
     let rec addEdgesToMap (heuristicMap:Map<VertexName*VertexName,int>) (origin:VertexName) (edges:DirectedEdge list) =
         match edges with
@@ -46,3 +47,52 @@ module FloydWarshall =
                     hMap <- hMap.Add((nameMap.[j],origin),v)
                     hMap <- hMap.Add((origin,nameMap.[j]),v)
         hMap
+
+    let rec floydWarshallList (map:Graph) (heuristicMap:Map<VertexName*VertexName,int>) (origins:VertexName list) =
+        match origins with
+        | head :: tail -> floydWarshallList map (floydWarshall map heuristicMap head) tail
+        | [] -> heuristicMap
+    
+    let floydWarshallSimple (map:Graph) =
+        let names = List.sort (List.map fst (Map.toList map))
+        let nameMap = generateMap names 1 Map.empty
+        let n = names.Length
+        
+        let edgeMap = ref Map.empty
+        for i in 1 .. n do
+            let vertex = map.[nameMap.[i]]
+            
+            Set.iter (fun e -> 
+                            match e with
+                            | (Some cost,name) -> edgeMap := Map.add (vertex.Identifier,name) cost !edgeMap
+                            | (None,name) -> edgeMap := Map.add (vertex.Identifier,name) 1 !edgeMap
+                            ) vertex.Edges
+            ()
+        let mutable hMap = !edgeMap
+        for k in 1 .. n do
+            for i in 1 .. n do
+                for j in 1 .. n do
+                    
+                    let getValue map a b = 
+                        match Map.tryFind (nameMap.[a],nameMap.[b]) map with
+                        | Some value -> value
+                        | None -> 9999999
+                    
+                    let valik = getValue hMap i k
+                    let valkj = getValue hMap k j
+                    let valij = getValue hMap i j                    
+                    
+                    if valij > valik + valkj
+                    then
+                        let newij = valik + valkj
+                        hMap <- Map.add (nameMap.[i],nameMap.[j]) newij hMap
+        hMap
+    
+    let floydWarshallComplete (map:Graph) =
+        logImportant <| sprintf "Starting Floyd %A" map.Count
+        let result = floydWarshallSimple map
+        logImportant "Floyd complete"
+        result
+
+        //let vertices = List.sort (removeDuplicates ((List.map fst (Map.toList map))) [])
+        //floydWarshallList map Map.empty<VertexName*VertexName,int> vertices

@@ -6,6 +6,7 @@ module LogicLib =
     open Graphing.Graph
     open Constants
     open FsPlanning.Search
+    
 
     let nodeListContains n (nl:string list) =
         (List.tryFind (fun s -> s = n) nl).IsSome
@@ -90,3 +91,38 @@ module LogicLib =
 
 
     //let isPartOfOccupyJob n (s:State) = List.exists (fun (j:Job) -> j ) s.Jobs
+
+
+    let distanceBetweenNodes node1 node2 (state:State) : int =
+                if state.HeuristicMap.ContainsKey(node1, node2) then 
+                    state.HeuristicMap.[node1, node2]
+                else
+                    666
+    let distanceBetweenAgentAndNode node state : int = distanceBetweenNodes state.Self.Node node state
+    
+    let findTargetNode startNode condition (state:State) = 
+        let nodesWithCond = List.filter (condition state) <| (List.map fst <| Map.toList state.World)
+        let distNodes = List.map (fun v -> ((distanceBetweenNodes startNode v state),v)) nodesWithCond        
+        match distNodes with
+        | [] -> None
+        | [single] -> Some <| snd single
+        | nodes -> Some ( snd <| List.min nodes )
+
+        
+    let findAndDo startNode condition actionString (inputState:State) =
+        let targetOpt = findTargetNode startNode condition inputState
+        match targetOpt with
+        | None -> None
+        | Some target ->
+                Some
+                        (   "go to node " + target + " and " + actionString
+                        ,   Activity
+                        ,   [
+                                Requirement <| ((fun state -> (state.Self.Node = target)), Some (distanceBetweenAgentAndNode target))
+                            ;   Requirement(
+                                            (fun state -> not <| condition state target
+                                                            
+                                            ), None
+                                           )
+                            ]
+                        )
