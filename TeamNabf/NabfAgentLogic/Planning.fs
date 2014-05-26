@@ -122,14 +122,15 @@ module Planning =
         | action :: tail ->
             logImportant <| sprintf "Inconsistency found! state does not satisfy %A" action.ActionType
             logInfo <| sprintf "the following errors were found: %A" (unSatisfiedPreconditions state action)
-            let gluePlan = solve aStar <| agentProblem state (Requirement <| ((flip isApplicable action),None))
+            let gluePlan = makePlan state ([Requirement <| ((flip isApplicable action), None)])
+
             match gluePlan with
-            | Some {Cost = _; Path = []} -> restPlan (action.Effect state) action tail
             // If we find a non-empty glue plan [a; b; c], prepend it to the plan and continue recursing
-            | Some {Cost = _; Path = newAction :: newTail} -> 
+            | Some (newAction :: newTail, _) -> 
                 logInfo <| sprintf "Found glue plan %A" (List.map (fun action -> action.ActionType) (newAction :: newTail))
                 restPlan (newAction.Effect state) newAction (newTail @ action :: tail)
-            | None ->
+            | Some (_, _) -> restPlan (action.Effect state) action tail
+            | None -> 
                 logImportant <| sprintf "Failed to find glue plan" 
                 None
         | _ -> Some plan
