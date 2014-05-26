@@ -263,7 +263,7 @@ module AgentTypes =
         | Activity
         | Inherent
 
-    type Goal = (State -> bool)* Option<(State -> int)>
+    type Goal = (State -> bool) * Option<(State -> int)>
 
     type Objective = 
         | Plan of (State -> AgentAction list)
