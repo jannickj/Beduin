@@ -6,7 +6,7 @@ module HandlePercepts =
     open Graphing.Graph
     open NabfAgentLogic.Logging
     open NabfAgentLogic.LogicLib
-    open NabfAgentLogic.Search.FloydWarshall
+    open NabfAgentLogic.Search.HeuristicDijkstra
 
     
 
@@ -307,7 +307,7 @@ module HandlePercepts =
     let updateHeuristicsMap percepts oldState state =
         if state.World.Count > oldState.World.Count then 
             { state with
-                    HeuristicMap = floydWarshallComplete state.World
+                    HeuristicMap = allPairsDistances state.World
             }
         else
             state

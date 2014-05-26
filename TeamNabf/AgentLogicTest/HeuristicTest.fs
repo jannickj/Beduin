@@ -10,7 +10,7 @@ module HeuristicTest =
     open NabfAgentLogic.ActionSpecifications
     open NabfAgentLogic.Search.FloydWarshall
     open FsPlanning.Search
-    open NabfAgentLogic.HeuristicDijkstra
+    open NabfAgentLogic.Search.HeuristicDijkstra
 
     [<TestFixture>]
     type HeuristicTest() = 

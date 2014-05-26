@@ -1,4 +1,4 @@
-﻿namespace NabfAgentLogic
+﻿namespace NabfAgentLogic.Search
 module HeuristicDijkstra =
     open FsPlanning.Search
     open FsPlanning.Search.Problem
