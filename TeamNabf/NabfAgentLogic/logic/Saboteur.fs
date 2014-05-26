@@ -28,7 +28,7 @@ module Saboteur =
     ////////////////////////////////////////Logic////////////////////////////////////////////
 
     let applyToAttackJob (inputState:State) = 
-        let applicationList = createApplicationList s JobType.AttackJob calculateDesireAttackJob
+        let applicationList = createApplicationList inputState JobType.AttackJob calculateDesireAttackJob
         Some(
                 "apply to all attack jobs"
                 , Communication
