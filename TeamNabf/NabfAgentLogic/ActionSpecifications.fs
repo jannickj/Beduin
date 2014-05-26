@@ -108,8 +108,13 @@ module ActionSpecifications =
             let self = { state.Self with Node = destination }
             let newSelf = deductEnergy (cost state) { state with Self = self}
             //logImportant (sprintf "%A" (Set.filter (fun (o,_) -> Option.isSome o) state.World.[destination].Edges))
-            let exploredNodes = if  ( Set.forall (fun (value, _) -> value = Option.None) state.World.[destination].Edges ) then 1 else 0
-            { state with Self = newSelf; MyExploredCount = state.MyExploredCount + exploredNodes; LastAction = Action.Goto destination}
+            let edge = (Some (SIMULATED_EDGE_COST), state.Self.Node, destination)
+            { state with 
+                            Self = newSelf; 
+                            LastAction = Action.Goto destination;
+                            World = addEdge edge state.World
+            }
+
 
         let canMoveTo state = 
             match edgeCost state with
@@ -134,7 +139,8 @@ module ActionSpecifications =
             let updateAtt = { List.head attacked with Status = Disabled }
             { state with EnemyData = updateAtt::rest; 
                          Self = deductEnergy Constants.ACTION_COST_EXPENSIVE state
-                         LastAction = Action.Attack enemyAgent}
+                         LastAction = Action.Attack enemyAgent
+                         PlannerDisabledEnemies = Set.add enemyAgent state.PlannerDisabledEnemies}
         
         { ActionType    = Perform <| Attack enemyAgent
         ; Preconditions = [ canAttack; enoughEnergy Constants.ACTION_COST_EXPENSIVE; isNotDisabled ]
@@ -166,6 +172,7 @@ module ActionSpecifications =
             { state with FriendlyData = updateAgent :: rest;
                          Self = deductEnergy (repairCost state) state 
                          LastAction = Action.Repair damagedAgent
+                         PlannerRepairedAgents = Set.add damagedAgent state.PlannerRepairedAgents
             }
 
         { ActionType    = Perform <| Repair damagedAgent
@@ -191,7 +198,7 @@ module ActionSpecifications =
                                 { state with 
                                         World = newWorld
                                         Self = deductEnergy Constants.ACTION_COST_CHEAP state
-                                        Probed = Set.add vertex state.Probed
+                                        PlannerProbed = Set.add vertex state.PlannerProbed
                                         LastAction = Action.Probe vertexOption
                                 }
 
@@ -216,6 +223,7 @@ module ActionSpecifications =
         let updateState (state : State) = 
             { state with 
                     InspectedEnemies = Set.union state.InspectedEnemies (agentNames state |> Set.ofList);
+                    PlannerInspectedEnemies = Set.union state.PlannerInspectedEnemies (agentNames state |> Set.ofList);
                     Self = deductEnergy Constants.ACTION_COST_EXPENSIVE state
                     LastAction = Action.Inspect agentNameOption
             }

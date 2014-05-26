@@ -48,7 +48,7 @@
         let ZONE_BORDER_VALUE = 6
         let MINIMUM_VALUE_VALUE = 8
 
-       
+        let SIMULATED_EDGE_COST = 1
 
         let RECHARGE_FACTOR = 0.5
 

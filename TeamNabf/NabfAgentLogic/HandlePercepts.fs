@@ -7,6 +7,8 @@ module HandlePercepts =
     open NabfAgentLogic.Logging
     open NabfAgentLogic.LogicLib
 
+    
+
 (* handlePercept State -> Percept -> State *)
     let handlePercept state percept =
         match percept with
@@ -48,23 +50,31 @@ module HandlePercepts =
                 }
                         
             | EdgeSeen (cost, node1, node2) ->
-                let edgeAlreadyExists = fun (cost':Option<_>, otherVertexId) -> cost'.IsSome && otherVertexId = node2
+                let edgeAlreadyExistsWithValue = fun (cost':Option<_>, otherVertexId) -> cost'.IsSome && otherVertexId = node2
 
                 let containNode = (Map.containsKey node1 state.World)
                 //let edges = state.World.[node1].Edges
                 //logInfo ("Contains Node: "+containNode.ToString())
-                if ( not (containNode && (Set.exists edgeAlreadyExists state.World.[node1].Edges))) then
+                if ( cost.IsNone && not (containNode && (Set.exists edgeAlreadyExistsWithValue state.World.[node1].Edges))) then
+                    //printf "\n Added new edge from %A to %A with cost %A to state \n" node1 node2 cost
                     { state with 
                         World = addEdge (cost, node1, node2) state.World 
                         NewEdges = (cost, node1, node2) :: state.NewEdges
-                    }
+                    }      
+                elif ( cost.IsSome ) then
+                    //printf "\n Added new edge from %A to %A with cost %A to state \n" node1 node2 cost
+                    { state with 
+                        World = addEdge (cost, node1, node2) state.World 
+                        NewEdges = (cost, node1, node2) :: state.NewEdges
+                    }                
                 else
                     state
 
                 
             | SimulationStep step  -> { state with SimulationStep = step }
             | MaxEnergyDisabled energy -> state //prob not needed, part of Self percept
-            | LastAction action    -> { state with LastAction = action }
+            | LastAction action    ->  { state with LastAction = action }
+
             | LastActionResult res -> { state with LastActionResult = res }
             | ZoneScore score      -> { state with ThisZoneScore = score }
             | Team team ->
@@ -184,14 +194,15 @@ module HandlePercepts =
         }
 
     let updateTraversedEdgeCost (oldState : State) (newState : State) =
-        match (oldState.Self.Node, newState.LastAction, newState.LastActionResult) with
-        | (fromVertex, Goto toVertex, Successful) -> 
-            let edge = (Some (oldState.Self.Energy.Value - newState.Self.Energy.Value), fromVertex, toVertex)
-            { newState with 
-                World = addEdge edge newState.World
-                //NewEdges = edge :: newState.NewEdges 
-            }
-        | _ -> newState
+                    match (oldState.Self.Node, newState.LastAction, newState.LastActionResult) with
+                    | (fromVertex, Goto toVertex, Successful) -> 
+                        
+                        let edge = (Some (oldState.Self.Energy.Value - newState.Self.Energy.Value), fromVertex, toVertex)
+                        //printf "\n Updated cost on edge %A \n" edge
+                        { newState with 
+                            World = addEdge edge newState.World
+                        }
+                    | _ -> newState
 
 //    let updateEdgeCosts (lastState:State) (state:State) =
 //        match (state.LastAction, state.LastActionResult) with
@@ -207,6 +218,7 @@ module HandlePercepts =
         { state with Jobs = knownJobs }
     let updateProbeCount (lastState:State) (state:State) =
         { state with ProbedCount = List.length <| LogicLib.probedVertices state.World }
+
 //    let updateProbeCount (lastState:State) (state:State) =
 //            
 //        let probeAction = match state.LastAction with
@@ -267,12 +279,18 @@ module HandlePercepts =
                 false //Check this, will we ever see an edge before one of its vertices?
           
 
-        | EnemySeen { Role = role ; Name = name} -> //Should be shared when we learn of the agents role, as well as every time it is spotted!! TODO!!!
-            let agentIsKnown agentData = 
-                match agentData with
-                | { Name = agentDataName ; Role = Some _ } -> agentDataName = name
-                | _ -> false
-            not (List.exists agentIsKnown oldState.EnemyData)
+        | EnemySeen { Role = role ; Name = name} -> false//Should be shared when we learn of the agents role, as well as every time it is spotted!! TODO!!!
+//            let agentIsKnown agentData = 
+//                match agentData with
+//                | { Name = agentDataName ; Role = Some _ } -> agentDataName = name
+//                | _ -> false
+//            not (List.exists agentIsKnown oldState.EnemyData)
+
+        | AgentRolePercept (name, role, certainty) -> 
+            if List.exists (fun (enemyAgent:Agent) -> enemyAgent.Name = name) state.EnemyData then 
+                true
+            else
+                false
 
         | _ -> false
 
@@ -296,5 +314,6 @@ module HandlePercepts =
 
         match percepts with
         | NewRoundPercept::_ -> newRoundPercepts clearedState
+                                
         | _ -> handlePercepts state percepts
         

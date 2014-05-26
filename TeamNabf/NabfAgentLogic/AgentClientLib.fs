@@ -52,5 +52,8 @@ module AgentClientLib =
             ;   MyExploredCount = 0
             ;   ProbedCount = 0  
             ;   NewKnowledge = []
-            ;   Probed = Set.empty
+            ;   PlannerProbed = Set.empty
+            ;   PlannerRepairedAgents = Set.empty
+            ;   PlannerInspectedEnemies = Set.empty
+            ;   PlannerDisabledEnemies = Set.empty
             } : State

@@ -182,7 +182,11 @@ module AgentTypes =
         {
             Pos             : string
             HasEnergy       : bool
-            Probed          : VertexName Set
+            PlannerProbed          : VertexName Set
+            PlannerRepairedAgents  : AgentName Set
+            PlannerInspectedEnemies : AgentName Set
+            PlannerDisabledEnemies  : AgentName Set
+
 //            World           : Graph
 //            Friends         : Agent list
 //            Enemies         : Agent list
@@ -215,8 +219,10 @@ module AgentTypes =
             ProbedCount      : int
 
             ///USED FOR PLANNING ONLY DONT USE THEM IN INTENTION CHECKS
-            Probed           : VertexName Set
-
+            PlannerProbed           : VertexName Set
+            PlannerRepairedAgents   : AgentName Set
+            PlannerInspectedEnemies : AgentName Set
+            PlannerDisabledEnemies  : AgentName Set
 
 
         }           
@@ -227,7 +233,10 @@ module AgentTypes =
                     match self.Self.Energy with
                     | Some energy -> energy >= ACTION_COST_MAX
                     | _ -> false
-                Probed = self.Probed
+                PlannerProbed = self.PlannerProbed
+                PlannerRepairedAgents = self.PlannerRepairedAgents
+                PlannerInspectedEnemies = self.PlannerInspectedEnemies
+                PlannerDisabledEnemies = self.PlannerDisabledEnemies
 //                World = self.World; 
 //                Friends = self.FriendlyData;
 //                Enemies = self.EnemyData
