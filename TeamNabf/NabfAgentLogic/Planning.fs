@@ -32,6 +32,8 @@ module Planning =
            | [single] -> single
            | multi -> List.min multi 
       
+    let realGoalCount goalFun state =
+        List.length <| List.filter (fun (func,_) -> func state) (goalFun state)
 
     let goalCount (goalFun : State -> Goal list) state =
         List.length <| List.filter (fun (func,_) -> not <| func state) (goalFun state)
@@ -45,7 +47,7 @@ module Planning =
             
     let timedGoalTest breakTime (goalFun : State -> Goal list) state = 
         let someGoalSatisfied = List.exists (fun (func,_) -> func state) <| goalFun state
-        if System.DateTime.Now >= breakTime && someGoalSatisfied then
+        if System.DateTime.Now >= breakTime then
             true
         else
             goalTest goalFun state
@@ -90,11 +92,11 @@ module Planning =
             let plan = solveSearchNodePath aStar <| agentProblem state goal
             let prunedPlan = prunePlan plan goal
             match prunedPlan with 
-            | Some path -> 
+            | Some path when not <| List.forall (fun node -> realGoalCount (goalFunc goal) node.State > 0) path -> 
                 let actions = List.map (fun node -> node.Action.Value) path
                 logImportant (sprintf "Found plan: %A" <| List.map (fun action -> action.ActionType) actions)
                 Some (actions, goals)
-            | None -> None
+            | _ -> None
         | [] -> Some ([], goals)
 
        
@@ -122,14 +124,15 @@ module Planning =
         | action :: tail ->
             logImportant <| sprintf "Inconsistency found! state does not satisfy %A" action.ActionType
             logInfo <| sprintf "the following errors were found: %A" (unSatisfiedPreconditions state action)
-            let gluePlan = solve aStar <| agentProblem state (Requirement <| ((flip isApplicable action),None))
+            let gluePlan = makePlan state ([Requirement <| ((flip isApplicable action), None)])
+
             match gluePlan with
-            | Some {Cost = _; Path = []} -> restPlan (action.Effect state) action tail
             // If we find a non-empty glue plan [a; b; c], prepend it to the plan and continue recursing
-            | Some {Cost = _; Path = newAction :: newTail} -> 
+            | Some (newAction :: newTail, _) -> 
                 logInfo <| sprintf "Found glue plan %A" (List.map (fun action -> action.ActionType) (newAction :: newTail))
                 restPlan (newAction.Effect state) newAction (newTail @ action :: tail)
-            | None ->
+            | Some (_, _) -> restPlan (action.Effect state) action tail
+            | None -> 
                 logImportant <| sprintf "Failed to find glue plan" 
                 None
         | _ -> Some plan
