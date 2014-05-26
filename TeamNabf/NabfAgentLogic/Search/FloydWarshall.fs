@@ -2,6 +2,7 @@
 module FloydWarshall =
     
     open Graphing.Graph
+    open NabfAgentLogic.Logging
 
     let rec addEdgesToMap (heuristicMap:Map<VertexName*VertexName,int>) (origin:VertexName) (edges:DirectedEdge list) =
         match edges with
@@ -88,6 +89,10 @@ module FloydWarshall =
         hMap
     
     let floydWarshallComplete (map:Graph) =
-        floydWarshallSimple map
+        logImportant <| sprintf "Starting Floyd %A" map.Count
+        let result = floydWarshallSimple map
+        logImportant "Floyd complete"
+        result
+
         //let vertices = List.sort (removeDuplicates ((List.map fst (Map.toList map))) [])
         //floydWarshallList map Map.empty<VertexName*VertexName,int> vertices
