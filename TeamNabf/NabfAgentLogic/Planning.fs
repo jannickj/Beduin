@@ -22,10 +22,22 @@ module Planning =
         logError <| sprintf "%A" unsat
 
     let goalCount (goals:Goal list) state cost =
+        let heuristics = List.choose id 
+                            ( List.map (fun (_,heuOpt) ->
+                                        match heuOpt with
+                                        | Some heuFunc -> Some <| heuFunc state
+                                        | None ->  None
+                                       ) goals
+                            )
+        let heu = match heuristics with 
+                  | [] -> 0
+                  | [single] -> single
+                  | multi -> List.min multi 
+                  
         let res = List.length <| List.filter (fun func -> not <| (fst func) state) (goals)
         let len = List.length <| goals
         //logImportant <| sprintf "(%A / %A) goals satisfied" (len - res) len
-        (res, cost)
+        (res, cost+heu)
 
     
     let goalTest goalFun state = 
