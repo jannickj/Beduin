@@ -188,10 +188,12 @@ module HandlePercepts =
                     { state with NewKnowledge = updatedNK }
             | _ -> state
 
-    let clearTempBeliefs state =
+    let clearTempBeliefs (state:State) =
+        let newEnemyData = List.map (fun enemy -> { enemy with Agent.Node = ""}) state.EnemyData
         { state with 
             NewEdges = []
             NewVertices = []
+            EnemyData = newEnemyData
         }
 
     let updateTraversedEdgeCost (oldState : State) (newState : State) =
