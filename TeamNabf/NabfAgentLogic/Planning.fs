@@ -45,7 +45,7 @@ module Planning =
             
     let timedGoalTest breakTime (goalFun : State -> Goal list) state = 
         let someGoalSatisfied = List.exists (fun (func,_) -> func state) <| goalFun state
-        if System.DateTime.Now >= breakTime && someGoalSatisfied then
+        if System.DateTime.Now >= breakTime then
             true
         else
             goalTest goalFun state
