@@ -38,7 +38,10 @@ module StructureBuilder =
             ;   MyExploredCount = 0
             ;   ProbedCount = 0  
             ;   NewKnowledge = []
-            ;   Probed = Set.empty
+            ;   PlannerProbed = Set.empty
+            ;   PlannerRepairedAgents = Set.empty
+            ;   PlannerInspectedEnemies = Set.empty
+            ;   PlannerDisabledEnemies = Set.empty
             } : State
 
     let buildState node role world = buildStateWithEnergy node role world 30 

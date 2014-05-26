@@ -22,7 +22,7 @@ module ExplorerTree =
                                 ]
                         )
 
-                    Desire(workOnOccupyJob)
+                    Desire(workOnOccupyJob)//Fix w. heuristic
 
                     Desire(findNodeToProbe)
                 ]

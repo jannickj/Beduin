@@ -214,7 +214,7 @@ module ZoneTest =
                                     ; ("b", { Identifier = "b"; Value = None; Edges = [(Some 1, "a");(Some 1, "c")] |> Set.ofList })
                                     ; ("c", { Identifier = "c"; Value = None; Edges = [(Some 1, "b");(Some 1, "a")] |> Set.ofList })
                                     ] |> Map.ofList
-                let state = buildState "c" Explorer initialGraph
+                let state = buildState "a" Explorer initialGraph
                 
                 let (Some (_,_,goal::goals)) = findNewZone state
                 let plan = makePlan state goals
