@@ -40,7 +40,7 @@ module Common =
             
     let nodeIsUnexplored (state:State) node =
         let n = state.World.[node] 
-        not <| Set.exists (fun (e:DirectedEdge) -> (fst <| e).IsSome) n.Edges
+        not <| Set.exists (fun (e:DirectedEdge) -> (fst e).IsSome) n.Edges
 
 
     let nodeHasMinValue (state:State) node =

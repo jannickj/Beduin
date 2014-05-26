@@ -93,7 +93,7 @@ module LogicLib =
     //let isPartOfOccupyJob n (s:State) = List.exists (fun (j:Job) -> j ) s.Jobs
 
 
-    let distanceBetweenNodes node1 node2 (state:State) : int =
+    let distanceBetweenNodes node1 node2 (state:State) : int = 
                 if state.HeuristicMap.ContainsKey(node1, node2) then 
                     state.HeuristicMap.[node1, node2]
                 else
