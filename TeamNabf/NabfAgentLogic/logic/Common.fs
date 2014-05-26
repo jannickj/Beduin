@@ -103,14 +103,19 @@ module Common =
             
     //Find a node of at leas value 8 to stand on.
     let generateMinimumValue (inputState:State) = 
-        findAndDo inputState.Self.Node nodeHasMinValue "generate value" inputState
-//        Some(
-//            "find a good node to occupy."
-//            ,Activity
-//            ,[Requirement(
-//                ((fun state -> state.World.[state.Self.Node].Value.IsSome && state.World.[state.Self.Node].Value.Value >= MINIMUM_VALUE_VALUE),)
-//                )]
-//        )
+        //findAndDo inputState.Self.Node nodeHasMinValue "generate value" inputState
+        let targetOpt = findTargetNode inputState.Self.Node nodeHasMinValue inputState
+        match targetOpt with
+        | None -> None
+        | Some target ->
+                Some
+                        (   "get minimum value at " + target
+                        ,   Activity
+                        ,   [
+                                Requirement((fun state -> (state.Self.Node = target)), Some (distanceBetweenAgentAndNode target));
+                                Plan(fun s -> [Perform(Recharge)])
+                            ]
+                        )
 
     let shareKnowledge (s:State) : Option<Intention> =
          Some ("share my knowledge", Communication, [Plan (fun state -> [(Communicate <| ShareKnowledge ( state.NewKnowledge))] )])
