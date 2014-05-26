@@ -31,6 +31,11 @@
         let EvaluationStartedEvent = new Event<EventHandler, EventArgs>()
         let SimulationEndedEvent = new Event<EventHandler, EventArgs>()
         
+        let sendMasterServerMessage act =
+            let iilContainer = buildIilMetaAction act simID
+            let iilAction = buildIilAction iilContainer
+            SendAgentServerEvent.Trigger(this,new UnaryValueEvent<IilAction>(iilAction))
+
         do
             MarsCom.NewAction.Add(fun evt ->
                 let id,act = evt.Value 
@@ -40,9 +45,7 @@
                 ())
             MasterCom.NewAction.Add(fun evt ->
                 let act = evt.Value
-                let iilContainer = buildIilMetaAction act simID
-                let iilAction = buildIilAction iilContainer
-                SendAgentServerEvent.Trigger(this,new UnaryValueEvent<IilAction>(iilAction))
+                sendMasterServerMessage act
                 )
             ()
         member private this.protectedExecute (name, action, returnedOnError) =
@@ -86,7 +89,11 @@
                         this.agent.AddAcuator(MasterCom)
                         this.agent.AddSensor(MasterCom)
                         ()
-                    | msg -> 
+                    | msg ->
+                        match msg with
+                        | ActionRequest ((_,_,id),_) -> 
+                            sendMasterServerMessage  <| NewRound id
+                        | _ -> ()
                         MarsCom.SetMessage (msg)
                 | None -> ()
                     

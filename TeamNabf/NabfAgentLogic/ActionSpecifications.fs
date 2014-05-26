@@ -288,5 +288,15 @@ module ActionSpecifications =
     let actionSpecification (action : AgentAction) =
         match action with
         | Communicate comm -> communicationAction comm
-        | _ -> raise (System.NotImplementedException ())
+        | Perform act -> 
+            match act with
+            | Attack agent -> attackAction agent
+            | Goto vn -> moveAction vn
+            | Inspect opt -> inspectAction opt
+            | Parry -> parryAction
+            | Probe opt -> probeAction opt
+            | Recharge -> rechargeAction
+            | Repair agent -> repairAction agent
+            | Skip -> rechargeAction
+            | Survey -> failwith "survery does not have an actionspecification"
 

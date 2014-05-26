@@ -20,6 +20,7 @@
             [<CLIEvent>]
             member this.NewAction = NewActionEvent.Publish
 
+
             member this.SetMessage (msg:AgentServerMessage) =
                 match msg with
                 | JobMessage jobpercept -> 

@@ -10,7 +10,27 @@ module Common =
 
 
     ///////////////////////////////////Helper functions//////////////////////////////////////
+    
+    //Calculate the desire to an occupy job
+    let calculateDesireOccupyJob  modifier (j:Job) (s:State)= 
+        let ((_,newValue,_,_),(jobData)) = j      
+        let oldJobValue = 
+                            if (s.MyJobs.IsEmpty) then
+                                0
+                            else
+                                (getJobValueFromJoblist s.MyJobs s)
+
+        let jobTargetNode = 
+            match jobData with
+            | OccupyJob (_,zone) -> zone.Head
         
+
+        let (distanceToJob,personalValueMod) = (getDistanceToJobAndNumberOfEnemyNodes jobTargetNode s)
+        
+        //final desire
+        int <| (((float newValue) * personalValueMod) - (float oldJobValue))    +     (-(distanceToJob * DISTANCE_TO_OCCUPY_JOB_MOD))    +    modifier
+
+
     //Try to find any repair jobs put up by the agent itself.
     let rec tryFindRepairJob (s:State) (knownJobs:Job list) =
             match knownJobs with
@@ -57,6 +77,16 @@ module Common =
     let shareKnowledge (s:State) : Option<Intention> =
          Some ("share my knowledge", Communication, [Plan (fun s -> [(Communicate <| ShareKnowledge ( s.NewKnowledge))] )])
     
+    
+    let applyToOccupyJob  modifier (s:State) = 
+        let applicationList = createApplicationList s JobType.OccupyJob (calculateDesireOccupyJob modifier)
+        Some(
+                "apply to all occupy jobs"
+                , Communication
+                , [Plan(fun state -> applicationList)]
+            )
+    
+
     let workOnOccupyJob (s:State) =
         let myJobs = List.map (fun (id,_) -> getJobFromJobID s id) s.MyJobs
         let myOccupyJobs = getJobsByType JobType.OccupyJob myJobs

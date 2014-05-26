@@ -37,7 +37,7 @@ module Explorer =
         let l = List.filter (fun ((_,OccupyJob(_,vertices)):Job) -> (List.exists (fun (vn:VertexName) -> s.Self.Node = vn ) vertices)) occupyJobs
         l <> []
 
-    let hasExploredPhase1 (s:State) = (float s.MyExploredCount) > ( EXPLORE_FACTOR_LIGHT * (float s.TotalNodeCount) )
+    let hasExploredPhase1 (s:State) = (float s.ProbedCount) > ( EXPLORE_FACTOR_LIGHT * (float s.TotalNodeCount) )
 
     let onHighValueNode (s:State) = s.World.[s.Self.Node].Value.IsSome && s.World.[s.Self.Node].Value.Value >= ZONE_ORIGIN_VALUE
 
@@ -94,6 +94,10 @@ module Explorer =
             Lock = false
             HasAgent = true
         } : ZoneVertex
+    
+    let isProbed (vertexName:VertexName) (world:Graph) = world.ContainsKey vertexName &&  world.[vertexName].Value.IsSome
+           
+
 
     let isIsland (vertex:Vertex) =
         vertex.Edges.Count = 1
@@ -197,14 +201,10 @@ module Explorer =
                 [ MultiGoal(
                             fun state -> 
                                 
-                                              let zone = zoneToExplore state (Set.empty,Set [origin])
-                                              logImportant <| sprintf "%A" zone
-                                              let vals = List.map (fun z -> (z,state.World.[z].Value)) <| Set.toList zone
-                                              let withVal = List.filter (fun (_,value) -> Option.isSome value) vals
-                                              List.map (fun z -> (fun st -> state.World.[z].Value.IsSome)) <| Set.toList zone
+                                let zone = zoneToExplore state (Set.empty,Set [origin])
+                                let probed vertexName state = isProbed vertexName state.World
 
-                                              //Set.forall (fun z -> state.World.[z].Value.IsSome) zone
-//                                                                        //isDoneExploring origin Set.empty state
+                                List.map (probed) <| Set.toList zone
                             ); 
                    Plan(fun state ->
                         let exploredZone = zoneToExplore state (Set.empty,Set [origin])
@@ -232,17 +232,11 @@ module Explorer =
         else
             None
 
-    let applyToOccupyJob (s:State) = None
+    let findNodeToProbe (s:State) = 
+        Some("probe one more node.",Activity,[Requirement(fun state ->  match state.LastAction with 
+                                                                        | Probe _ -> true
+                                                                        | _ -> false
+                                                                        )])
 
 
-    let findNodeToProbeUnconditional (s:State) = 
-        if s.ProbedCount < s.TotalNodeCount
-            then
-                Some("probe one more node.",Activity,[Requirement(fun state -> match state.LastAction with 
-                                                                                                       | Probe _ -> true
-                                                                                                       | _ -> false
-                                                                                                       )])
-            else
-                None
-
-    let findNodeToProbePhase1 (s:State) = if(hasExploredPhase1 s) then findNodeToProbeUnconditional s else None
+    let inPhase1 = hasExploredPhase1

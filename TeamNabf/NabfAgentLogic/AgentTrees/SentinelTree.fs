@@ -5,11 +5,12 @@ module SentinelTree =
     open Sentinel
     open AgentTypes
     open Common
+    open Constants
 
     let getSentinelDesires : DesireTree<State,Intention> = 
             ManyDesires 
                 [
-                    Desire(applyToOccupyJob)
+                    Desire(applyToOccupyJob SENTINEL_OCCUPYJOB_MOD)
 
                     //Desire(workOnOccupyJobThenParryIfEnemiesClose)
 

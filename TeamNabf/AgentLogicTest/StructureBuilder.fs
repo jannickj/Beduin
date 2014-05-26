@@ -2,9 +2,11 @@
 module StructureBuilder =
     open NabfAgentLogic.AgentTypes
     
-    let buildState node role world = 
+
+
+    let buildStateWithEnergy node role world energy = 
         {   World = world
-            ;   Self =  {   Energy = Some 30                        
+            ;   Self =  {   Energy = Some energy                        
                         ;   Health = Some 0
                         ;   MaxEnergy = Some 30
                         ;   MaxEnergyDisabled = Some 30
@@ -39,3 +41,4 @@ module StructureBuilder =
             ;   Probed = Set.empty
             } : State
 
+    let buildState node role world = buildStateWithEnergy node role world 30 

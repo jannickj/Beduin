@@ -31,7 +31,7 @@ namespace NabfServerApplication
 
         static void Main(string[] args)
         {
-            Console.Clear();
+            //Console.Clear();
             string[] ipp = args[0].Split(new Char[]{':'});
             string ip = ipp[0];
             int port = Convert.ToInt32(ipp[1]);
@@ -52,10 +52,13 @@ namespace NabfServerApplication
             model.EventManager.Register(new Trigger<ActionCompletedEvent<AddXmasObjectAction>>(AddedXmasObject));
             model.EventManager.Register(new Trigger<ActionFailedEvent>(evt =>
                 {
-                    Console.SetCursorPosition(0, 1);
-                    Console.Write("Error occured with " + evt.FailedAction.GetType().Name + ": " + evt.Exception.Message);
+                    //Console.SetCursorPosition(0, 1);
+                    Console.WriteLine("Error occured with " + evt.FailedAction.GetType().Name + ": " + evt.Exception.Message);
                 }));
-           
+            model.EventManager.Register(new Trigger<NewNoticeEvent>(evt =>
+                 {
+                     
+                 }));
 
             XmasEngineManager engine = new XmasEngineManager(factory);
 
@@ -69,8 +72,8 @@ namespace NabfServerApplication
         {
             if (verbose)
             {
-                Console.SetCursorPosition(15, consolepos[action.Source] * 2 + agentoffset);
-                Console.Write("Received: " + action + "\t\t");
+                //Console.SetCursorPosition(15, consolepos[action.Source] * 2 + agentoffset);
+                Console.WriteLine("Received: " + action);
             }
             
         }
@@ -79,8 +82,8 @@ namespace NabfServerApplication
         {
             if (verbose)
             {
-                Console.SetCursorPosition(15, consolepos[agent] * 2 + agentoffset + 1);
-                Console.Write("Sent: " + evt + "\t\t");
+                //Console.SetCursorPosition(15, consolepos[agent] * 2 + agentoffset + 1);
+                Console.WriteLine("Sent: " + evt);
             }
             
         }
@@ -90,7 +93,8 @@ namespace NabfServerApplication
             if (evten.Action.Object is NabfAgent)
             {
                 var agent = (NabfAgent)evten.Action.Object;
-				//if (verbose)
+                Console.WriteLine("Agent " + agent.Name + " connected");
+                //if (verbose)
 				//{
 				//	Console.SetCursorPosition(0, start * 2 + agentoffset);
 				//	Console.Write("Agent: " + agent.Name);
@@ -100,22 +104,19 @@ namespace NabfServerApplication
                 //agent.Register(new Trigger<ActionStartingEvent<AddKnowledgeAction>>(evt => ReceivedMessage(evt.Action)));
                 agent.Register(new Trigger<ActionStartingEvent<ApplyNoticeAction>>(evt => { if (evt.Action.NoticeId != -1) ReceivedMessage(evt.Action); }));
                 //agent.Register(new Trigger<ActionStartingEvent<ChangeNoticeAction>>(evt => ReceivedMessage(evt.Action)));
-                //agent.Register(new Trigger<ActionStartingEvent<CreateNoticeAction>>(evt => ReceivedMessage(evt.Action)));
+                agent.Register(new Trigger<ActionStartingEvent<CreateNoticeAction>>(evt => Console.WriteLine("Agent "+agent.Name+" posted Job:\n" + evt.Action.JobType)));
                 //agent.Register(new Trigger<ActionStartingEvent<DeleteNoticeAction>>(evt => ReceivedMessage(evt.Action)));
                 //agent.Register(new Trigger<ActionStartingEvent<NewRoundAction>>(evt => ReceivedMessage(evt.Action)));
                 //agent.Register(new Trigger<ActionStartingEvent<SubscribeSimulationAction>>(evt => ReceivedMessage(evt.Action)));
                 agent.Register(new Trigger<ActionStartingEvent<AgentCrashed>>(evt =>
                     {
-                        var message = "Crashed! (" + evt.Action.Exception.Message.Substring(0, 20) + "...)";
+                        var message = "Agent "+evt.Action.Source.Name+" disconnected: \n  "+evt.Action.Exception.Message;
                         //Console.SetCursorPosition(15, consolepos[agent] * 2 + agentoffset);
-                        Console.WriteLine("Received: " + message);
+                        Console.WriteLine(message);
 
-                        //Console.SetCursorPosition(15, consolepos[agent] * 2 + agentoffset + 1);
-                        Console.WriteLine("Sent: " + message);
                     }));
-
+                
                 //agent.Register(new Trigger<NewKnowledgeEvent>(evt => SendMessage(agent, evt)));
-               // agent.Register(new Trigger<NewNoticeEvent>(evt => SendMessage(agent, evt)));
                 //agent.Register(new Trigger<NoticeRemovedEvent>(evt => SendMessage(agent, evt)));
                 //agent.Register(new Trigger<NoticeUpdatedEvent>(evt => SendMessage(agent, evt)));
                 agent.Register(new Trigger<ReceivedJobEvent>(evt => SendMessage(agent, evt)));
@@ -137,7 +138,7 @@ namespace NabfServerApplication
                     if (updated)
                     {
                         //Console.SetCursorPosition(0, 0);
-                        Console.WriteLine("Simulation: " + simId + ", Round: " + roundId);
+                        Console.WriteLine("Begin simulation " + simId + ", Round: " + roundId);
                     }
 
 

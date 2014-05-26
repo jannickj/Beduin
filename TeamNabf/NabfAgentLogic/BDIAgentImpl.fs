@@ -11,7 +11,9 @@
         class
            
             inherit BDIAgent<Percept,State,AgentAction,Intention,Plan>(State,DesireTree,Planner)
-                override this.AnalyzePercept(percepts, state) = updateState state percepts
+                override this.AnalyzePercept(percepts, state) = 
+                    let newstate = updateState state percepts
+                    newstate
             
                 override this.FilterIntention(intA, intB) = 
                     match intA with

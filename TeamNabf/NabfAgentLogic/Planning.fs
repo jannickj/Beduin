@@ -21,10 +21,10 @@ module Planning =
         let unsat = unSatisfiedPreconditions state (List.head actions)
         logError <| sprintf "%A" unsat
 
-    let goalCount goalFun state cost =
-        let res = List.length <| List.filter (fun func -> not <| func state) (goalFun state)
-        let len = List.length <| goalFun state
-        logImportant <| sprintf "(%A / %A) goals satisfied" (len - res) len
+    let goalCount goals state cost =
+        let res = List.length <| List.filter (fun func -> not <| func state) (goals)
+        let len = List.length <| goals
+        //logImportant <| sprintf "(%A / %A) goals satisfied" (len - res) len
         (res, cost)
 
     
@@ -41,31 +41,28 @@ module Planning =
 
         { InitialState = state
         ; GoalTest     = wrappedGoalTest <| goalTest goalFunc
-        ; Actions      = fun state -> testfun state; List.filter (isApplicable state) (roleActions state)
+        ; Actions      = fun state -> List.filter (isApplicable state) (roleActions state)
         ; Result       = fun state action -> action.Effect state
         ; StepCost     = fun state action -> action.Cost state
-        ; Heuristic    = goalCount goalFunc
+        ; Heuristic    = goalCount (goalFunc state)
         }
 
     //let perform actionspec = Perform actionspec.ActionType
 
     let makePlan initstate goals =
         let state = { initstate with LastAction = Skip }
-            
+        match goals with
+        | (Plan plan) :: _ -> Some (List.map actionSpecification <| plan state, goals)
+        | goal :: _ -> 
+            let plan = solve aStar <| agentProblem state goal
+            match plan with
+            | Some sol -> 
+                let actions = sol.Path
+                logImportant (sprintf "Found plan: %A" <| List.map (fun action -> action.ActionType) actions)                
+                Some (actions, goals)
+            | _ -> None
+        | [] -> Some ([], goals)
 
-        if state.Self.Node <> "" then
-            match goals with
-            | (Plan plan) :: _ -> Some (List.map actionSpecification <| plan state, goals)
-            | goal :: _ -> 
-                let plan = solve aStar <| agentProblem state goal
-                match plan with
-                | Some sol -> 
-                    let actions = sol.Path
-                    logImportant (sprintf "Found plan: %A" <| List.map (fun action -> action.ActionType) actions)                
-                    Some (actions, goals)
-                | _ -> None
-            | [] -> Some ([], goals)
-        else None
        
     let formulatePlan (state : State) intent = 
         let (name, inttype, goals) = intent

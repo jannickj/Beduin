@@ -5,17 +5,23 @@ module ExplorerTree =
     open Explorer
     open AgentTypes
     open Common
+    open Constants
 
     let getExplorerDesires : DesireTree<State,Intention> = 
             ManyDesires 
                 [
                     Desire(findNewZone)
-
-                    Desire(findNodeToProbePhase1)
-
-                    Desire(applyToOccupyJob)
+                    
+                    Desire(applyToOccupyJob EXPLORER_OCCUPYJOB_MOD)
+//                    Conditional
+//                        (   inPhase1,
+//                            ManyDesires
+//                                [
+//                                    Desire(findNodeToProbe)
+//                                ]
+//                        )
 
                     Desire(workOnOccupyJob)
 
-                    Desire(findNodeToProbeUnconditional)
+                    Desire(findNodeToProbe)
                 ]
