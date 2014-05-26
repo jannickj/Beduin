@@ -31,8 +31,8 @@ module Inspector =
     ////////////////////////////////////////Logic////////////////////////////////////////////
 
     
-    let spontanousInspectAgent (s:State) = 
-        let uninspectedNearbyEnemies = List.filter (fun a -> a.Role.IsNone) (nearbyEnemies s s.Self)
+    let spontanousInspectAgent (inputState:State) = 
+        let uninspectedNearbyEnemies = List.filter (fun a -> a.Role.IsNone) (nearbyEnemies inputState inputState.Self)
         match uninspectedNearbyEnemies with
         | [] -> None
         | head::tail ->     
@@ -42,25 +42,25 @@ module Inspector =
                     , [Requirement(fun state -> agentHasFulfilledRequirementEnemies head.Name state (fun ag -> ag.Role.IsSome) )]
                 )
 
-    let applyToOccupyJob (s:State) = 
-        let applicationList = createApplicationList s JobType.OccupyJob calculateDesireOccupyJob
+    let applyToOccupyJob (inputState:State) = 
+        let applicationList = createApplicationList inputState JobType.OccupyJob calculateDesireOccupyJob
         Some(
                 "apply to all occupy jobs"
                 , Communication
                 , [Plan(fun state -> applicationList)]
             )
     
-    let applyToDisruptJob (s:State) = None //advanced feature
+    let applyToDisruptJob (inputState:State) = None //advanced feature
     
-    let workOnDisruptJob (s:State) = None //advanced feature
+    let workOnDisruptJob (inputState:State) = None //advanced feature
     
-    let findAgentToInspect (s:State) = 
+    let findAgentToInspect (inputState:State) = 
         Some(
                 "find and inspect an agent"
                 , Activity
                 , [Requirement(
                     fun state ->  
-                        match s.LastAction with
+                        match state.LastAction with
                         | (Inspect _) -> true
                         | _ -> false
                 )]
