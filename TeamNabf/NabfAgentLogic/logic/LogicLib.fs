@@ -108,9 +108,25 @@ module LogicLib =
         | [single] -> Some <| snd single
         | nodes -> Some ( snd <| List.min nodes )
 
+    let findNextBestNode startNode condition (state:State) = 
+        let nodesWithCond = List.filter (condition state) <| (List.map fst <| Map.toList state.World)
+        let distNodes = List.map (fun v -> ((distanceBetweenNodes startNode v state),v)) nodesWithCond        
+        match distNodes with
+        | [] -> None
+        | [single] -> Some <| snd single
+        | nodes -> 
+                    let newNodes = nodes
+                    let filteredNodes = List.filter (fun n -> not((List.min nodes) = n) ) newNodes
+                    Some ( snd <| List.min filteredNodes )
+
         
-    let findAndDo startNode condition actionString (inputState:State) =
-        let targetOpt = findTargetNode startNode condition inputState
+
+    let findAndDo startNode condition actionString findNextBest (inputState:State) =
+        let targetOpt = 
+            match findNextBest with
+            | true -> findTargetNode startNode condition inputState
+            | false -> findNextBestNode startNode condition inputState
+        
         match targetOpt with
         | None -> None
         | Some target ->
@@ -126,3 +142,7 @@ module LogicLib =
                                            )
                             ]
                         )
+
+    let myRankIsGreatest myName (other:Agent List) =
+        let qq = List.filter (fun a -> a.Name > myName) other
+        qq.IsEmpty

@@ -73,7 +73,7 @@ module Saboteur =
     let workOnDisruptJobThenParryIfEnemiesClose (inputState:State) = None //advanced feature
     
     let findAgentToDestroy (inputState:State) = 
-        findAndDo inputState.Self.Node nodeHasEnemyAgent "attack an agent" inputState
+        findAndDo inputState.Self.Node nodeHasEnemyAgent "attack an agent" false inputState
 //        Some(
 //                "find and destroy an agent"
 //                , Activity

@@ -239,7 +239,7 @@ module Explorer =
             None
 
     let findNodeToProbe (inputState:State) = 
-        findAndDo inputState.Self.Node nodeIsUnprobed "probe it" inputState
+        findAndDo inputState.Self.Node nodeIsUnprobed "probe it" false inputState
 
 //        Some("probe one more node.",Activity,[Requirement(fun state ->  match state.LastAction with 
 //                                                                        | Probe _ -> true
