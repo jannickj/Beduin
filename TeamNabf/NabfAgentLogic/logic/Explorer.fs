@@ -43,7 +43,7 @@ module Explorer =
 
     let nodePartOfZone (s:State) =
         let occupyJobs = (List.filter (fun ((_,_,jType,_),_) -> jType = JobType.OccupyJob) s.Jobs)
-        let occupyJobSet = Set.ofList (List.concat (List.map (fun (_,OccupyJob(l,_)) -> l) occupyJobs))
+        let occupyJobSet = Set.ofList (List.concat (List.map (fun (_,OccupyJob(_,l)) -> l) occupyJobs))
         Set.contains s.Self.Node occupyJobSet
 
     let nodeHostile (s:State) = false // Not implemented yet!
