@@ -25,6 +25,9 @@ module Saboteur =
         //final desire
         int <| (((float newValue) * personalValueMod) - (float oldJobValue))    +     (-(distanceToJob * DISTANCE_TO_ATTACK_JOB_MOD))    +    SABOTEUR_ATTACKJOB_MOD
 
+
+    let nodeHasEnemyAgent (state:State) node =
+        List.exists (fun a -> a.Node = node) state.EnemyData
     ////////////////////////////////////////Logic////////////////////////////////////////////
 
     let applyToAttackJob (inputState:State) = 
@@ -43,7 +46,9 @@ module Saboteur =
             Some(
                     "attack agent " + head.Name
                     , Activity
-                    , [Requirement(fun state -> agentHasFulfilledRequirementEnemies head.Name state (fun ag -> ag.Status = EntityStatus.Disabled) )]
+                    , [Requirement(
+                                        ((fun state -> agentHasFulfilledRequirementEnemies head.Name state (fun ag -> ag.Status = EntityStatus.Disabled)), None) 
+                                    )]
                 )
     
     let workOnAttackJob (inputState:State) = None
@@ -56,7 +61,10 @@ module Saboteur =
             Some(
                     "attack agent " + head.Name
                     , Activity
-                    , [Requirement(fun state -> agentHasFulfilledRequirementEnemies head.Name state (fun ag -> ag.Status = EntityStatus.Disabled))]
+                    , [Requirement(
+                                    ((fun state -> agentHasFulfilledRequirementEnemies head.Name state (fun ag -> ag.Status = EntityStatus.Disabled)), None)
+                    
+                    )]
                 )
              
     
@@ -65,13 +73,14 @@ module Saboteur =
     let workOnDisruptJobThenParryIfEnemiesClose (inputState:State) = None //advanced feature
     
     let findAgentToDestroy (inputState:State) = 
-        Some(
-                "find and destroy an agent"
-                , Activity
-                , [Requirement(
-                    fun state ->  
-                        match state.LastAction with
-                        | (Attack _) -> true
-                        | _ -> false
-                )]
-            )
+        findAndDo inputState.Self.Node nodeHasEnemyAgent "attack an agent" inputState
+//        Some(
+//                "find and destroy an agent"
+//                , Activity
+//                , [Requirement(
+//                    fun state ->  
+//                        match state.LastAction with
+//                        | (Attack _) -> true
+//                        | _ -> false
+//                )]
+//            )

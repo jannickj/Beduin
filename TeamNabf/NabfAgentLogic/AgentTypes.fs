@@ -217,6 +217,7 @@ module AgentTypes =
             NewKnowledge     : Percept list
             MyExploredCount  : int
             ProbedCount      : int
+            HeuristicMap     : Map<VertexName*VertexName, int>
 
             ///USED FOR PLANNING ONLY DONT USE THEM IN INTENTION CHECKS
             PlannerProbed           : VertexName Set
@@ -262,11 +263,13 @@ module AgentTypes =
         | Activity
         | Inherent
 
-    type Goal = 
+    type Goal = (State -> bool)* Option<(State -> int)>
+
+    type Objective = 
         | Plan of (State -> AgentAction list)
-        | Requirement of (State -> bool)
-        | MultiGoal of (State -> (State -> bool) list)
+        | Requirement of Goal
+        | MultiGoal of (State -> Goal list)
 
 
-    type Intention = string*IntentionType*(Goal list)
+    type Intention = string*IntentionType*(Objective list)
     //type Solution = int * (AgentAction list)

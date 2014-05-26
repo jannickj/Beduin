@@ -8,7 +8,7 @@ module Planning =
     open FsPlanning.Agent.Planning
     open Logging
 
-    type Plan = (ActionSpecification list) * (Goal list)
+    type Plan = (ActionSpecification list) * (Objective list)
     let test = 1
     let flip f x y = f y x
     let wrappedGoalTest goalTest state = 
@@ -21,15 +21,28 @@ module Planning =
         let unsat = unSatisfiedPreconditions state (List.head actions)
         logError <| sprintf "%A" unsat
 
-    let goalCount goals state cost =
-        let res = List.length <| List.filter (fun func -> not <| func state) (goals)
+    let goalCount (goals:Goal list) state cost =
+        let heuristics = List.choose id 
+                            ( List.map (fun (_,heuOpt) ->
+                                        match heuOpt with
+                                        | Some heuFunc -> Some <| heuFunc state
+                                        | None ->  None
+                                       ) goals
+                            )
+        let heu = match heuristics with 
+                  | [] -> 0
+                  | [single] -> single
+                  | multi -> List.min multi 
+                  
+        let res = List.length <| List.filter (fun func -> not <| (fst func) state) (goals)
         let len = List.length <| goals
         //logImportant <| sprintf "(%A / %A) goals satisfied" (len - res) len
-        (res, cost)
+        //logImportant <| sprintf "Heuristic: %A" heu
+        (res, cost+heu)
 
     
     let goalTest goalFun state = 
-        List.forall (fun func -> func state) <| goalFun state
+        List.forall (fun (func,_) -> func state) <| goalFun state
 
     let agentProblem (state : State) goal = 
         
@@ -88,7 +101,7 @@ module Planning =
         | action :: tail ->
             logImportant <| sprintf "Inconsistency found! state does not satisfy %A" action.ActionType
             logInfo <| sprintf "the following errors were found: %A" (unSatisfiedPreconditions state action)
-            let gluePlan = solve aStar <| agentProblem state (Requirement <| flip isApplicable action)
+            let gluePlan = solve aStar <| agentProblem state (Requirement <| ((flip isApplicable action),None))
             match gluePlan with
             | Some {Cost = _; Path = []} -> restPlan (action.Effect state) action tail
             // If we find a non-empty glue plan [a; b; c], prepend it to the plan and continue recursing
@@ -113,7 +126,7 @@ module Planning =
 
     let solutionFinished state intent solution = 
         match solution with
-        | (_, [Requirement req]) ->  wrappedGoalTest req state
+        | (_, [Requirement (req,_)]) ->  wrappedGoalTest req state
         | (_, [MultiGoal goalFun]) -> wrappedGoalTest (goalTest goalFun) state
         | (_, []) -> true
         | _ -> false
@@ -121,11 +134,11 @@ module Planning =
     let rec nextAction state (intent : Intention) (plan : Plan) =
         match plan with
         | (action :: rest, goals) -> Some (action.ActionType, (rest, goals))
-        | ([], (Requirement req) :: t) when req state -> 
+        | ([], (Requirement (req,_)) :: t) when req state -> 
             match makePlan state t with
             | Some newPlan -> nextAction state intent newPlan
             | None -> None
-        | ([], (Requirement req) :: t) when not <| req state ->
+        | ([], (Requirement (req,_)) :: t) when not <| req state ->
             let (_,goals) = plan
             match makePlan state goals with
             | Some newPlan -> nextAction state intent newPlan
