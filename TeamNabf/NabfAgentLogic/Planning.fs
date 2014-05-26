@@ -18,48 +18,38 @@ module Planning =
         | ex -> logError <| sprintf "goal test: %A \nfailed with:\n %A" goalTest ex
                 false
 
-    let testfun state = 
-        let actions = roleActions state
-        let unsat = unSatisfiedPreconditions state (List.head actions)
-        logError <| sprintf "%A" unsat
+    let distance (goals : Goal list) state cost =
+        let heuristics = 
+            List.choose id 
+                ( List.map (fun (_,heuOpt) ->
+                            match heuOpt with
+                            | Some heuFunc -> Some <| heuFunc state
+                            | None ->  None
+                           ) goals
+                )
+        match heuristics with 
+           | [] -> 0
+           | [single] -> single
+           | multi -> List.min multi 
+      
 
-    let goalCount (goals:Goal list) state cost =
-        let heuristics = List.choose id 
-                            ( List.map (fun (_,heuOpt) ->
-                                        match heuOpt with
-                                        | Some heuFunc -> Some <| heuFunc state
-                                        | None ->  None
-                                       ) goals
-                            )
-        let heu = match heuristics with 
-                  | [] -> 0
-                  | [single] -> single
-                  | multi -> List.min multi 
-                  
-        let res = List.length <| List.filter (fun func -> not <| (fst func) state) (goals)
-        let len = List.length <| goals
-        //logImportant <| sprintf "(%A / %A) goals satisfied" (len - res) len
-        (res, cost+heu)
-    let goalCount goalFun state =
-        List.length <| List.filter (fun func -> not <| func state) (goalFun state)
+    let goalCount (goalFun : State -> Goal list) state =
+        List.length <| List.filter (fun (func,_) -> not <| func state) (goalFun state)
 
+    let h goalFun state cost = 
+        let goals = goalFun state
+        (goalCount goalFun state, cost + distance goals state cost)
     
     let goalTest goalFun state = 
         List.forall (fun (func,_) -> func state) <| goalFun state
-    let h goals state cost = 
-        (goalCount goals state, cost)
-
-    let goalTest goalFun state = List.forall (fun func -> func state) <| goalFun state
             
-    let timedGoalTest breakTime goalFun state = 
-        let someGoalSatisfied = List.exists (fun func -> func state) <| goalFun state
+    let timedGoalTest breakTime (goalFun : State -> Goal list) state = 
+        let someGoalSatisfied = List.exists (fun (func,_) -> func state) <| goalFun state
         if System.DateTime.Now >= breakTime && someGoalSatisfied then
             true
         else
             goalTest goalFun state
-
-
-
+        
     let goalFunc goal = 
         match goal with
         | MultiGoal func  -> func 
