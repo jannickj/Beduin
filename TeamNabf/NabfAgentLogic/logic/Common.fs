@@ -5,7 +5,7 @@ module Common =
     open AgentTypes
     open LogicLib
     open Constants
-
+    open Graphing.Graph
     
 
 
@@ -37,6 +37,19 @@ module Common =
             | (_ , rdata) :: tail -> if rdata = RepairJob(inputState.Self.Node,inputState.Self.Name) then Some knownJobs.Head else tryFindRepairJob inputState tail
             | [] -> None
 
+            
+    let nodeIsUnexplored (state:State) node =
+        let n = state.World.[node] 
+        Set.exists (fun (e:DirectedEdge) -> (fst <| e).IsSome) n.Edges
+
+
+    let nodeHasMinValue (state:State) node =
+        let n = state.World.[node] 
+        if (n.Value.IsSome) then
+            n.Value.Value >= MINIMUM_VALUE_VALUE
+        else
+            false
+
     ////////////////////////////////////////Logic////////////////////////////////////////////
 
     //An agent always wants to have exactly one goal
@@ -53,12 +66,18 @@ module Common =
 
     //Try to make it so the agent has explored one more node
     let exploreMap (inputState:State) = 
-        if inputState.MyExploredCount < inputState.TotalNodeCount
-        then
-            let count = inputState.MyExploredCount
-            Some("explore one more node.",Activity,[Requirement(fun state -> state.MyExploredCount > count)])
-        else
-            None
+        findAndDo inputState.Self.Node nodeIsUnexplored "mark as explored" inputState
+//        if inputState.ExploredCount < inputState.TotalNodeCount
+//        then
+//            let count = inputState.MyExploredCount
+//            Some("explore one more node."
+//                ,Activity
+//                ,[Requirement(
+//                    ((fun state -> state.MyExploredCount > count),)
+//                    )]
+//                )
+//        else
+//            None
 
     //When disabled, post a repair job, then recharge while waiting for a repairer. Temporary version to be updated later.
     //Works by creating a plan to recharge one turn each turn.
@@ -76,12 +95,20 @@ module Common =
                 let here = inputState.Self.Node
                 Some("get repaired.",Activity,[Plan(fun state -> [
                                                                  Communicate( CreateJob( (None,5,JobType.RepairJob,1),RepairJob(state.Self.Node,state.Self.Name) ) )
-                                                                 ]);Requirement(fun state -> state.LastAction = Recharge)])
+                                                                 ]);Requirement(((fun state -> state.LastAction = Recharge),None))])
         else
             None
-
+            
     //Find a node of at leas value 8 to stand on.
-    let generateMinimumValue (inputState:State) = Some("find a good node to occupy.",Activity,[Requirement(fun state -> state.World.[state.Self.Node].Value.IsSome && state.World.[state.Self.Node].Value.Value >= MINIMUM_VALUE_VALUE)])
+    let generateMinimumValue (inputState:State) = 
+        findAndDo inputState.Self.Node nodeHasMinValue "generate value" inputState
+//        Some(
+//            "find a good node to occupy."
+//            ,Activity
+//            ,[Requirement(
+//                ((fun state -> state.World.[state.Self.Node].Value.IsSome && state.World.[state.Self.Node].Value.Value >= MINIMUM_VALUE_VALUE),)
+//                )]
+//        )
 
     let shareKnowledge (s:State) : Option<Intention> =
          Some ("share my knowledge", Communication, [Plan (fun state -> [(Communicate <| ShareKnowledge ( state.NewKnowledge))] )])
@@ -106,7 +133,7 @@ module Common =
                 (   "occupy node " + node
                 ,   Activity
                 ,   [
-                        Requirement <| fun state -> state.Self.Node = node
+                        Requirement <| ((fun state -> state.Self.Node = node), Some (fun state -> (distanceBetweenNodes state state.Self.Node node)))
                     ;   Plan <| fun _ -> [Perform Recharge]
                     ]
                 )
