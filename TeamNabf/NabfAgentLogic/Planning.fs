@@ -37,6 +37,7 @@ module Planning =
         let res = List.length <| List.filter (fun func -> not <| (fst func) state) (goals)
         let len = List.length <| goals
         //logImportant <| sprintf "(%A / %A) goals satisfied" (len - res) len
+        //logImportant <| sprintf "Heuristic: %A" heu
         (res, cost+heu)
 
     
