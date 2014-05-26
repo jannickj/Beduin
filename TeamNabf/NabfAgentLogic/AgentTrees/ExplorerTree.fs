@@ -14,7 +14,6 @@ module ExplorerTree =
 
                     Desire(findNewZone)
                     
-                    
                     Conditional
                         (   inPhase1,
                             ManyDesires
