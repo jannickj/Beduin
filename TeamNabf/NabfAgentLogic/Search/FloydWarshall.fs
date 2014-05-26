@@ -51,3 +51,7 @@ module FloydWarshall =
         match origins with
         | head :: tail -> floydWarshallList map (floydWarshall map heuristicMap head) tail
         | [] -> heuristicMap
+
+    let floydWarshallComplete (map:Graph) =
+        let vertices = List.sort (removeDuplicates ((List.map fst (Map.toList map))) [])
+        floydWarshallList map Map.empty<VertexName*VertexName,int> vertices
