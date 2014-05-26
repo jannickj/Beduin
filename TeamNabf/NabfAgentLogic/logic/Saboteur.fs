@@ -27,7 +27,8 @@ module Saboteur =
 
 
     let nodeHasEnemyAgent (state:State) node =
-        List.exists (fun a -> a.Node = node) state.EnemyData
+        List.exists (fun a -> a.Node = node && a.Status = EntityStatus.Normal) state.EnemyData
+
     ////////////////////////////////////////Logic////////////////////////////////////////////
 
     let applyToAttackJob (inputState:State) = 
@@ -51,7 +52,25 @@ module Saboteur =
                                     )]
                 )
     
-    let workOnAttackJob (inputState:State) = None
+    let workOnAttackJob (inputState:State) = 
+        let myJobs = List.map (fun (id,_) -> getJobFromJobID inputState id) inputState.MyJobs
+        let myAttackJobs = getJobsByType JobType.AttackJob myJobs
+        match myAttackJobs with
+        | ((id,_,_,_),_)::_ -> 
+            let (_,node) = List.find (fun (jid,_) -> id.Value = jid) inputState.MyJobs
+            Some
+                (   "attack agent on node " + node
+                ,   Activity
+                ,   [
+                        Requirement <| ((fun state -> state.Self.Node = node), Some (fun state -> (distanceBetweenNodes state.Self.Node node state)))
+                    ;   Requirement <| ((fun state ->  
+                                            match state.LastAction with
+                                            | (Attack _) -> true
+                                            | _ -> false
+                                    ), None)
+                    ]
+                )
+        | [] -> None
     
     let spontanouslyAttackAgent (inputState:State) = 
         let enemiesNearby = List.filter (fun a -> a.Status <> Disabled) (nearbyEnemies inputState inputState.Self)
@@ -73,7 +92,18 @@ module Saboteur =
     let workOnDisruptJobThenParryIfEnemiesClose (inputState:State) = None //advanced feature
     
     let findAgentToDestroy (inputState:State) = 
-        findAndDo inputState.Self.Node nodeHasEnemyAgent "attack an agent" false inputState
+        let worldArray = Map.toArray inputState.World
+        let rand = System.Random()
+        let index = rand.Next(0,inputState.World.Count)
+        let target = worldArray.[index]
+        Some
+            (   "go to node " + (fst <| target)
+            ,   Activity
+            ,   [
+                    Requirement <| ((fun state -> (state.Self.Node = (fst <| target))), Some (distanceBetweenAgentAndNode (fst <| target)))
+                ]
+            )
+        //findAndDo inputState.Self.Node nodeHasEnemyAgent "attack an agent" false inputState
 //        Some(
 //                "find and destroy an agent"
 //                , Activity
