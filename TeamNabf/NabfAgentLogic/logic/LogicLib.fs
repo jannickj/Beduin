@@ -90,3 +90,6 @@ module LogicLib =
 
 
     //let isPartOfOccupyJob n (s:State) = List.exists (fun (j:Job) -> j ) s.Jobs
+
+
+    let distanceBetweenNodes state node1 node2 : int = 0

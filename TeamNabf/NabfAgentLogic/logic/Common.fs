@@ -40,7 +40,16 @@ module Common =
     ////////////////////////////////////////Logic////////////////////////////////////////////
 
     //An agent always wants to have exactly one goal
-    let onlyOneJob s = None// Some("have exactly 1 job.",Inherent,[Requirement(fun state -> state.Jobs.Length = 1)])
+    let onlyOneJob (inputState:State) = 
+        Some(
+                "have at most 1 job"
+                , Communication
+                , [Plan(fun state -> 
+                                        let jobsToUnApplyFrom = List.tail state.MyJobs
+                                        List.map (fun (id,_) -> Communicate (UnapplyJob id)) jobsToUnApplyFrom                                        
+                        )
+                  ]
+            )
 
     //Try to make it so the agent has explored one more node
     let exploreMap (inputState:State) = 
