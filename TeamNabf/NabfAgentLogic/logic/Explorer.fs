@@ -194,7 +194,7 @@ module Explorer =
     
     let nodeIsUnprobed (state:State) node =
         let n = state.World.[node] 
-        n.Value.IsSome
+        n.Value.IsNone
 
     ////////////////////////////////////////Logic////////////////////////////////////////////
 

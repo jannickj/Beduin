@@ -28,34 +28,39 @@ module DesireTree =
                     ManyDesires [ getSentinelDesires ])
             ]
     let goto =  None // Some "v204"
+
+    let selfNodeAndWorldExists (s:State) = s.World.IsEmpty |> not && s.Self.Node.Length > 0
+
     let getTree : DesireTree<State,Intention> =
-            ManyDesires 
-                [
-//                    Desire  (
-//                                (fun s ->        
-//                                    if goto.IsSome && s.World.ContainsKey goto.Value then
-//                                            Some <| (   "Find a node"
-//                                                        ,   Activity
-//                                                        ,   [Requirement <| fun (s:State) -> s.Self.Node =  goto.Value]
-//                                                    )
-//                                    else
-//                                        None
-//                                )
-//                            )
-                    Desire(shareKnowledge)
-                    Desire(onlyOneJob)
-//
-//                    ////Desire(postDefenceJob)
-//
-//                    ////Desire(postAttackJob)
-//
-                    Desire(getRepaired)
-//
-//                    ////Desire(postDisruptJob)
-//
-                    getRoleDesires
-//
-                    Desire(exploreMap)
-//
-                    Desire(generateMinimumValue)
-                ]
+            Conditional (selfNodeAndWorldExists,
+                ManyDesires 
+                    [
+    //                    Desire  (
+    //                                (fun s ->        
+    //                                    if goto.IsSome && s.World.ContainsKey goto.Value then
+    //                                            Some <| (   "Find a node"
+    //                                                        ,   Activity
+    //                                                        ,   [Requirement <| fun (s:State) -> s.Self.Node =  goto.Value]
+    //                                                    )
+    //                                    else
+    //                                        None
+    //                                )
+    //                            )
+                        Desire(shareKnowledge)
+                        Desire(onlyOneJob)
+    //
+    //                    ////Desire(postDefenceJob)
+    //
+    //                    ////Desire(postAttackJob)
+    //
+                        Desire(getRepaired)
+    //
+    //                    ////Desire(postDisruptJob)
+    //
+                        getRoleDesires
+    //
+                        Desire(exploreMap)
+    //
+                        Desire(generateMinimumValue)
+                    ]
+                )

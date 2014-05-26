@@ -2,6 +2,7 @@
 module FloydWarshall =
     
     open Graphing.Graph
+    open NabfAgentLogic.Logging
 
     let rec addEdgesToMap (heuristicMap:Map<VertexName*VertexName,int>) (origin:VertexName) (edges:DirectedEdge list) =
         match edges with
@@ -53,5 +54,8 @@ module FloydWarshall =
         | [] -> heuristicMap
 
     let floydWarshallComplete (map:Graph) =
+        logImportant <| sprintf "Floyed on %A Nodes" map.Count
         let vertices = List.sort (removeDuplicates ((List.map fst (Map.toList map))) [])
-        floydWarshallList map Map.empty<VertexName*VertexName,int> vertices
+        let result = floydWarshallList map Map.empty<VertexName*VertexName,int> vertices
+        logImportant "Floyd Completed"
+        result

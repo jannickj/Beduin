@@ -40,7 +40,7 @@ module Common =
             
     let nodeIsUnexplored (state:State) node =
         let n = state.World.[node] 
-        Set.exists (fun (e:DirectedEdge) -> (fst <| e).IsSome) n.Edges
+        not <| Set.exists (fun (e:DirectedEdge) -> (fst <| e).IsSome) n.Edges
 
 
     let nodeHasMinValue (state:State) node =
@@ -58,8 +58,10 @@ module Common =
                 "have at most 1 job"
                 , Communication
                 , [Plan(fun state -> 
-                                        let jobsToUnApplyFrom = List.tail state.MyJobs
-                                        List.map (fun (id,_) -> Communicate (UnapplyJob id)) jobsToUnApplyFrom                                        
+                                        match state.MyJobs with
+                                        | [] -> []
+                                        | _::tail -> 
+                                            List.map (fun (id,_) -> Communicate (UnapplyJob id)) tail                                       
                         )
                   ]
             )
@@ -133,7 +135,7 @@ module Common =
                 (   "occupy node " + node
                 ,   Activity
                 ,   [
-                        Requirement <| ((fun state -> state.Self.Node = node), Some (fun state -> (distanceBetweenNodes state state.Self.Node node)))
+                        Requirement <| ((fun state -> state.Self.Node = node), Some (fun state -> (distanceBetweenNodes state.Self.Node node state)))
                     ;   Plan <| fun _ -> [Perform Recharge]
                     ]
                 )

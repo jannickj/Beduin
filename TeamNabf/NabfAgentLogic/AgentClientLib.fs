@@ -19,7 +19,7 @@ module AgentClientLib =
 
     let buildInitState (name, simData:SimStartData) =
             
-            {   World = Map.empty
+            {   World = Map.empty<string, Vertex>
             ;   Self =  {   Energy = Some 0                        
                         ;   Health = Some 0
                         ;   MaxEnergy = Some 0

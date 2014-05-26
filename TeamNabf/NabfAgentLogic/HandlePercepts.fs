@@ -303,13 +303,7 @@ module HandlePercepts =
         }
 
     let updateHeuristicsMap percepts oldState state =
-        let seenEdgeTest percept = 
-            match percept with 
-            | EdgeSeen _ -> true
-            | _ -> false
-        let seenNewEdge = List.exists seenEdgeTest percepts
-
-        if seenNewEdge then 
+        if state.World.Count > oldState.World.Count then 
             { state with
                     HeuristicMap = floydWarshallComplete state.World
             }
