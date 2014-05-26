@@ -32,6 +32,8 @@ module Planning =
            | [single] -> single
            | multi -> List.min multi 
       
+    let realGoalCount goalFun state =
+        List.length <| List.filter (fun (func,_) -> func state) (goalFun state)
 
     let goalCount (goalFun : State -> Goal list) state =
         List.length <| List.filter (fun (func,_) -> not <| func state) (goalFun state)
@@ -90,11 +92,11 @@ module Planning =
             let plan = solveSearchNodePath aStar <| agentProblem state goal
             let prunedPlan = prunePlan plan goal
             match prunedPlan with 
-            | Some path -> 
+            | Some path when not <| List.forall (fun node -> realGoalCount (goalFunc goal) node.State > 0) path -> 
                 let actions = List.map (fun node -> node.Action.Value) path
                 logImportant (sprintf "Found plan: %A" <| List.map (fun action -> action.ActionType) actions)
                 Some (actions, goals)
-            | None -> None
+            | _ -> None
         | [] -> Some ([], goals)
 
        
