@@ -260,7 +260,7 @@ module HandlePercepts =
                 else
                     raise(System.Exception("Handle edge seen percept - found "+ string(edge.Count) + " of the given edge in the world."))
             else
-                false //Check this
+                false //Check this, will we ever see an edge before one of its vertices?
           
 
         | EnemySeen { Role = role ; Name = name} -> //Should be shared when we learn of the agents role, as well as every time it is spotted!! TODO!!!
