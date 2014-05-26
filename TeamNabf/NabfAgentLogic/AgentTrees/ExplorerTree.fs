@@ -12,14 +12,15 @@ module ExplorerTree =
                 [
                     Desire(findNewZone)
                     
-                    Desire(applyToOccupyJob EXPLORER_OCCUPYJOB_MOD)
-//                    Conditional
-//                        (   inPhase1,
-//                            ManyDesires
-//                                [
-//                                    Desire(findNodeToProbe)
-//                                ]
-//                        )
+                    
+                    Conditional
+                        (   inPhase1,
+                            ManyDesires
+                                [
+                                    Desire(findNodeToProbe)
+                                    Desire(applyToOccupyJob EXPLORER_OCCUPYJOB_MOD)
+                                ]
+                        )
 
                     Desire(workOnOccupyJob)
 
