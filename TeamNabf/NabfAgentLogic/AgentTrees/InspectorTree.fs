@@ -14,11 +14,11 @@ module InspectorTree =
 
                     Desire(applyToOccupyJob INSPECTOR_OCCUPYJOB_MOD)
 
-                    Desire(workOnOccupyJob)
+                    Desire(workOnOccupyJob)//Heuristic
 
                     Desire(applyToDisruptJob)
 
-                    Desire(workOnDisruptJob)
+                    Desire(workOnDisruptJob)//Heuristic
 
                     Desire(findAgentToInspect)
                 ]

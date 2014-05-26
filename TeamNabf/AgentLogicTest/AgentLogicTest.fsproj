@@ -67,6 +67,7 @@
     <Compile Include="StructureBuilder.fs" />
     <Compile Include="ZoneTest.fs" />
     <Compile Include="PlanningTest.fs" />
+    <Compile Include="HeuristicTest.fs" />
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
