@@ -58,4 +58,4 @@ module Inspector =
     let workOnDisruptJob (inputState:State) = None //advanced feature
     
     let findAgentToInspect (inputState:State) = 
-        findAndDo inputState.Self.Node nodeHasUninspectedAgent "inspect an agent" inputState
+        findAndDo inputState.Self.Node nodeHasUninspectedAgent "inspect an agent" false inputState

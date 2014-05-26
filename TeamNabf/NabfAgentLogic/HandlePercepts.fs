@@ -6,7 +6,7 @@ module HandlePercepts =
     open Graphing.Graph
     open NabfAgentLogic.Logging
     open NabfAgentLogic.LogicLib
-    open NabfAgentLogic.Search.FloydWarshall
+    open NabfAgentLogic.Search.HeuristicDijkstra
 
     
 
@@ -188,10 +188,12 @@ module HandlePercepts =
                     { state with NewKnowledge = updatedNK }
             | _ -> state
 
-    let clearTempBeliefs state =
+    let clearTempBeliefs (state:State) =
+        let newEnemyData = List.map (fun enemy -> { enemy with Agent.Node = ""}) state.EnemyData
         { state with 
             NewEdges = []
             NewVertices = []
+            EnemyData = newEnemyData
         }
 
     let updateTraversedEdgeCost (oldState : State) (newState : State) =
@@ -305,7 +307,7 @@ module HandlePercepts =
     let updateHeuristicsMap percepts oldState state =
         if state.World.Count > oldState.World.Count then 
             { state with
-                    HeuristicMap = floydWarshallComplete state.World
+                    HeuristicMap = allPairsDistances state.World
             }
         else
             state

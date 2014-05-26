@@ -68,7 +68,14 @@ module Common =
 
     //Try to make it so the agent has explored one more node
     let exploreMap (inputState:State) = 
-        findAndDo inputState.Self.Node nodeIsUnexplored "mark as explored" inputState
+        let agentsOnMyNode = List.filter (fun a -> a.Node = inputState.Self.Node && not(a.Name = inputState.Self.Name)) inputState.FriendlyData
+        if (agentsOnMyNode.IsEmpty) then
+            findAndDo inputState.Self.Node nodeIsUnexplored "mark as explored" false inputState
+        else
+            if (myRankIsGreatest inputState.Self.Name agentsOnMyNode) then
+                findAndDo inputState.Self.Node nodeIsUnexplored "mark as explored" true inputState
+            else
+                findAndDo inputState.Self.Node nodeIsUnexplored "mark as explored" false inputState
 //        if inputState.ExploredCount < inputState.TotalNodeCount
 //        then
 //            let count = inputState.MyExploredCount

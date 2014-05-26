@@ -48,6 +48,7 @@ module Planning =
     let timedGoalTest breakTime (goalFun : State -> Goal list) state = 
         let someGoalSatisfied = List.exists (fun (func,_) -> func state) <| goalFun state
         if System.DateTime.Now >= breakTime then
+            logImportant "Timeout!!!!"
             true
         else
             goalTest goalFun state
@@ -61,7 +62,8 @@ module Planning =
     let agentProblem (state : State) goal = 
         let breakTime = System.DateTime.Now + System.TimeSpan.FromMilliseconds Constants.MAX_PLANNING_TIME_MS
         { InitialState = state
-        ; GoalTest     = wrappedGoalTest <| timedGoalTest breakTime (goalFunc goal)
+//        ; GoalTest     = wrappedGoalTest <| timedGoalTest breakTime (goalFunc goal)
+        ; GoalTest = wrappedGoalTest <| goalTest (goalFunc goal)
         ; Actions      = fun state -> List.filter (isApplicable state) (roleActions state)
         ; Result       = fun state action -> action.Effect state
         ; StepCost     = fun state action -> action.Cost state
@@ -90,13 +92,19 @@ module Planning =
         | (Plan plan) :: _ -> Some (List.map actionSpecification <| plan state, goals)
         | goal :: _ -> 
             let plan = solveSearchNodePath aStar <| agentProblem state goal
-            let prunedPlan = prunePlan plan goal
-            match prunedPlan with 
-            | Some path when not <| List.forall (fun node -> realGoalCount (goalFunc goal) node.State = 0) path -> 
+//            let prunedPlan = prunePlan plan goal
+            match plan with 
+            | Some {Cost = _; Path = path} -> 
                 let actions = List.map (fun node -> node.Action.Value) path
                 logImportant (sprintf "Found plan: %A" <| List.map (fun action -> action.ActionType) actions)
                 Some (actions, goals)
-            | _ -> None
+            | None -> None
+//            match prunedPlan with 
+//            | Some path when not <| List.forall (fun node -> realGoalCount (goalFunc goal) node.State = 0) path -> 
+//                let actions = List.map (fun node -> node.Action.Value) path
+//                logImportant (sprintf "Found plan: %A" <| List.map (fun action -> action.ActionType) actions)
+//                Some (actions, goals)
+//            | _ -> None
         | [] -> Some ([], goals)
 
        

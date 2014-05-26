@@ -58,6 +58,7 @@
     <Compile Include="AgentTrees\SentinelTree.fs" />
     <Compile Include="DesireTree.fs" />
     <Compile Include="Search\FloydWarshall.fs" />
+    <Compile Include="Search\HeuristicDijkstra.fs" />
     <Compile Include="Planning.fs" />
     <Compile Include="MarsCommunicator.fs" />
     <Compile Include="MasterCommunicator.fs" />
