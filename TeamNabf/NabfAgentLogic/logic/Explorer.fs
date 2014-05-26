@@ -44,7 +44,7 @@ module Explorer =
 
     let nodePartOfZone (s:State) =
         let occupyJobs = (List.filter (fun ((_,_,jType,_),_) -> jType = JobType.OccupyJob) s.Jobs)
-        let occupyJobSet = Set.ofList (List.concat (List.map (fun (_,OccupyJob(l,_)) -> l) occupyJobs))
+        let occupyJobSet = Set.ofList (List.concat (List.map (fun (_,OccupyJob(_,l)) -> l) occupyJobs))
         Set.contains s.Self.Node occupyJobSet
 
     let nodeHostile (s:State) = false // Not implemented yet!
@@ -194,7 +194,7 @@ module Explorer =
     
     let nodeIsUnprobed (state:State) node =
         let n = state.World.[node] 
-        n.Value.IsSome
+        n.Value.IsNone
 
     ////////////////////////////////////////Logic////////////////////////////////////////////
 
@@ -239,7 +239,7 @@ module Explorer =
             None
 
     let findNodeToProbe (inputState:State) = 
-        findAndDo inputState.Self.Node nodeIsUnprobed "probe it" inputState
+        findAndDo inputState.Self.Node nodeIsUnprobed "probe it" false inputState
 
 //        Some("probe one more node.",Activity,[Requirement(fun state ->  match state.LastAction with 
 //                                                                        | Probe _ -> true

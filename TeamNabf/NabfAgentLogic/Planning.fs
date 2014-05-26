@@ -7,70 +7,95 @@ module Planning =
     open Graphing.Graph
     open FsPlanning.Agent.Planning
     open Logging
+    open Constants
 
     type Plan = (ActionSpecification list) * (Objective list)
     let test = 1
     let flip f x y = f y x
+
     let wrappedGoalTest goalTest state = 
         try goalTest state with
         | ex -> logError <| sprintf "goal test: %A \nfailed with:\n %A" goalTest ex
                 false
 
-    let testfun state = 
-        let actions = roleActions state
-        let unsat = unSatisfiedPreconditions state (List.head actions)
-        logError <| sprintf "%A" unsat
+    let distance (goals : Goal list) state cost =
+        let heuristics = 
+            List.choose id 
+                ( List.map (fun (_,heuOpt) ->
+                            match heuOpt with
+                            | Some heuFunc -> Some <| heuFunc state
+                            | None ->  None
+                           ) goals
+                )
+        match heuristics with 
+           | [] -> 0
+           | [single] -> single
+           | multi -> List.min multi 
+      
+    let realGoalCount goalFun state =
+        List.length <| List.filter (fun (func,_) -> func state) (goalFun state)
 
-    let goalCount (goals:Goal list) state cost =
-        let heuristics = List.choose id 
-                            ( List.map (fun (_,heuOpt) ->
-                                        match heuOpt with
-                                        | Some heuFunc -> Some <| heuFunc state
-                                        | None ->  None
-                                       ) goals
-                            )
-        let heu = match heuristics with 
-                  | [] -> 0
-                  | [single] -> single
-                  | multi -> List.min multi 
-                  
-        let res = List.length <| List.filter (fun func -> not <| (fst func) state) (goals)
-        let len = List.length <| goals
-        //logImportant <| sprintf "(%A / %A) goals satisfied" (len - res) len
-        (res, cost+heu)
+    let goalCount (goalFun : State -> Goal list) state =
+        List.length <| List.filter (fun (func,_) -> not <| func state) (goalFun state)
 
+    let h goalFun state cost = 
+        let goals = goalFun state
+        (goalCount goalFun state, cost + distance goals state cost)
     
     let goalTest goalFun state = 
         List.forall (fun (func,_) -> func state) <| goalFun state
+            
+    let timedGoalTest breakTime (goalFun : State -> Goal list) state = 
+        let someGoalSatisfied = List.exists (fun (func,_) -> func state) <| goalFun state
+        if System.DateTime.Now >= breakTime then
+            logImportant "Timeout!!!!"
+            true
+        else
+            goalTest goalFun state
+        
+    let goalFunc goal = 
+        match goal with
+        | MultiGoal func  -> func 
+        | Requirement req -> fun _ -> [req]
+        | Plan _ -> failwith "Trying to search on predefined plan"
 
     let agentProblem (state : State) goal = 
-        
-        let goalFunc = 
-            match goal with
-            | MultiGoal func  -> func 
-            | Requirement req -> fun _ -> [req]
-            | Plan _ -> failwith "Trying to search on predefined plan"
-
+        let breakTime = System.DateTime.Now + System.TimeSpan.FromMilliseconds Constants.MAX_PLANNING_TIME_MS
         { InitialState = state
-        ; GoalTest     = wrappedGoalTest <| goalTest goalFunc
+        ; GoalTest     = wrappedGoalTest <| timedGoalTest breakTime (goalFunc goal)
         ; Actions      = fun state -> List.filter (isApplicable state) (roleActions state)
         ; Result       = fun state action -> action.Effect state
         ; StepCost     = fun state action -> action.Cost state
-        ; Heuristic    = goalCount (goalFunc state)
+        ; Heuristic    = h (goalFunc goal)
         }
 
     //let perform actionspec = Perform actionspec.ActionType
+
+    let rec prunePlanHelper path goal =
+        let gC searchnode = goalCount (goalFunc goal) searchnode.State
+        match path with
+        | searchNode1 :: searchNode2 :: tail when gC searchNode1 < gC searchNode2 ->
+            List.rev <| searchNode2 :: tail
+        | sn1 :: sn2 :: tail -> prunePlanHelper (sn2 :: tail) goal
+        | [sn] -> [sn]
+        | [] -> []
+
+    let prunePlan plan goals = 
+        match plan with
+        | Some {Cost = _; Path = path} ->Some <| prunePlanHelper (List.rev path) goals
+        | None -> None
 
     let makePlan initstate goals =
         let state = { initstate with LastAction = Skip }
         match goals with
         | (Plan plan) :: _ -> Some (List.map actionSpecification <| plan state, goals)
         | goal :: _ -> 
-            let plan = solve aStar <| agentProblem state goal
-            match plan with
-            | Some sol -> 
-                let actions = sol.Path
-                logImportant (sprintf "Found plan: %A" <| List.map (fun action -> action.ActionType) actions)                
+            let plan = solveSearchNodePath aStar <| agentProblem state goal
+            let prunedPlan = prunePlan plan goal
+            match prunedPlan with 
+            | Some path when not <| List.forall (fun node -> realGoalCount (goalFunc goal) node.State = 0) path -> 
+                let actions = List.map (fun node -> node.Action.Value) path
+                logImportant (sprintf "Found plan: %A" <| List.map (fun action -> action.ActionType) actions)
                 Some (actions, goals)
             | _ -> None
         | [] -> Some ([], goals)
@@ -100,14 +125,15 @@ module Planning =
         | action :: tail ->
             logImportant <| sprintf "Inconsistency found! state does not satisfy %A" action.ActionType
             logInfo <| sprintf "the following errors were found: %A" (unSatisfiedPreconditions state action)
-            let gluePlan = solve aStar <| agentProblem state (Requirement <| ((flip isApplicable action),None))
+            let gluePlan = makePlan state ([Requirement <| ((flip isApplicable action), None)])
+
             match gluePlan with
-            | Some {Cost = _; Path = []} -> restPlan (action.Effect state) action tail
             // If we find a non-empty glue plan [a; b; c], prepend it to the plan and continue recursing
-            | Some {Cost = _; Path = newAction :: newTail} -> 
+            | Some (newAction :: newTail, _) -> 
                 logInfo <| sprintf "Found glue plan %A" (List.map (fun action -> action.ActionType) (newAction :: newTail))
                 restPlan (newAction.Effect state) newAction (newTail @ action :: tail)
-            | None ->
+            | Some (_, _) -> restPlan (action.Effect state) action tail
+            | None -> 
                 logImportant <| sprintf "Failed to find glue plan" 
                 None
         | _ -> Some plan

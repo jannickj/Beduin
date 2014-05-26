@@ -40,7 +40,7 @@ module Common =
             
     let nodeIsUnexplored (state:State) node =
         let n = state.World.[node] 
-        Set.exists (fun (e:DirectedEdge) -> (fst <| e).IsSome) n.Edges
+        not <| Set.exists (fun (e:DirectedEdge) -> (fst e).IsSome) n.Edges
 
 
     let nodeHasMinValue (state:State) node =
@@ -58,15 +58,24 @@ module Common =
                 "have at most 1 job"
                 , Communication
                 , [Plan(fun state -> 
-                                        let jobsToUnApplyFrom = List.tail state.MyJobs
-                                        List.map (fun (id,_) -> Communicate (UnapplyJob id)) jobsToUnApplyFrom                                        
+                                        match state.MyJobs with
+                                        | [] -> []
+                                        | _::tail -> 
+                                            List.map (fun (id,_) -> Communicate (UnapplyJob id)) tail                                       
                         )
                   ]
             )
 
     //Try to make it so the agent has explored one more node
     let exploreMap (inputState:State) = 
-        findAndDo inputState.Self.Node nodeIsUnexplored "mark as explored" inputState
+        let agentsOnMyNode = List.filter (fun a -> a.Node = inputState.Self.Node && not(a.Name = inputState.Self.Name)) inputState.FriendlyData
+        if (agentsOnMyNode.IsEmpty) then
+            findAndDo inputState.Self.Node nodeIsUnexplored "mark as explored" false inputState
+        else
+            if (myRankIsGreatest inputState.Self.Name agentsOnMyNode) then
+                findAndDo inputState.Self.Node nodeIsUnexplored "mark as explored" true inputState
+            else
+                findAndDo inputState.Self.Node nodeIsUnexplored "mark as explored" false inputState
 //        if inputState.ExploredCount < inputState.TotalNodeCount
 //        then
 //            let count = inputState.MyExploredCount
@@ -101,7 +110,14 @@ module Common =
             
     //Find a node of at leas value 8 to stand on.
     let generateMinimumValue (inputState:State) = 
-        findAndDo inputState.Self.Node nodeHasMinValue "generate value" inputState
+        let agentsOnMyNode = List.filter (fun a -> a.Node = inputState.Self.Node && not(a.Name = inputState.Self.Name)) inputState.FriendlyData
+        if (agentsOnMyNode.IsEmpty) then
+            findAndDo inputState.Self.Node nodeHasMinValue "generate value" false inputState
+        else
+            if (not(myRankIsGreatest inputState.Self.Name agentsOnMyNode)) then
+                findAndDo inputState.Self.Node nodeHasMinValue "generate value" true inputState
+            else
+                findAndDo inputState.Self.Node nodeHasMinValue "generate value" false inputState
 //        Some(
 //            "find a good node to occupy."
 //            ,Activity
@@ -133,7 +149,7 @@ module Common =
                 (   "occupy node " + node
                 ,   Activity
                 ,   [
-                        Requirement <| ((fun state -> state.Self.Node = node), Some (fun state -> (distanceBetweenNodes state state.Self.Node node)))
+                        Requirement <| ((fun state -> state.Self.Node = node), Some (fun state -> (distanceBetweenNodes state.Self.Node node state)))
                     ;   Plan <| fun _ -> [Perform Recharge]
                     ]
                 )

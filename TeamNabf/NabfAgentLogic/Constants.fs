@@ -59,3 +59,5 @@
        
         let OUR_TEAM = "Nabf"
         let EXPLORE_FACTOR_LIGHT = 0.7
+        let MAX_PLANNING_TIME_MS = 500.0
+
