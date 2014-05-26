@@ -7,10 +7,12 @@ module Planning =
     open Graphing.Graph
     open FsPlanning.Agent.Planning
     open Logging
+    open Constants
 
     type Plan = (ActionSpecification list) * (Goal list)
     let test = 1
     let flip f x y = f y x
+
     let wrappedGoalTest goalTest state = 
         try goalTest state with
         | ex -> logError <| sprintf "goal test: %A \nfailed with:\n %A" goalTest ex
@@ -21,46 +23,68 @@ module Planning =
         let unsat = unSatisfiedPreconditions state (List.head actions)
         logError <| sprintf "%A" unsat
 
-    let goalCount goals state cost =
-        let res = List.length <| List.filter (fun func -> not <| func state) (goals)
-        let len = List.length <| goals
-        //logImportant <| sprintf "(%A / %A) goals satisfied" (len - res) len
-        (res, cost)
+    let goalCount goalFun state =
+        List.length <| List.filter (fun func -> not <| func state) (goalFun state)
 
-    
-    let goalTest goalFun state = 
-        List.forall (fun func -> func state) <| goalFun state
+    let h goals state cost = 
+        (goalCount goals state, cost)
+
+    let goalTest goalFun state = List.forall (fun func -> func state) <| goalFun state
+            
+    let timedGoalTest breakTime goalFun state = 
+        let someGoalSatisfied = List.exists (fun func -> func state) <| goalFun state
+        if System.DateTime.Now >= breakTime && someGoalSatisfied then
+            true
+        else
+            goalTest goalFun state
+
+
+
+    let goalFunc goal = 
+        match goal with
+        | MultiGoal func  -> func 
+        | Requirement req -> fun _ -> [req]
+        | Plan _ -> failwith "Trying to search on predefined plan"
 
     let agentProblem (state : State) goal = 
-        
-        let goalFunc = 
-            match goal with
-            | MultiGoal func  -> func 
-            | Requirement req -> fun _ -> [req]
-            | Plan _ -> failwith "Trying to search on predefined plan"
-
+        let breakTime = System.DateTime.Now + System.TimeSpan.FromMilliseconds Constants.MAX_PLANNING_TIME_MS
         { InitialState = state
-        ; GoalTest     = wrappedGoalTest <| goalTest goalFunc
+        ; GoalTest     = wrappedGoalTest <| timedGoalTest breakTime (goalFunc goal)
         ; Actions      = fun state -> List.filter (isApplicable state) (roleActions state)
         ; Result       = fun state action -> action.Effect state
         ; StepCost     = fun state action -> action.Cost state
-        ; Heuristic    = goalCount (goalFunc state)
+        ; Heuristic    = h (goalFunc goal)
         }
 
     //let perform actionspec = Perform actionspec.ActionType
+
+    let rec prunePlanHelper path goal =
+        let gC searchnode = goalCount (goalFunc goal) searchnode.State
+        match path with
+        | searchNode1 :: searchNode2 :: tail when gC searchNode1 < gC searchNode2 ->
+            List.rev <| searchNode2 :: tail
+        | sn1 :: sn2 :: tail -> prunePlanHelper (sn2 :: tail) goal
+        | [sn] -> [sn]
+        | [] -> []
+
+    let prunePlan plan goals = 
+        match plan with
+        | Some {Cost = _; Path = path} ->Some <| prunePlanHelper (List.rev path) goals
+        | None -> None
 
     let makePlan initstate goals =
         let state = { initstate with LastAction = Skip }
         match goals with
         | (Plan plan) :: _ -> Some (List.map actionSpecification <| plan state, goals)
         | goal :: _ -> 
-            let plan = solve aStar <| agentProblem state goal
-            match plan with
-            | Some sol -> 
-                let actions = sol.Path
-                logImportant (sprintf "Found plan: %A" <| List.map (fun action -> action.ActionType) actions)                
+            let plan = solveSearchNodePath aStar <| agentProblem state goal
+            let prunedPlan = prunePlan plan goal
+            match prunedPlan with 
+            | Some path -> 
+                let actions = List.map (fun node -> node.Action.Value) path
+                logImportant (sprintf "Found plan: %A" <| List.map (fun action -> action.ActionType) actions)
                 Some (actions, goals)
-            | _ -> None
+            | None -> None
         | [] -> Some ([], goals)
 
        
