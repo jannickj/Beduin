@@ -217,6 +217,7 @@ module AgentTypes =
             NewKnowledge     : Percept list
             MyExploredCount  : int
             ProbedCount      : int
+            HeuristicMap     : Map<VertexName*VertexName, int>
 
             ///USED FOR PLANNING ONLY DONT USE THEM IN INTENTION CHECKS
             PlannerProbed           : VertexName Set
