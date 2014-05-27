@@ -142,6 +142,7 @@ module Planning =
             | Some (newAction :: newTail, _) -> 
                 logInfo <| sprintf "Found glue plan %A" (List.map (fun action -> action.ActionType) (newAction :: newTail))
                 restPlan (newAction.Effect state) newAction (newTail @ action :: tail)
+      
             | Some (_, _) -> restPlan (action.Effect state) action tail
             | None -> 
                 logImportant <| sprintf "Failed to find glue plan" 
@@ -149,9 +150,30 @@ module Planning =
         | _ -> Some plan
 
     let repairPlan state intent (plan : Plan) = 
+        
+        let rec helper state plan =
+            match plan with
+            | action :: tail when isApplicable state action ->
+                match helper (action.Effect state) tail with
+                | Some plan -> Some <| [action] @ plan
+                | None -> None
+            | action :: tail ->
+                logImportant <| sprintf "Inconsistency found! state does not satisfy %A" action.ActionType
+                let gluePlan = makePlan state ([Requirement <| ((flip isApplicable action), None)])
+                match gluePlan with
+                | Some (plan, _) ->
+                    logInfo <| sprintf "Found glue plan %A" (List.map (fun action -> action.ActionType) plan)
+                    Some <| (action :: tail) @ plan
+                | None -> 
+                    logImportant <| sprintf "Failed to find glue plan" 
+                    None
+            | [] -> Some []
+
+        
         let (path, goals) = plan
         logInfo <| sprintf "Repairing plan %A" (List.map (fun action -> action.ActionType) path)
-        let newPlan = repairPlanHelper state path
+//        let newPlan = repairPlanHelper state path
+        let newPlan = helper state path
 
         match newPlan with
         | Some p -> 
