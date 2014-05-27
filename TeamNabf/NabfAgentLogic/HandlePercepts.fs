@@ -328,7 +328,7 @@ module HandlePercepts =
         if state.World.Count > oldState.World.Count && state.Self.Role <> Some Saboteur then 
             
             let result = 
-                { state with UpdateMap = true ;
+                { state with //UpdateMap = true ;
                              HeuristicMap = allDistancesMap state.World state.Self.Node
                 }
             
