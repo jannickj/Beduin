@@ -122,8 +122,7 @@ module LogicLib =
                     Some ( snd <| List.min filteredNodes )
 
         
-    
-    let findAndDo startNode condition actionString findNextBest (inputState:State) =
+    let planRouteTo startNode target state =
         let definiteCost cost = 
             match cost with 
             | Some c -> c
@@ -136,11 +135,19 @@ module LogicLib =
                 ; Actions = fun vertex -> Set.toList world.[vertex].Edges
                 ; Result = fun _ (_, vertex) -> vertex
                 ; StepCost = fun _ (cost, _) -> definiteCost cost
-                ; Heuristic = fun _ _ -> 0
+                ; Heuristic = fun _ cost -> cost
                 }
             
             solve Astar.aStar pathProblem
+        let solution = planPath startNode target state.World 
+        match solution with
+        | Some sol -> 
+            let path = List.map (fun node -> node.Action.Value) sol.Path
+            Some <| List.map (fun (_, vertex) -> Perform (Goto vertex)) path
+        | None -> None
 
+
+    let findAndDo startNode condition actionString findNextBest (inputState:State) =
         let targetOpt = 
             match findNextBest with
             | true -> findTargetNode startNode condition inputState
@@ -149,28 +156,17 @@ module LogicLib =
         match targetOpt with
         | None -> None
         | Some target ->
-            match planPath startNode target inputState.World with
-                | Some solution -> 
-                    let plan state = 
-                        let solution = planPath startNode target state.World 
-                        match solution with
-                        | Some sol -> 
-                            let path = List.map (fun node -> node.Action.Value) sol.Path
-                            Some <| List.map (fun (_, vertex) -> Perform (Goto vertex)) path
-                        | None -> None
-
-                    Some
-                        (   "go to node " + target + " and " + actionString
-                        ,   Activity
-                        ,   [ Plan <| plan
-                            ; Requirement(
-                                            (fun state -> not <| condition state target
+               Some
+                    (   "go to node " + target + " and " + actionString
+                    ,   Activity
+                    ,   [ Plan <| planRouteTo startNode target
+                        ; Requirement(
+                                        (fun state -> not <| condition state target
                                                             
-                                            ), None
-                                           )
-                            ]
-                        )
-                | None -> None
+                                        ), None
+                                        )
+                        ]
+                    )
 
 
     let myRankIsGreatest myName (other:Agent List) =
