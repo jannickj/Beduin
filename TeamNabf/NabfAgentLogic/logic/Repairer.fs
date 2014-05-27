@@ -58,7 +58,8 @@ module Repairer =
                 (   "repair agent " + agent + " on node " + node
                 ,   Activity
                 ,   [
-                        Requirement(((fun state -> state.Self.Node = node)), Some (fun state -> (distanceBetweenNodes state.Self.Node node state)))
+                        //Requirement(((fun state -> state.Self.Node = node)), Some (fun state -> (distanceBetweenNodes state.Self.Node node state)))
+                        Plan <| planRouteTo node
                         ; Requirement(
                                     ((fun state ->  
                                         match state.LastAction with

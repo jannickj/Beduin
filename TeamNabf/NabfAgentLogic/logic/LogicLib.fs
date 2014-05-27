@@ -122,7 +122,8 @@ module LogicLib =
                     Some ( snd <| List.min filteredNodes )
 
         
-    let planRouteTo startNode target state =
+    let planRouteTo target (state:State) =
+        let startNode = state.Self.Node
         let definiteCost cost = 
             match cost with 
             | Some c -> c
@@ -159,7 +160,7 @@ module LogicLib =
                Some
                     (   "go to node " + target + " and " + actionString
                     ,   Activity
-                    ,   [ Plan <| planRouteTo startNode target
+                    ,   [ Plan <| planRouteTo target
                         ; Requirement(
                                         (fun state -> not <| condition state target
                                                             
