@@ -27,6 +27,11 @@ module HeuristicDijkstra =
                     } : Problem<_,_,_>
         let a = Astar.aStarAllPaths prob
         Astar.allStatesWithCost a
+
+    let allDistancesMap world from =
+        let distances = allDistances world from
+        let maplist = List.collect (fun (cost,node) -> [((node,from),cost);((from,node),cost)]) distances
+        Map.ofList maplist
     
     let folder (state:Map<VertexName*VertexName,int>) (node,nodesWithCost) = 
         let expand = List.map (fun (cost,onode) -> ((node,onode),cost)) nodesWithCost
