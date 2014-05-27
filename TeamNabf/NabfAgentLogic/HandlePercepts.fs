@@ -322,6 +322,18 @@ module HandlePercepts =
             result
         else
             state
+
+    let updateHeuristicsMapSingle percepts oldState state =
+        if state.World.Count > oldState.World.Count && state.Self.Role <> Some Saboteur then 
+            
+            let result = 
+                { state with UpdateMap = true ;
+                             HeuristicMap = allDistancesMap state.World state.Self.Node
+                }
+            
+            result
+        else
+            state
     
     (* let updateState : State -> Percept list -> State *)
     let updateState state percepts = 
@@ -333,7 +345,7 @@ module HandlePercepts =
                                 |> updateExploredCount state
                                 |> updateTraversedEdgeCost state
                                 |> selectSharedPercepts percepts state
-                                |> updateHeuristicsMap percepts state
+                                |> updateHeuristicsMapSingle percepts state
 
         match percepts with
         | NewRoundPercept::_ -> newRoundPercepts clearedState
