@@ -58,4 +58,16 @@ module Inspector =
     let workOnDisruptJob (inputState:State) = None //advanced feature
     
     let findAgentToInspect (inputState:State) = 
-        findAndDo inputState.Self.Node nodeHasUninspectedAgent "inspect an agent" false inputState
+        //findAndDo inputState.Self.Node nodeHasUninspectedAgent "inspect an agent" false inputState
+        let worldArray = Map.toArray inputState.World
+        let rand = System.Random()
+        let index = rand.Next(0,inputState.World.Count)
+        let target = worldArray.[index]
+        Some
+            (   "go to node " + (fst <| target)
+            ,   Activity
+            ,   [
+                    //Requirement <| ((fun state -> (state.Self.Node = (fst <| target))), None )//Some (distanceBetweenAgentAndNode (fst <| target))
+                    Plan <| planRouteTo (fst target)
+                ]
+            )

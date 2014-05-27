@@ -119,7 +119,8 @@ module Common =
                         (   "get minimum value at " + target
                         ,   Activity
                         ,   [
-                                Requirement((fun state -> (state.Self.Node = target)), Some (distanceBetweenAgentAndNode target));
+                                //Requirement((fun state -> (state.Self.Node = target)), Some (distanceBetweenAgentAndNode target));
+                                Plan <| planRouteTo target
                                 Plan(fun s -> Some [Perform(Recharge)])
                             ]
                         )
@@ -147,7 +148,8 @@ module Common =
                 (   "occupy node " + node
                 ,   Activity
                 ,   [
-                        Requirement <| ((fun state -> state.Self.Node = node), Some (fun state -> (distanceBetweenNodes state.Self.Node node state)))
+                        //Requirement <| ((fun state -> state.Self.Node = node), Some (fun state -> (distanceBetweenNodes state.Self.Node node state)))
+                        Plan <| planRouteTo node
                     ;   Plan <| fun _ -> Some [Perform Recharge]
                     ]
                 )

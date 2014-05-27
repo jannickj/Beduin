@@ -100,7 +100,8 @@ module Saboteur =
             (   "go to node " + (fst <| target)
             ,   Activity
             ,   [
-                    Requirement <| ((fun state -> (state.Self.Node = (fst <| target))), None )//Some (distanceBetweenAgentAndNode (fst <| target))
+                    //Requirement <| ((fun state -> (state.Self.Node = (fst <| target))), None )//Some (distanceBetweenAgentAndNode (fst <| target))
+                    Plan <| planRouteTo (fst target)
                 ]
             )
         //findAndDo inputState.Self.Node nodeHasEnemyAgent "attack an agent" false inputState
