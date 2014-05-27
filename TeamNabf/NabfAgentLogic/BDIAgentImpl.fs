@@ -27,7 +27,9 @@
                 override this.OptimizeState(curState) =
                     if curState.UpdateMap then
                         logImportant <| sprintf "Updating Heuristic Map on %A nodes" curState.World.Count
-                        let r = {curState with HeuristicMap = allPairsDistances curState.World}
+                        let r = {curState with 
+                                        HeuristicMap = allPairsDistances curState.World
+                                        ; UpdateMap = false}
                         logImportant "Done updating Heuristic Map"                   
                         r
                     else

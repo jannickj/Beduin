@@ -194,6 +194,7 @@ module HandlePercepts =
             NewEdges = []
             NewVertices = []
             EnemyData = newEnemyData
+            UpdateMap = false
         }
 
     let updateTraversedEdgeCost (oldState : State) (newState : State) =
@@ -321,7 +322,7 @@ module HandlePercepts =
             
             result
         else
-            state
+            {state with UpdateMap = false }
     
     (* let updateState : State -> Percept list -> State *)
     let updateState state percepts = 
@@ -335,8 +336,11 @@ module HandlePercepts =
                                 |> selectSharedPercepts percepts state
                                 |> updateHeuristicsMap percepts state
 
+        let fixState = { state with UpdateMap = false }
+
         match percepts with
         | NewRoundPercept::_ -> newRoundPercepts clearedState
                                 
-        | _ -> handlePercepts state percepts
+        | _ -> handlePercepts fixState percepts
+
         
