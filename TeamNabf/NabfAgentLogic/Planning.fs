@@ -163,7 +163,7 @@ module Planning =
                 match gluePlan with
                 | Some (plan, _) ->
                     logInfo <| sprintf "Found glue plan %A" (List.map (fun action -> action.ActionType) plan)
-                    Some <| (action :: tail) @ plan
+                    Some <| plan @ (action :: tail)
                 | None -> 
                     logImportant <| sprintf "Failed to find glue plan" 
                     None
