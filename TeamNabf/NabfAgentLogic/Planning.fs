@@ -189,6 +189,20 @@ module Planning =
             | None -> None
         | _ -> None
 
+
+
+    let planPath startVertex goalVertex (world : Graph) = 
+        let pathProblem = 
+            { InitialState = startVertex
+            ; GoalTest = (=) goalVertex
+            ; Actions = fun vertex -> Set.toList world.[vertex].Edges
+            ; Result = fun _ (_, vertex) -> vertex
+            ; StepCost = fun _ (cost, _) -> definiteCost cost
+            ; Heuristic = fun _ _ -> 0
+            }
+        
+        solve aStar pathProblem
+
     type AgentPlanner() =
         class
             interface Planner<State, AgentAction, Intention, Plan> with 
