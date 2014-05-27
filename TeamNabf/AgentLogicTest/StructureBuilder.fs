@@ -33,6 +33,7 @@ module StructureBuilder =
             ;   LastAction = Skip
             ;   TeamZoneScore = 0
             ;   Jobs = []
+            ;   UpdateMap = false
             ;   MyJobs = []
             ;   TotalNodeCount = List.length <| Map.toList world
             ;   MyExploredCount = 0

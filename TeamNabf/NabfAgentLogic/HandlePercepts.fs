@@ -313,12 +313,12 @@ module HandlePercepts =
                 false
 
         if state.World.Count > oldState.World.Count && RNGesus && state.Self.Role <> Some Saboteur then 
-            logImportant <| sprintf "Updating Heuristic Map on %A nodes" state.World.Count
+            
             let result = 
-                { state with
-                        HeuristicMap = allPairsDistances state.World
+                { state with UpdateMap = true
+                        //HeuristicMap = allPairsDistances state.World
                 }
-            logImportant "Done updating Heuristic Map"
+            
             result
         else
             state

@@ -98,6 +98,7 @@ module LogicLib =
                     state.HeuristicMap.[node1, node2]
                 else
                     666
+
     let distanceBetweenAgentAndNode node state : int = distanceBetweenNodes state.Self.Node node state
     
     let findTargetNode startNode condition (state:State) = 
@@ -120,7 +121,7 @@ module LogicLib =
                     Some ( snd <| List.min filteredNodes )
 
         
-
+    
     let findAndDo startNode condition actionString findNextBest (inputState:State) =
         let targetOpt = 
             match findNextBest with
