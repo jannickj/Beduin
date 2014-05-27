@@ -36,7 +36,7 @@ module Saboteur =
         Some(
                 "apply to all attack jobs"
                 , Communication
-                , [Plan(fun state -> applicationList)]
+                , [Plan(fun state -> Some applicationList)]
             )
 
     let spontanouslyAttackAgentOnMyNode (inputState:State) = 

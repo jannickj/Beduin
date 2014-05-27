@@ -59,9 +59,9 @@ module Common =
                 , Communication
                 , [Plan(fun state -> 
                                         match state.MyJobs with
-                                        | [] -> []
-                                        | _::tail -> 
-                                            List.map (fun (id,_) -> Communicate (UnapplyJob id)) tail                                       
+                                        | [] -> Some []
+                                        | _ :: tail -> 
+                                            Some <| List.map (fun (id,_) -> Communicate (UnapplyJob id)) tail                                       
                         )
                   ]
             )
@@ -98,11 +98,11 @@ module Common =
             match j with
             //I already created a job:
             | Some(_,RepairJob(_,myName)) -> 
-                Some("wait for a repairer.",Activity,[Plan(fun s -> [Perform(Recharge)])])
+                Some("wait for a repairer.",Activity,[Plan (fun s -> Some [Perform(Recharge)])])
             //Otherwise, create the job, then start waiting
             | _ -> 
                 let here = inputState.Self.Node
-                Some("get repaired.",Activity,[Plan(fun state -> [
+                Some("get repaired.",Activity,[Plan(fun state -> Some [
                                                                  Communicate( CreateJob( (None,5,JobType.RepairJob,1),RepairJob(state.Self.Node,state.Self.Name) ) )
                                                                  ]);Requirement(((fun state -> state.LastAction = Recharge),None))])
         else
@@ -120,12 +120,12 @@ module Common =
                         ,   Activity
                         ,   [
                                 Requirement((fun state -> (state.Self.Node = target)), Some (distanceBetweenAgentAndNode target));
-                                Plan(fun s -> [Perform(Recharge)])
+                                Plan(fun s -> Some [Perform(Recharge)])
                             ]
                         )
 
     let shareKnowledge (s:State) : Option<Intention> =
-         Some ("share my knowledge", Communication, [Plan (fun state -> [(Communicate <| ShareKnowledge ( state.NewKnowledge))] )])
+         Some ("share my knowledge", Communication, [Plan (fun state -> Some [(Communicate <| ShareKnowledge ( state.NewKnowledge))] )])
     
     
     let applyToOccupyJob  modifier (inputState:State) = 
@@ -133,7 +133,7 @@ module Common =
         Some(
                 "apply to all occupy jobs"
                 , Communication
-                , [Plan(fun state -> applicationList)]
+                , [Plan(fun state -> Some applicationList)]
             )
     
 
@@ -148,7 +148,7 @@ module Common =
                 ,   Activity
                 ,   [
                         Requirement <| ((fun state -> state.Self.Node = node), Some (fun state -> (distanceBetweenNodes state.Self.Node node state)))
-                    ;   Plan <| fun _ -> [Perform Recharge]
+                    ;   Plan <| fun _ -> Some [Perform Recharge]
                     ]
                 )
         | [] -> None

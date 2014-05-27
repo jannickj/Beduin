@@ -6,6 +6,7 @@ module LogicLib =
     open Graphing.Graph
     open Constants
     open FsPlanning.Search
+    open FsPlanning.Search.Problem
     
 
     let nodeListContains n (nl:string list) =
@@ -123,6 +124,23 @@ module LogicLib =
         
     
     let findAndDo startNode condition actionString findNextBest (inputState:State) =
+        let definiteCost cost = 
+            match cost with 
+            | Some c -> c
+            | None -> Constants.UNKNOWN_EDGE_COST
+
+        let planPath startVertex goalVertex (world : Graph) = 
+            let pathProblem = 
+                { InitialState = startVertex
+                ; GoalTest = (=) goalVertex
+                ; Actions = fun vertex -> Set.toList world.[vertex].Edges
+                ; Result = fun _ (_, vertex) -> vertex
+                ; StepCost = fun _ (cost, _) -> definiteCost cost
+                ; Heuristic = fun _ _ -> 0
+                }
+            
+            solve Astar.aStar pathProblem
+
         let targetOpt = 
             match findNextBest with
             | true -> findTargetNode startNode condition inputState
@@ -131,18 +149,29 @@ module LogicLib =
         match targetOpt with
         | None -> None
         | Some target ->
-                Some
+            match planPath startNode target inputState.World with
+                | Some solution -> 
+                    let plan state = 
+                        let solution = planPath startNode target state.World 
+                        match solution with
+                        | Some sol -> 
+                            let path = List.map (fun node -> node.Action.Value) sol.Path
+                            Some <| List.map (fun (_, vertex) -> Perform (Goto vertex)) path
+                        | None -> None
+
+                    Some
                         (   "go to node " + target + " and " + actionString
                         ,   Activity
-                        ,   [
-                                Requirement <| ((fun state -> (state.Self.Node = target)), Some (distanceBetweenAgentAndNode target))
-                            ;   Requirement(
+                        ,   [ Plan <| plan
+                            ; Requirement(
                                             (fun state -> not <| condition state target
                                                             
                                             ), None
                                            )
                             ]
                         )
+                | None -> None
+
 
     let myRankIsGreatest myName (other:Agent List) =
         let qq = List.filter (fun a -> a.Name > myName) other

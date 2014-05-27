@@ -44,7 +44,7 @@ module Repairer =
         Some(
                 "apply to all repair jobs"
                 , Communication
-                , [Plan(fun state -> applicationList)]
+                , [Plan (fun state -> Some applicationList)]
             )
     
     let workOnRepairJob (inputState:State) = 

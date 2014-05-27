@@ -223,7 +223,7 @@ module Explorer =
                             let agentPositions = findAgentPlacement subGraph state.World
                             let agentsNeeded = agentPositions.Length
                             let zoneValue = calcZoneValue state agentsNeeded zone
-                            [Communicate( CreateJob( (None,zoneValue,JobType.OccupyJob,agentsNeeded),OccupyJob(agentPositions,Set.toList zone) ) )]
+                            Some [Communicate( CreateJob( (None,zoneValue,JobType.OccupyJob,agentsNeeded),OccupyJob(agentPositions,Set.toList zone) ) )]
                         | head::tail -> 
                             let removeIds = List.map ( fun ((id:Option<JobID>,_,_,_),_) -> if id.IsSome then id.Value else -1) overlapping
                             let merged = removeDuplicates (mergeZones (Set.toList zone) overlapping) []
@@ -233,7 +233,7 @@ module Explorer =
                             let zoneValue = calcZoneValue state agentsNeeded (Set.ofList merged)
                             let addZone = [Communicate( CreateJob( (None,zoneValue,JobType.OccupyJob,agentsNeeded),OccupyJob(agentPositions,merged) ) )] 
                             let removeZones = List.map (fun id -> Communicate(RemoveJob(id))) removeIds
-                            List.concat [removeZones;addZone]
+                            Some (List.concat [removeZones; addZone])
                    )])
         else
             None

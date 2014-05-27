@@ -267,7 +267,7 @@ module AgentTypes =
     type Goal = (State -> bool) * Option<(State -> int)>
 
     type Objective = 
-        | Plan of (State -> AgentAction list)
+        | Plan of (State -> (AgentAction list) option)
         | Requirement of Goal
         | MultiGoal of (State -> Goal list)
 

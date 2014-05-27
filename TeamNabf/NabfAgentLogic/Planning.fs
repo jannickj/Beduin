@@ -89,7 +89,10 @@ module Planning =
     let makePlan initstate goals =
         let state = { initstate with LastAction = Skip }
         match goals with
-        | (Plan plan) :: _ -> Some (List.map actionSpecification <| plan state, goals)
+        | (Plan plan) :: _ -> 
+            match plan state with
+            | Some p -> Some (List.map actionSpecification <| p, goals)
+            | None -> None
         | goal :: _ -> 
             let plan = solveSearchNodePath aStar <| agentProblem state goal
 //            let prunedPlan = prunePlan plan goal
@@ -188,20 +191,6 @@ module Planning =
             | Some newPlan -> nextAction state intent newPlan
             | None -> None
         | _ -> None
-
-
-
-    let planPath startVertex goalVertex (world : Graph) = 
-        let pathProblem = 
-            { InitialState = startVertex
-            ; GoalTest = (=) goalVertex
-            ; Actions = fun vertex -> Set.toList world.[vertex].Edges
-            ; Result = fun _ (_, vertex) -> vertex
-            ; StepCost = fun _ (cost, _) -> definiteCost cost
-            ; Heuristic = fun _ _ -> 0
-            }
-        
-        solve aStar pathProblem
 
     type AgentPlanner() =
         class

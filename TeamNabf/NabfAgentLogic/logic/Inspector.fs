@@ -50,7 +50,7 @@ module Inspector =
         Some(
                 "apply to all occupy jobs"
                 , Communication
-                , [Plan(fun state -> applicationList)]
+                , [Plan(fun state -> Some applicationList)]
             )
     
     let applyToDisruptJob (inputState:State) = None //advanced feature
