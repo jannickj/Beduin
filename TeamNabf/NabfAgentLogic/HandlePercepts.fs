@@ -305,10 +305,21 @@ module HandlePercepts =
         }
 
     let updateHeuristicsMap percepts oldState state =
-        if state.World.Count > oldState.World.Count then 
-            { state with
-                    HeuristicMap = allPairsDistances state.World
-            }
+        let RNGesus = 
+            let rnd = (new System.Random()).Next(0,4)
+            if rnd = 0 then 
+                true
+            else
+                false
+
+        if state.World.Count > oldState.World.Count && RNGesus && state.Self.Role <> Some Saboteur then 
+            
+            let result = 
+                { state with UpdateMap = true
+                        //HeuristicMap = allPairsDistances state.World
+                }
+            
+            result
         else
             state
     

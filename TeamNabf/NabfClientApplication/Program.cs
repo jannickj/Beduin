@@ -137,6 +137,7 @@ namespace NabfClientApplication
         {
             string[] ep = endPoint.Split(':');
             IPAddress[] addresses = new IPAddress[1];
+            bool foundIp = false;
             IPEndPoint[] returnPoints;
             if (ep.Length < 2) throw new FormatException("Invalid endpoint format");
             IPAddress ip;
@@ -162,14 +163,20 @@ namespace NabfClientApplication
                     }
                     
                 }
+                else
+                {
+                    foundIp = true;
+                }
             }
             int port;
             if (!int.TryParse(ep[ep.Length - 1], NumberStyles.None, NumberFormatInfo.CurrentInfo, out port))
             {
                 throw new FormatException("Invalid port");
             }
-
-            returnPoints = Enumerable.Range(0, addresses.Length).Select(i => new IPEndPoint(addresses[i], port)).ToArray();
+            if (foundIp)
+                returnPoints = Enumerable.Range(0, addresses.Length).Select(i => new IPEndPoint(ip, port)).ToArray();
+            else
+                returnPoints = Enumerable.Range(0, addresses.Length).Select(i => new IPEndPoint(addresses[i], port)).ToArray();
             
             return returnPoints;
         }

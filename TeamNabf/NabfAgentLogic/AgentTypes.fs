@@ -218,6 +218,7 @@ module AgentTypes =
             MyExploredCount  : int
             ProbedCount      : int
             HeuristicMap     : Map<VertexName*VertexName, int>
+            UpdateMap        : bool
 
             ///USED FOR PLANNING ONLY DONT USE THEM IN INTENTION CHECKS
             PlannerProbed           : VertexName Set
