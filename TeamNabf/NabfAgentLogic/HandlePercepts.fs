@@ -306,13 +306,13 @@ module HandlePercepts =
 
     let updateHeuristicsMap percepts oldState state =
         let RNGesus = 
-            let rnd = (new System.Random()).Next(0,2)
+            let rnd = (new System.Random()).Next(0,4)
             if rnd = 0 then 
                 true
             else
                 false
 
-        if state.World.Count > oldState.World.Count && RNGesus then 
+        if state.World.Count > oldState.World.Count && RNGesus && state.Self.Role <> Some Saboteur then 
             logImportant <| sprintf "Updating Heuristic Map on %A nodes" state.World.Count
             let result = 
                 { state with
