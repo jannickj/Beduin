@@ -18,7 +18,9 @@
             
                 override this.FilterIntention(intA, intB) = 
                     match intA with
-                    | (_, Communication, _)
+                    | (id, Communication, _) -> match (id,intB) with
+                                                | (ida,(idb,Communication,_)) -> Conflictive
+                                                | _ -> Harmonic
                     | (_, Inherent, _) -> Harmonic
                     | (_, Activity, _) -> match intB with
                                             | (_, Activity, _) -> Conflictive

@@ -70,7 +70,8 @@
                 match ServerMessage with
                 | Some (AgentServerMessage msg) ->
                     match msg with
-                    | _ ->  MasterCom.SetMessage(msg)
+                    | _ ->  
+                            this.protectedExecute ("Reading Master Server message", (fun () -> MasterCom.SetMessage(msg)),(fun () -> ()))
                             ()
                 | Some (MarsServerMessage msg) ->
                     match msg with
@@ -94,7 +95,8 @@
                         | ActionRequest ((_,_,id),_) -> 
                             sendMasterServerMessage  <| NewRound id
                         | _ -> ()
-                        MarsCom.SetMessage (msg)
+                        this.protectedExecute ("Reading Mars Server message", (fun () ->  MarsCom.SetMessage (msg)),(fun () -> ()))
+                       
                 | None -> ()
                     
            

@@ -106,6 +106,7 @@ namespace NabfAgentLogic.IiLang
             | (Identifier "survey", _)                     -> Survey
             | (Identifier "inspect", Identifier agentName) -> Inspect <| stringToOption agentName
             | (Identifier "repair", Identifier agentName)  -> Repair agentName
+            | (Identifier "attack", Identifier agentName)  -> Attack agentName
             //| (Identifier "buy", upgrade)                  -> Buy <| parseIilUpgrade upgrade
             | _ -> raise <| InvalidIilException ("iilAction", [iilAction; iilActionParam])
 
@@ -365,7 +366,7 @@ namespace NabfAgentLogic.IiLang
             match action with
             | Skip -> Action ("skip", [Numeral id])
             | Goto vn -> Action ("goto", [Numeral id; Identifier vn])
-            | Attack a -> Action ("goto", [Numeral id; Identifier a])
+            | Attack a -> Action ("attack", [Numeral id; Identifier a])
             | Recharge -> Action ("recharge", [Numeral id])
             //| Buy a -> Action ("buy", [Numeral id; Identifier (a.ToString().ToLower())])
             | Inspect None -> Action ("inspect", [Numeral id])
