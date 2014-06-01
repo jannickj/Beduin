@@ -52,7 +52,6 @@ namespace NabfServerApplication
             model.EventManager.Register(new Trigger<ActionCompletedEvent<AddXmasObjectAction>>(AddedXmasObject));
             model.EventManager.Register(new Trigger<ActionFailedEvent>(evt =>
                 {
-                    //Console.SetCursorPosition(0, 1);
                     Console.WriteLine("Error occured with " + evt.FailedAction.GetType().Name + ": " + evt.Exception.Message);
                 }));
             model.EventManager.Register(new Trigger<NewNoticeEvent>(evt =>
@@ -94,34 +93,19 @@ namespace NabfServerApplication
             {
                 var agent = (NabfAgent)evten.Action.Object;
                 Console.WriteLine("Agent " + agent.Name + " connected");
-                //if (verbose)
-				//{
-				//	Console.SetCursorPosition(0, start * 2 + agentoffset);
-				//	Console.Write("Agent: " + agent.Name);
-				//}
                 
                 consolepos.Add(agent, start);
-                //agent.Register(new Trigger<ActionStartingEvent<AddKnowledgeAction>>(evt => ReceivedMessage(evt.Action)));
                 agent.Register(new Trigger<ActionStartingEvent<ApplyNoticeAction>>(evt => { if (evt.Action.NoticeId != -1) ReceivedMessage(evt.Action); }));
-                //agent.Register(new Trigger<ActionStartingEvent<ChangeNoticeAction>>(evt => ReceivedMessage(evt.Action)));
                 agent.Register(new Trigger<ActionStartingEvent<CreateNoticeAction>>(evt => Console.WriteLine("Agent "+agent.Name+" posted Job:\n" + evt.Action.JobType)));
-                //agent.Register(new Trigger<ActionStartingEvent<DeleteNoticeAction>>(evt => ReceivedMessage(evt.Action)));
-                //agent.Register(new Trigger<ActionStartingEvent<NewRoundAction>>(evt => ReceivedMessage(evt.Action)));
-                //agent.Register(new Trigger<ActionStartingEvent<SubscribeSimulationAction>>(evt => ReceivedMessage(evt.Action)));
                 agent.Register(new Trigger<ActionStartingEvent<AgentCrashed>>(evt =>
                     {
                         var message = "Agent "+evt.Action.Source.Name+" disconnected: \n  "+evt.Action.Exception.Message;
-                        //Console.SetCursorPosition(15, consolepos[agent] * 2 + agentoffset);
                         Console.WriteLine(message);
 
                     }));
                 
-                //agent.Register(new Trigger<NewKnowledgeEvent>(evt => SendMessage(agent, evt)));
-                //agent.Register(new Trigger<NoticeRemovedEvent>(evt => SendMessage(agent, evt)));
-                //agent.Register(new Trigger<NoticeUpdatedEvent>(evt => SendMessage(agent, evt)));
                 agent.Register(new Trigger<ReceivedJobEvent>(evt => SendMessage(agent, evt)));
-                //agent.Register(new Trigger<SimulationSubscribedEvent>(evt => SendMessage(agent, evt)));
-
+                
                 agent.Register(new Trigger<ActionStartingEvent<NewRoundAction>>(evt =>
                 {
                     bool updated = false;
@@ -137,7 +121,6 @@ namespace NabfServerApplication
                     }
                     if (updated)
                     {
-                        //Console.SetCursorPosition(0, 0);
                         Console.WriteLine("Begin simulation " + simId + ", Round: " + roundId);
                     }
 

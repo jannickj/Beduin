@@ -18,8 +18,6 @@ namespace NabfProject.AI
 	{
         private StreamReader reader;
         private StreamWriter writer;
-//		private XmlSerializer serializerReciever;
-//		private XmlSerializer serializerSender;
         private XmlReader xreader;
         private XmlWriter xwriter;
 
@@ -28,8 +26,6 @@ namespace NabfProject.AI
 			
 			this.reader = reader;
 			this.writer = writer;
-//			serializerReciever = new XmlSerializer(typeof(TRecieve));
-//			serializerSender = new XmlSerializer(typeof(TSend));
 		}
 
         protected virtual XmlTransmitterMessage<TRecieve> ConstrutReceiverMessage()

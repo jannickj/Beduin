@@ -364,13 +364,6 @@ namespace NabfProject.NoticeBoardModel
                     notice.Status = Status.unavailable;
                 }
             }
-//            Notice n;
-//            foreach (NabfAgent agent in _sharingList.Except(agentsWhoReceivedJob))
-//            {
-//                n = new EmptyJob();
-//                n.AddToTopDesireAgents(agent);
-//                RaiseEventForNotice(n, false);
-//            }
         }
 
         private Notice PopFromJobsList()
@@ -426,12 +419,6 @@ namespace NabfProject.NoticeBoardModel
 
         private bool RaiseEventForNotice(Notice n, bool fireOtherAtEnd) 
         {
-            //NoticeIsReadyToBeExecutedEventArgs args = new NoticeIsReadyToBeExecutedEventArgs();
-            //args.Agents = n.GetTopDesireAgents();
-            //args.Notice = n;
-
-            //if (NoticeIsReadyToBeExecutedEvent != null)
-            //    NoticeIsReadyToBeExecutedEvent(this, args);
             foreach (NabfAgent a in n.GetTopDesireAgents())
             {
                 a.Raise(new ReceivedJobEvent(n, a));

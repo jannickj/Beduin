@@ -22,11 +22,6 @@ namespace NabfProject.Parsers.KnowledgeConverters
 
         public override EdgeKnowledge BeginConversionToKnown(IilElement fobj)
         {
-            //<IilAction name="edgeKnowledge" >
-            //  <IilIdentifier node1="?" />
-            //  <IilIdentifier node2="?" />
-            //  <IilNumeral value=? />
-            //</ IilAction>
             var ia = (IilFunction)fobj;
 
             var identifier1 = (IilIdentifier)ia.Parameters[0];

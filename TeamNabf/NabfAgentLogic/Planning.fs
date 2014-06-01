@@ -95,19 +95,12 @@ module Planning =
             | None -> None
         | goal :: _ -> 
             let plan = solveSearchNodePath aStar <| agentProblem state goal
-//            let prunedPlan = prunePlan plan goal
             match plan with 
             | Some {Cost = _; Path = path} -> 
                 let actions = List.map (fun node -> node.Action.Value) path
                 logImportant (sprintf "Found plan: %A" <| List.map (fun action -> action.ActionType) actions)
                 Some (actions, goals)
             | None -> None
-//            match prunedPlan with 
-//            | Some path when not <| List.forall (fun node -> realGoalCount (goalFunc goal) node.State = 0) path -> 
-//                let actions = List.map (fun node -> node.Action.Value) path
-//                logImportant (sprintf "Found plan: %A" <| List.map (fun action -> action.ActionType) actions)
-//                Some (actions, goals)
-//            | _ -> None
         | [] -> Some ([], goals)
 
        
@@ -172,7 +165,6 @@ module Planning =
         
         let (path, goals) = plan
         logInfo <| sprintf "Repairing plan %A" (List.map (fun action -> action.ActionType) path)
-//        let newPlan = repairPlanHelper state path
         let newPlan = helper state path
 
         match newPlan with

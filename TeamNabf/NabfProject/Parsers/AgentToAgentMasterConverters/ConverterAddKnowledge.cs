@@ -26,7 +26,6 @@ namespace NabfProject.Parsers.AgentToAgentMasterConverters
 
         public override AddKnowledgeAction BeginConversionToForeign(IilAction gobj)
         {
-            //IilFunction bonusfunc = ((IilFunction)gobj.Parameters[0]); use maybe? replace gobj below with bonusfunc
             int simId = (int)((IilNumeral)gobj.Parameters[0]).Value;
 
             List<Knowledge> knowledge = ((IilFunction)gobj.Parameters[1]).Parameters

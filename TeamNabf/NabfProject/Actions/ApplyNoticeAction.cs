@@ -31,7 +31,6 @@ namespace NabfProject.Actions
         protected override void Execute()
         {
             SimulationManager simMan = ((NabfModel)this.Engine).SimulationManager;
-			//if(noticeId != -1)
 			simMan.ApplyToNotice(SimId, NoticeId, Desired, this.Source);
         }
 

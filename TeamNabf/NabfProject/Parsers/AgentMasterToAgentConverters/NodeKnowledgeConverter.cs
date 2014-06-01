@@ -22,10 +22,6 @@ namespace NabfProject.Parsers.KnowledgeConverters
 
         public override NodeKnowledge BeginConversionToKnown(IilElement fobj)
         {
-            //<IilAction name="nodeKnowledge" >
-            //  <IilIdentifier name="?" />
-            //  <IilNumeral value=? />
-            //</ IilAction>
             var ia = (IilFunction)fobj;
 
             var identifier = (IilIdentifier)ia.Parameters[0];

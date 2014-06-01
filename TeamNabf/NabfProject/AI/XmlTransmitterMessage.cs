@@ -51,7 +51,6 @@ namespace NabfProject.AI
         {
             writer.WriteStartElement(NodeName);
 			if (this.UseSeralizerOnMsg)
-//				serializer.Serialize(writer, message);
 				message.WriteXml (writer);
 			else
 			{

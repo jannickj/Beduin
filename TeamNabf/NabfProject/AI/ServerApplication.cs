@@ -20,7 +20,6 @@ namespace NabfProject.AI
 		public ServerApplication(ServerCommunication communication, int nrOfAgents, string agentName, params string[] passwords)
 		{
 			this.communication = communication;
-            //this.tcpClient = tcpClient;
             this.nrOfAgents = nrOfAgents;
             this.agentName = agentName;
             this.passwords = passwords;

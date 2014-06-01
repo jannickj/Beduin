@@ -15,17 +15,14 @@ namespace NabfProject.KnowledgeManagerModel
     {
         private HashSet<NabfAgent> _sharingList = new HashSet<NabfAgent>();
 
-        //private Dictionary<Knowledge, bool> _knowledgeBase = new Dictionary<Knowledge, bool>();
-		private Dictionary<Knowledge,Knowledge> _knowledgeBase = new Dictionary<Knowledge,Knowledge>();
+        private Dictionary<Knowledge,Knowledge> _knowledgeBase = new Dictionary<Knowledge,Knowledge>();
 
 		public Knowledge[] KnowledgeBase
 		{
 			get { return _knowledgeBase.Keys.ToArray(); }
 		} 
 
-        //private DictionaryList<Knowledge, NabfAgent> _knowledgeToAgent = new DictionaryList<Knowledge, NabfAgent>();
-        //private DictionaryList<NabfAgent, Knowledge> _agentToKnowledge = new DictionaryList<NabfAgent, Knowledge>();
-
+        
         public bool Subscribe(NabfAgent agent)
         {
             if (_sharingList.Contains(agent))
@@ -40,7 +37,6 @@ namespace NabfProject.KnowledgeManagerModel
 
         public void SendKnowledgeToManager(List<Knowledge> sentKnowledge, NabfAgent sender)
         {
-            //Knowledge kl;
             foreach (Knowledge k in sentKnowledge)
             {
 				bool updatedKnowledge = false;
@@ -48,8 +44,6 @@ namespace NabfProject.KnowledgeManagerModel
 				{
 					_knowledgeBase.Add(k,k);
 					updatedKnowledge = true;
-					//_knowledgeToAgent.Add(k, sender);
-					//_agentToKnowledge.Add(sender, k);
 				}
 				else
 				{
@@ -69,14 +63,9 @@ namespace NabfProject.KnowledgeManagerModel
 							continue;
 						a.Raise(new NewKnowledgeEvent(k));
 					}
-                //else
-                //{
-                    //kl = _knowledgeBase.Keys.First(pk => k.Equals(pk));
-                    //_knowledgeToAgent.Add(kl, sender);
-                    //_agentToKnowledge.Add(sender, kl);
-                //}
+                
             }
-            //SendKnowledgeToSubscribedAgents();            
+                
         }
         
         public void SendOutAllKnowledgeToAgent(NabfAgent agent)
@@ -87,17 +76,6 @@ namespace NabfProject.KnowledgeManagerModel
             }
         }
 
-
-        //private void SendKnowledgeToSubscribedAgents()
-        //{
-        //    foreach(KeyValuePair<Knowledge, bool> kvp in _knowledgeBase)
-        //    {
-        //        if (kvp.Value)
-        //            continue;
-
-
-        //    }
-        //}
 
         
     }

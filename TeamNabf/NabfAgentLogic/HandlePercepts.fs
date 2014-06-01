@@ -54,16 +54,12 @@ module HandlePercepts =
                 let edgeAlreadyExistsWithValue = fun (cost':Option<_>, otherVertexId) -> cost'.IsSome && otherVertexId = node2
 
                 let containNode = (Map.containsKey node1 state.World)
-                //let edges = state.World.[node1].Edges
-                //logInfo ("Contains Node: "+containNode.ToString())
                 if ( cost.IsNone && not (containNode && (Set.exists edgeAlreadyExistsWithValue state.World.[node1].Edges))) then
-                    //printf "\n Added new edge from %A to %A with cost %A to state \n" node1 node2 cost
                     { state with 
                         World = addEdge (cost, node1, node2) state.World 
                         NewEdges = (cost, node1, node2) :: state.NewEdges
                     }      
                 elif ( cost.IsSome ) then
-                    //printf "\n Added new edge from %A to %A with cost %A to state \n" node1 node2 cost
                     { state with 
                         World = addEdge (cost, node1, node2) state.World 
                         NewEdges = (cost, node1, node2) :: state.NewEdges
@@ -284,11 +280,6 @@ module HandlePercepts =
           
 
         | EnemySeen { Role = role ; Name = name} -> false//Should be shared when we learn of the agents role, as well as every time it is spotted!! TODO!!!
-//            let agentIsKnown agentData = 
-//                match agentData with
-//                | { Name = agentDataName ; Role = Some _ } -> agentDataName = name
-//                | _ -> false
-//            not (List.exists agentIsKnown oldState.EnemyData)
 
         | AgentRolePercept (name, role, certainty) -> 
             if List.exists (fun (enemyAgent:Agent) -> enemyAgent.Name = name) state.EnemyData then 
@@ -306,18 +297,11 @@ module HandlePercepts =
         }
 
     let updateHeuristicsMap percepts oldState state =
-        let RNGesus = 
-            let rnd = (new System.Random()).Next(0,4)
-            if rnd = 0 then 
-                true
-            else
-                false
-
-        if state.World.Count > oldState.World.Count && RNGesus && state.Self.Role <> Some Saboteur then 
+        if state.World.Count > oldState.World.Count && state.Self.Role <> Some Saboteur then 
             
             let result = 
-                { state with UpdateMap = true
-                        //HeuristicMap = allPairsDistances state.World
+                { state with //UpdateMap = true
+                        HeuristicMap = allPairsDistances state.World
                 }
             
             result
@@ -346,7 +330,7 @@ module HandlePercepts =
                                 |> updateExploredCount state
                                 |> updateTraversedEdgeCost state
                                 |> selectSharedPercepts percepts state
-                                |> updateHeuristicsMapSingle percepts state
+                                |> updateHeuristicsMap percepts state
 
         let fixState = { state with UpdateMap = false }
 

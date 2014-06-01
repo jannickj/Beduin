@@ -15,20 +15,7 @@ namespace NabfProject.ServerMessages
         
         public void ReadXml(System.Xml.XmlReader reader)
         {
-            //reader.MoveToContent();
-            //var message = ServerMessageFactory.Instance.ConstructMessage(reader["type"]);
-            //var isEmpty = reader.IsEmptyElement;
-
-            //Timestamp = Convert.ToInt64(reader["timestamp"]);
-            //Type = reader["type"];
-
-            //reader.Read();
             
-            //this.Message = message;
-            //message.ReadXml(reader);
-            //if(!isEmpty)
-            //    reader.ReadEndElement();
-
 
         }
 

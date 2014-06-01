@@ -104,14 +104,3 @@ module Saboteur =
                     Plan <| planRouteTo (fst target)
                 ]
             )
-        //findAndDo inputState.Self.Node nodeHasEnemyAgent "attack an agent" false inputState
-//        Some(
-//                "find and destroy an agent"
-//                , Activity
-//                , [Requirement(
-//                    fun state ->  
-//                        match state.LastAction with
-//                        | (Attack _) -> true
-//                        | _ -> false
-//                )]
-//            )

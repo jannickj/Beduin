@@ -41,7 +41,6 @@ namespace NabfProject.NoticeBoardModel
 
         public void AddToTopDesireAgents(NabfAgent toAdd)
         {
-			//if (! _topDesireAgents.Exists (a => a.Id == toAdd.Id))
 			_topDesireAgents.Add(toAdd);
         }
 
@@ -67,8 +66,6 @@ namespace NabfProject.NoticeBoardModel
                 throw new ArgumentException("Input of ContentIsEqualTo of " + this.GetType().Name + " is null");
             else if (!(no is Notice))
                 throw new ArgumentException("Object : " + no.GetType().Name + " of ContentIsEqualTo is not of type Notice");
-
-			//return this.Id == no.Id;
 
             if (no.GetType() != this.GetType())
                 return false;

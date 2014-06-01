@@ -54,8 +54,7 @@ namespace NabfProject.SimManager
 
             b = _simDataStorage.TryGetValue(simID, out sd);
             if (b == false)
-                return false;// throw new ArgumentException("id " + simID + " not found.");
-                //return false;
+                return false;
 
             km = sd.KnowledgeManager;
             nb = sd.NoticeBoard;
@@ -102,7 +101,6 @@ namespace NabfProject.SimManager
             {
                 km.Subscribe(agent);
                 nb.Subscribe(agent);
-                //agent.Raise(new SimulationSubscribedEvent(simID));
             }
 
             //send out all knowledge to agent
@@ -222,9 +220,7 @@ namespace NabfProject.SimManager
             NoticeBoard nb;
             TryGetNoticeBoard(simID, out nb);
 
-            //agents no longer unapplies from all jobs when starting a new round
-            //foreach(NabfAgent a in nb.GetSubscribedAgents())
-            //    nb.UnApplyFromAll(a);
+
 
             try { this.EventManager.Raise(new RoundChangedEvent(_currentRoundNumber)); }
             catch { }

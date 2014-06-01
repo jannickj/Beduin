@@ -13,7 +13,6 @@ namespace NabfProject.Parsers
 	{
 		public AgentToMarsParser()
 		{
-			//this.IdOfKnown = new JSConversionIDFetcherSimple<IilAction>(fetchId);
 			this.AddConverter(new ConvertIilActionToMarsAction());
 		}
 
