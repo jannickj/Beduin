@@ -19,7 +19,7 @@ module AgentClientLib =
 
     let buildInitState (name, simData:SimStartData) =
             
-            {   World = Map.empty
+            {   World = Map.empty<string, Vertex>
             ;   Self =  {   Energy = Some 0                        
                         ;   Health = Some 0
                         ;   MaxEnergy = Some 0
@@ -41,7 +41,6 @@ module AgentClientLib =
             ;   NewVertices = []
             ;   NewEdges = []
             ;   LastStepScore = 0
-            ;   Money = 0
             ;   Score = 0
             ;   ThisZoneScore = 0
             ;   LastActionResult = Successful
@@ -50,10 +49,13 @@ module AgentClientLib =
             ;   Jobs = []
             ;   MyJobs = []
             ;   TotalNodeCount = simData.SimVertices
-            ;   ExploredCount = 0
             ;   MyExploredCount = 0
-            ;   MyProbedCount = 0
             ;   ProbedCount = 0  
             ;   NewKnowledge = []
-            ;   ExploredVertices = Set.empty
+            ;   PlannerProbed = Set.empty
+            ;   PlannerRepairedAgents = Set.empty
+            ;   PlannerInspectedEnemies = Set.empty
+            ;   PlannerDisabledEnemies = Set.empty
+            ;   HeuristicMap = Map.empty<VertexName*VertexName, int>
+            ;   UpdateMap = false
             } : State

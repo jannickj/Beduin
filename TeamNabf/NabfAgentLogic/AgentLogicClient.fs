@@ -22,6 +22,7 @@
         [<DefaultValue>] val mutable private agent : BDIAgentImpl
         
         let MarsCom = new MarsCommunicator()
+        let MasterCom = new MasterCommunicator()
         let mutable simID = -1
                      
         let SendAgentServerEvent = new Event<UnaryValueHandler<IilAction>, UnaryValueEvent<IilAction>>()
@@ -30,13 +31,22 @@
         let EvaluationStartedEvent = new Event<EventHandler, EventArgs>()
         let SimulationEndedEvent = new Event<EventHandler, EventArgs>()
         
+        let sendMasterServerMessage act =
+            let iilContainer = buildIilMetaAction act simID
+            let iilAction = buildIilAction iilContainer
+            SendAgentServerEvent.Trigger(this,new UnaryValueEvent<IilAction>(iilAction))
+
         do
             MarsCom.NewAction.Add(fun evt ->
                 let id,act = evt.Value 
-                let iilContainer =  buildIilActionContainer act (float id)
+                let iilContainer = buildIilActionContainer act (float id)
                 let iilAction = buildIilAction iilContainer
                 SendMarsServerEvent.Trigger(this,new UnaryValueEvent<IilAction>(iilAction))
                 ())
+            MasterCom.NewAction.Add(fun evt ->
+                let act = evt.Value
+                sendMasterServerMessage act
+                )
             ()
         member private this.protectedExecute (name, action, returnedOnError) =
                 try
@@ -60,7 +70,9 @@
                 match ServerMessage with
                 | Some (AgentServerMessage msg) ->
                     match msg with
-                    | _ -> ()
+                    | _ ->  
+                            this.protectedExecute ("Reading Master Server message", (fun () -> MasterCom.SetMessage(msg)),(fun () -> ()))
+                            ()
                 | Some (MarsServerMessage msg) ->
                     match msg with
                     | SimulationEnd _ -> ()                       
@@ -75,9 +87,16 @@
                         this.agent <- new BDIAgentImpl(initState, desireTree, planner)
                         this.agent.AddAcuator(MarsCom)
                         this.agent.AddSensor(MarsCom)
+                        this.agent.AddAcuator(MasterCom)
+                        this.agent.AddSensor(MasterCom)
                         ()
-                    | msg -> 
-                        MarsCom.SetMessage (msg)
+                    | msg ->
+                        match msg with
+                        | ActionRequest ((_,_,id),_) -> 
+                            sendMasterServerMessage  <| NewRound id
+                        | _ -> ()
+                        this.protectedExecute ("Reading Mars Server message", (fun () ->  MarsCom.SetMessage (msg)),(fun () -> ()))
+                       
                 | None -> ()
                     
            

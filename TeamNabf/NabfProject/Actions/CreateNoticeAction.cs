@@ -14,7 +14,13 @@ namespace NabfProject.Actions
     public class CreateNoticeAction : EntityXmasAction<NabfAgent>
     {
         private int SimId;
-        private NoticeBoardModel.NoticeBoard.JobType JobType;
+        private NoticeBoardModel.NoticeBoard.JobType jobType;
+
+        public NoticeBoardModel.NoticeBoard.JobType JobType
+        {
+            get { return jobType; }
+            set { jobType = value; }
+        }
         private int AgentsNeeded;
         private List<NodeKnowledge> WhichNodes;
         private int Value;
@@ -24,7 +30,7 @@ namespace NabfProject.Actions
         public CreateNoticeAction(int simID, NoticeBoard.JobType jobType, int agentsNeeded, List<NodeKnowledge> whichNodes, List<NodeKnowledge> zoneNodes, string agentToRepair, int value)
         {
             SimId = simID;
-            JobType = jobType;
+            this.jobType = jobType;
             AgentsNeeded = agentsNeeded;
             WhichNodes = whichNodes;
             ZoneNodes = zoneNodes;
@@ -38,7 +44,7 @@ namespace NabfProject.Actions
 			
 
             Notice n;
-            simMan.CreateAndAddNotice(SimId, JobType, AgentsNeeded, WhichNodes, ZoneNodes, AgentToRepair, Value, out n);
+            simMan.CreateAndAddNotice(SimId, jobType, AgentsNeeded, WhichNodes, ZoneNodes, AgentToRepair, Value, out n);
 			//string nodes = n.WhichNodes.Select(nk => nk.ToString() + ", ").Aggregate((i, j) => i + j);
 			//Console.WriteLine("Added job: " + n + " with nodes: " + nodes);
         }

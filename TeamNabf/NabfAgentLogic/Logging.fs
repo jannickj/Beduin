@@ -4,7 +4,7 @@ module Logging =
     open System
     open System.IO
 
-    let debugLevel = DebugLevel.Important;
+    let debugLevel = DebugLevel.Important
 
     let sw = new StreamWriter (System.Console.OpenStandardOutput());
     sw.AutoFlush <- true;

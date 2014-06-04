@@ -3,6 +3,7 @@
 module AgentTypes =
 
     open Graphing.Graph
+    open Constants
 
     type TeamName = string
     type AgentName = string
@@ -87,7 +88,7 @@ module AgentTypes =
         | AttackJob = 4
 
     type JobData =
-        | OccupyJob of VertexName list * VertexName list
+        | OccupyJob of VertexName list * VertexName list //(agentPositions,zone)
         | RepairJob of VertexName * AgentName
         | DisruptJob of VertexName
         | AttackJob of VertexName list //Change to single vertex?
@@ -175,7 +176,24 @@ module AgentTypes =
     type ServerMessage = 
         | AgentServerMessage of AgentServerMessage
         | MarsServerMessage of MarsServerMessage
+   
 
+    type SubSetState =
+        {
+            Pos             : string
+            HasEnergy       : bool
+            PlannerProbed          : VertexName Set
+            PlannerRepairedAgents  : AgentName Set
+            PlannerInspectedEnemies : AgentName Set
+            PlannerDisabledEnemies  : AgentName Set
+
+//            World           : Graph
+//            Friends         : Agent list
+//            Enemies         : Agent list
+        }
+
+    [<CustomEquality>]
+    [<CustomComparison>]
     type State =
         { 
             World            : Graph
@@ -188,7 +206,6 @@ module AgentTypes =
             NewVertices      : SeenVertex list
             NewEdges         : Edge list
             LastStepScore    : int
-            Money            : int
             Score            : int
             ThisZoneScore    : int
             LastActionResult : ActionResult
@@ -197,13 +214,46 @@ module AgentTypes =
             Jobs             : Job list
             MyJobs           : (JobID * VertexName) list
             TotalNodeCount   : int
-            ExploredVertices : VertexName Set //Update this when we explore a vertex!! TODO!!!!!!
-            ExploredCount    : int
-            MyExploredCount  : int
-            MyProbedCount    : int
-            ProbedCount      : int
             NewKnowledge     : Percept list
-        }
+            MyExploredCount  : int
+            ProbedCount      : int
+            HeuristicMap     : Map<VertexName*VertexName, int>
+            UpdateMap        : bool
+
+            ///USED FOR PLANNING ONLY DONT USE THEM IN INTENTION CHECKS
+            PlannerProbed           : VertexName Set
+            PlannerRepairedAgents   : AgentName Set
+            PlannerInspectedEnemies : AgentName Set
+            PlannerDisabledEnemies  : AgentName Set
+
+
+        }           
+        member self.GetSubSet =
+            { 
+                Pos = self.Self.Node; 
+                HasEnergy = 
+                    match self.Self.Energy with
+                    | Some energy -> energy >= ACTION_COST_MAX
+                    | _ -> false
+                PlannerProbed = self.PlannerProbed
+                PlannerRepairedAgents = self.PlannerRepairedAgents
+                PlannerInspectedEnemies = self.PlannerInspectedEnemies
+                PlannerDisabledEnemies = self.PlannerDisabledEnemies
+//                World = self.World; 
+//                Friends = self.FriendlyData;
+//                Enemies = self.EnemyData
+            }
+            
+        override self.GetHashCode() = self.GetSubSet.GetHashCode()
+        override self.Equals (other) = 
+            match other with
+            | :? State as o ->  o.GetSubSet = self.GetSubSet
+            | _ -> false
+        interface System.IComparable with
+            member self.CompareTo yobj =
+                match yobj with
+                | :? State as o -> compare (o.GetSubSet) (self.GetSubSet)
+                | _ -> failwith "fsharp sucks"
 
     type OptionFunc = State -> (bool*Option<Action>)
 
@@ -214,10 +264,14 @@ module AgentTypes =
         | Activity
         | Inherent
 
-    type Goal = 
-        | Plan of (State -> AgentAction list)
-        | Requirement of (State -> bool)
+
+    type Goal = (State -> bool) * Option<(State -> int)>
+
+    type Objective = 
+        | Plan of (State -> (AgentAction list) option)
+        | Requirement of Goal
+        | MultiGoal of (State -> Goal list)
 
 
-    type Intention = string*IntentionType*(Goal list)
-    type Solution = int * (AgentAction list)
+    type Intention = string*IntentionType*(Objective list)
+    //type Solution = int * (AgentAction list)

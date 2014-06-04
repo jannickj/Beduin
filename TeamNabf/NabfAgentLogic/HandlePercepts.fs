@@ -5,6 +5,10 @@ module HandlePercepts =
     open AgentTypes
     open Graphing.Graph
     open NabfAgentLogic.Logging
+    open NabfAgentLogic.LogicLib
+    open NabfAgentLogic.Search.HeuristicDijkstra
+
+    
 
 (* handlePercept State -> Percept -> State *)
     let handlePercept state percept =
@@ -38,7 +42,8 @@ module HandlePercepts =
                     else
                         { state with EnemyData = updateAgentList enemy state.EnemyData }
                 
-            | VertexSeen seenVertex -> state //Update state with the agents controlling vertices we can see      TODO!!!!!!!!!!!!!!!!!!!
+            | VertexSeen seenVertex -> 
+                { state with NewVertices = seenVertex::state.NewVertices} 
 
             | VertexProbed (name, value) ->
                 { state with 
@@ -46,29 +51,36 @@ module HandlePercepts =
                 }
                         
             | EdgeSeen (cost, node1, node2) ->
-                let edgeAlreadyExists = fun (cost':Option<_>, otherVertexId) -> cost'.IsSome && otherVertexId = node2
+                let edgeAlreadyExistsWithValue = fun (cost':Option<_>, otherVertexId) -> cost'.IsSome && otherVertexId = node2
 
                 let containNode = (Map.containsKey node1 state.World)
                 //let edges = state.World.[node1].Edges
                 //logInfo ("Contains Node: "+containNode.ToString())
-                if ( not (containNode && (Set.exists edgeAlreadyExists state.World.[node1].Edges))) then
+                if ( cost.IsNone && not (containNode && (Set.exists edgeAlreadyExistsWithValue state.World.[node1].Edges))) then
+                    //printf "\n Added new edge from %A to %A with cost %A to state \n" node1 node2 cost
                     { state with 
                         World = addEdge (cost, node1, node2) state.World 
                         NewEdges = (cost, node1, node2) :: state.NewEdges
-                    }
+                    }      
+                elif ( cost.IsSome ) then
+                    //printf "\n Added new edge from %A to %A with cost %A to state \n" node1 node2 cost
+                    { state with 
+                        World = addEdge (cost, node1, node2) state.World 
+                        NewEdges = (cost, node1, node2) :: state.NewEdges
+                    }                
                 else
                     state
 
                 
             | SimulationStep step  -> { state with SimulationStep = step }
             | MaxEnergyDisabled energy -> state //prob not needed, part of Self percept
-            | LastAction action    -> { state with LastAction = action }
+            | LastAction action    ->  { state with LastAction = action }
+
             | LastActionResult res -> { state with LastActionResult = res }
             | ZoneScore score      -> { state with ThisZoneScore = score }
             | Team team ->
                 { state with 
                     TeamZoneScore = team.ZoneScore
-                    Money = team.Money
                     LastStepScore = team.LastStepScore
                     Score = team.Score
                 }
@@ -91,7 +103,38 @@ module HandlePercepts =
                     
                     
             | NewRoundPercept -> state //is here for simplicity, should not do anything
-            | AgentRolePercept agentRole -> state // todo
+
+            | AgentRolePercept agentRole -> 
+                         
+                let addRole name role (list:Agent list) = 
+                    let agent = (List.filter (fun (a:Agent) -> a.Name = name) list).Head
+                    let others = List.filter (fun (a:Agent) -> a.Name <> name) list
+
+                    if agent.Role = role then list
+                    else 
+                        let newAgent = { agent with Role = role}
+                        newAgent::others
+
+                let addEnemyRole name role = 
+                    let updatedData = addRole name role state.EnemyData
+                    { state with EnemyData = updatedData}
+
+                let addFriendlyRole name role = 
+                    let updatedData = addRole name role state.FriendlyData
+                    { state with FriendlyData = updatedData}
+
+                let addNothing (name:string) (role:Option<AgentRole>) =
+                    state
+
+                let addAgentRole name (role:Option<AgentRole>) = 
+                    if (List.exists (fun (a:Agent) -> a.Name = name) state.EnemyData) then addEnemyRole name role
+                    elif (List.exists (fun (a:Agent) -> a.Name = name) state.FriendlyData) then addFriendlyRole name role
+                    else addNothing name role
+                                            
+                match agentRole with
+                | (name, role, certainty) -> if certainty = 100 then addAgentRole name (Some role)
+                                                else state// We might want to add functionality for certainty < 100%
+                | _ -> state
 
             | JobPercept job -> 
                 let jobIDFromHeader (header:JobHeader) =
@@ -99,8 +142,13 @@ module HandlePercepts =
                         | (jobID, _, _, _) -> jobID
                         | _ -> None
 
-                let removeJob jobHeader = List.filter (fun (existingJobHeader, _) -> 
-                            not(jobIDFromHeader existingJobHeader = jobIDFromHeader jobHeader)) state.Jobs
+                let removeJob jobHeader = 
+                    let removeId = jobIDFromHeader jobHeader
+                    let hasId = ((=)removeId.Value)
+                    if  List.exists hasId <| List.map (fst) state.MyJobs then
+                        state.Jobs
+                    else
+                        List.filter (fun (existingJobHeader, _) -> not(jobIDFromHeader existingJobHeader = jobIDFromHeader jobHeader)) state.Jobs
 
                 let removeMyJob jobID = List.filter (fun (existingJobID, _) -> 
                             not(existingJobID = jobID)) state.MyJobs
@@ -140,21 +188,25 @@ module HandlePercepts =
                     { state with NewKnowledge = updatedNK }
             | _ -> state
 
-    let clearTempBeliefs state =
+    let clearTempBeliefs (state:State) =
+        let newEnemyData = List.map (fun enemy -> { enemy with Agent.Node = ""}) state.EnemyData
         { state with 
             NewEdges = []
             NewVertices = []
+            EnemyData = newEnemyData
+            UpdateMap = false
         }
 
     let updateTraversedEdgeCost (oldState : State) (newState : State) =
-        match (oldState.Self.Node, newState.LastAction, newState.LastActionResult) with
-        | (fromVertex, Goto toVertex, Successful) -> 
-            let edge = (Some (oldState.Self.Energy.Value - newState.Self.Energy.Value), fromVertex, toVertex)
-            { newState with 
-                World = addEdge edge newState.World
-                //NewEdges = edge :: newState.NewEdges 
-            }
-        | _ -> newState
+                    match (oldState.Self.Node, newState.LastAction, newState.LastActionResult) with
+                    | (fromVertex, Goto toVertex, Successful) -> 
+                        
+                        let edge = (Some (oldState.Self.Energy.Value - newState.Self.Energy.Value), fromVertex, toVertex)
+                        //printf "\n Updated cost on edge %A \n" edge
+                        { newState with 
+                            World = addEdge edge newState.World
+                        }
+                    | _ -> newState
 
 //    let updateEdgeCosts (lastState:State) (state:State) =
 //        match (state.LastAction, state.LastActionResult) with
@@ -168,24 +220,25 @@ module HandlePercepts =
 
     let updateJobs knownJobs (state:State) =
         { state with Jobs = knownJobs }
-
     let updateProbeCount (lastState:State) (state:State) =
-            
-        let probeAction = match state.LastAction with
-                            | Action.Probe param -> true
-                            | _ -> false
-        let resultSuccessful = state.LastActionResult = ActionResult.Successful
-        let getProbedVertex = lastState.Self.Node
-        
-        let notAlreadyProbed = lastState.World.ContainsKey getProbedVertex && lastState.World.[getProbedVertex].Value = Option.None
-        if probeAction && resultSuccessful && notAlreadyProbed then 
+        { state with ProbedCount = List.length <| LogicLib.probedVertices state.World }
 
-            { state with 
-                MyProbedCount = state.MyProbedCount + 1    
-                ProbedCount = state.ProbedCount + 1
-            }
-        else
-            state
+//    let updateProbeCount (lastState:State) (state:State) =
+//            
+//        let probeAction = match state.LastAction with
+//                            | Action.Probe param -> true
+//                            | _ -> false
+//        let resultSuccessful = state.LastActionResult = ActionResult.Successful
+//        let getProbedVertex = lastState.Self.Node
+//        
+//        let notAlreadyProbed = lastState.World.ContainsKey getProbedVertex && lastState.World.[getProbedVertex].Value = Option.None
+//        if probeAction && resultSuccessful && notAlreadyProbed then 
+//
+//            { state with   
+//                ProbedCount = state.ProbedCount + 1
+//            }
+//        else
+//            state
 
     let updateExploredCount (lastState:State) (state:State) =
             
@@ -200,8 +253,7 @@ module HandlePercepts =
 
         if gotoAction && resultSuccessful && notAlreadyExplored then 
             { state with 
-                MyExploredCount = state.MyExploredCount + 1    
-                ExploredCount = state.ExploredCount + 1
+                MyExploredCount = state.MyExploredCount + 1  
             }
         else
             state
@@ -219,25 +271,30 @@ module HandlePercepts =
                 true
         | VertexSeen (vertexName, ownedBy) -> not (oldState.World.ContainsKey(vertexName))
         | EdgeSeen (edgeValue, node1, node2) ->
-//            if oldState.World.ContainsKey(node1) then
-//                let edge = Set.filter (fun (_, endNode) -> endNode = node2) oldState.World.[node1].Edges
-//
-//                if edge.Count = 1 then 
-//                                    match edge.MaximumElement with
-//                                    | (value, _) -> value.IsNone
-//                                    | _ -> false
-//                else
-//                    raise(System.Exception("Handle edge seen percept - found a wrong number of the given edge in the world."))
-//            else
-//                false
-            false
+            if oldState.World.ContainsKey(node1) then
+                let edge = Set.filter (fun (_, endNode) -> endNode = node2) oldState.World.[node1].Edges
+                if edge.Count = 1 then 
+                                    match edge.MaximumElement with
+                                    | (value, _) -> value.IsNone
+                elif edge.Count = 0 then true
+                else
+                    raise(System.Exception("Handle edge seen percept - found "+ string(edge.Count) + " of the given edge in the world."))
+            else
+                false //Check this, will we ever see an edge before one of its vertices?
+          
 
-        | EnemySeen { Role = role ; Name = name} -> //Should be shared when we learn of the agents role, as well as every time it is spotted!! TODO!!!
-            let agentIsKnown agentData = 
-                match agentData with
-                | { Name = agentDataName ; Role = Some _ } -> agentDataName = name
-                | _ -> false
-            not (List.exists agentIsKnown oldState.EnemyData)
+        | EnemySeen { Role = role ; Name = name} -> false//Should be shared when we learn of the agents role, as well as every time it is spotted!! TODO!!!
+//            let agentIsKnown agentData = 
+//                match agentData with
+//                | { Name = agentDataName ; Role = Some _ } -> agentDataName = name
+//                | _ -> false
+//            not (List.exists agentIsKnown oldState.EnemyData)
+
+        | AgentRolePercept (name, role, certainty) -> 
+            if List.exists (fun (enemyAgent:Agent) -> enemyAgent.Name = name) state.EnemyData then 
+                true
+            else
+                false
 
         | _ -> false
 
@@ -247,6 +304,37 @@ module HandlePercepts =
         { state with 
                 NewKnowledge = state.NewKnowledge @ propagatedPercepts
         }
+
+    let updateHeuristicsMap percepts oldState state =
+        let RNGesus = 
+            let rnd = (new System.Random()).Next(0,4)
+            if rnd = 0 then 
+                true
+            else
+                false
+
+        if state.World.Count > oldState.World.Count && RNGesus && state.Self.Role <> Some Saboteur then 
+            
+            let result = 
+                { state with UpdateMap = true
+                        //HeuristicMap = allPairsDistances state.World
+                }
+            
+            result
+        else
+            state
+
+    let updateHeuristicsMapSingle percepts oldState state =
+        if state.World.Count > oldState.World.Count && state.Self.Role <> Some Saboteur then 
+            
+            let result = 
+                { state with //UpdateMap = true ;
+                             HeuristicMap = allDistancesMap state.World state.Self.Node
+                }
+            
+            result
+        else
+            state
     
     (* let updateState : State -> Percept list -> State *)
     let updateState state percepts = 
@@ -258,8 +346,13 @@ module HandlePercepts =
                                 |> updateExploredCount state
                                 |> updateTraversedEdgeCost state
                                 |> selectSharedPercepts percepts state
+                                |> updateHeuristicsMapSingle percepts state
+
+        let fixState = { state with UpdateMap = false }
 
         match percepts with
         | NewRoundPercept::_ -> newRoundPercepts clearedState
-        | _ -> handlePercepts state percepts
+                                
+        | _ -> handlePercepts fixState percepts
+
         
