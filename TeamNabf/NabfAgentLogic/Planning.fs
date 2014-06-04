@@ -101,11 +101,9 @@ module Planning =
             let breakTest (stopwatch : Stopwatch) = 
                 logImportant <| sprintf "%A" stopwatch.ElapsedMilliseconds
                 if stopwatch.ElapsedMilliseconds > Constants.MAX_PLANNING_TIME_MS then
-                    logImportant "BREAK"
+                    logImportant "Plan cancelled"
                     true
-                else
-                    logImportant "no break"
-                    false
+                else false
 
 
             let plan = solveSearchNodePath aStar (agentProblem state goal) (fun () -> breakTest stopwatch)
