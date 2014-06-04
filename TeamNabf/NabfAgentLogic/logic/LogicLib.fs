@@ -138,12 +138,15 @@ module LogicLib =
                 ; StepCost = fun _ (cost, _) -> definiteCost cost
                 ; Heuristic = fun _ cost -> cost
                 }
-            
-            solve Astar.aStar pathProblem
-        let solution = planPath startNode target state.World 
+
+            Astar.solve Astar.aStar pathProblem (fun () -> false)
+
+        let solution = planPath startNode target state.World
+
         match solution with
         | Some sol -> 
-            let path = List.map (fun node -> node.Action.Value) sol.Path
+            let path = sol.Path
+            //let path = List.map (fun node -> node.Action.Value) sol.Path
             Some <| List.map (fun (_, vertex) -> Perform (Goto vertex)) path
         | None -> None
 
