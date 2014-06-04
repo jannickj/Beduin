@@ -52,6 +52,8 @@
 
         let RECHARGE_FACTOR = 0.5
 
+        let EDGE_COST_MAX = 9
+
         let ACTION_COST_MAX = 9
         let ACTION_COST_CHEAP = 1
         let ACTION_COST_EXPENSIVE = 2

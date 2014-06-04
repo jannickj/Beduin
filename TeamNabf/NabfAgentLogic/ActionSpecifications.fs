@@ -17,6 +17,9 @@ module ActionSpecifications =
         | Success -> true
         | Failure _ -> false
 
+    let turnCost (state : State) =
+        state.Self.MaxEnergy.Value / 2
+
     [<CustomEquality>]
     [<CustomComparison>]
     type ActionSpecification =
@@ -145,7 +148,7 @@ module ActionSpecifications =
         { ActionType    = Perform <| Attack enemyAgent
         ; Preconditions = [ canAttack; enoughEnergy Constants.ACTION_COST_EXPENSIVE; isNotDisabled ]
         ; Effect        = updateState
-        ; Cost          = fun _ -> Constants.ACTION_COST_EXPENSIVE
+        ; Cost          = fun state -> turnCost state + Constants.ACTION_COST_EXPENSIVE
         }
 
     let rechargeAction =
@@ -155,7 +158,7 @@ module ActionSpecifications =
         { ActionType    = Perform <| Recharge
         ; Preconditions = [  ]
         ; Effect        = updateState
-        ; Cost = fun _ -> 1
+        ; Cost = fun state -> turnCost state
         }       
 
     let repairAction (damagedAgent : AgentName) =
@@ -178,7 +181,7 @@ module ActionSpecifications =
         { ActionType    = Perform <| Repair damagedAgent
         ; Preconditions = [ canRepair; fun state -> enoughEnergy (repairCost state) state ]
         ; Effect        = updateState
-        ; Cost          = fun state -> repairCost state
+        ; Cost          = fun state -> turnCost state + repairCost state
         }
 
     let probeAction vertexOption =
@@ -205,7 +208,7 @@ module ActionSpecifications =
         { ActionType    = Perform <| Probe vertexOption
         ; Preconditions = [ vertexUnProbed; enoughEnergy Constants.ACTION_COST_CHEAP; isNotDisabled ]
         ; Effect        = updateState
-        ; Cost          = fun _ -> Constants.ACTION_COST_CHEAP
+        ; Cost          = fun state -> turnCost state + Constants.ACTION_COST_CHEAP
         }
 
     let inspectAction agentNameOption =
@@ -231,7 +234,7 @@ module ActionSpecifications =
         { ActionType    = Perform <| Inspect agentNameOption
         ; Preconditions = [ enemiesNotInspected; enoughEnergy Constants.ACTION_COST_EXPENSIVE; isNotDisabled ]
         ; Effect        = updateState
-        ; Cost          = fun _ -> Constants.ACTION_COST_EXPENSIVE
+        ; Cost          = fun state -> turnCost state + Constants.ACTION_COST_EXPENSIVE
         }
 
     let parryAction =
@@ -248,7 +251,7 @@ module ActionSpecifications =
         { ActionType    = Perform <| Parry
         ; Preconditions = [ saboteurPresent; enoughEnergy Constants.ACTION_COST_EXPENSIVE; isNotDisabled ]
         ; Effect        = updateState
-        ; Cost          = fun _ -> Constants.ACTION_COST_EXPENSIVE
+        ; Cost          = fun state -> turnCost state + Constants.ACTION_COST_EXPENSIVE
         }
 
     let unSatisfiedPreconditions state actionSpec =

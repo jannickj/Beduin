@@ -22,16 +22,19 @@ module Planning =
     let distance (goals : Goal list) state cost =
         let heuristics = 
             List.choose id 
-                ( List.map (fun (_,heuOpt) ->
+                ( List.map (fun (_, heuOpt) ->
                             match heuOpt with
                             | Some heuFunc -> Some <| heuFunc state
                             | None ->  None
                            ) goals
                 )
-        match heuristics with 
-           | [] -> 0
-           | [single] -> single
-           | multi -> List.min multi 
+        let heuValue = 
+            match heuristics with 
+            | [] -> 0
+            | [single] -> single
+            | multi -> List.min multi 
+
+        heuValue + (heuValue / EDGE_COST_MAX) * turnCost state
       
     let realGoalCount goalFun state =
         List.length <| List.filter (fun (func,_) -> func state) (goalFun state)
