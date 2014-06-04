@@ -58,6 +58,8 @@
     <Compile Include="Events\NoticeRemovedEvent.cs" />
     <Compile Include="Events\RoundChangedEvent.cs" />
     <Compile Include="Events\SimulationSubscribedEvent.cs" />
+    <Compile Include="KnowledgeManager\RepairerLocationKnowledge.cs" />
+    <Compile Include="KnowledgeManager\TargetedKnowledge.cs" />
     <Compile Include="Parsers\AgentMasterDataParsers.cs" />
     <Compile Include="Library\StreamSplitter.cs" />
     <Compile Include="NabfModelFactory.cs" />

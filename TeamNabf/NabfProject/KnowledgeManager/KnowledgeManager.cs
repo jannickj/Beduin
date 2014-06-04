@@ -62,13 +62,20 @@ namespace NabfProject.KnowledgeManagerModel
 					}
 				}
 
-				if(updatedKnowledge)
-					foreach (NabfAgent a in _sharingList)
-					{
-						if (a == sender)
-							continue;
-						a.Raise(new NewKnowledgeEvent(k));
-					}
+                if (updatedKnowledge)
+                {
+                    foreach (NabfAgent a in _sharingList)
+                    {
+                        if (a == sender)
+                            continue;
+                        if (k is TargetedKnowledge)
+                            if (((TargetedKnowledge)k).TargetedAgent == a.Name)
+                                a.Raise(new NewKnowledgeEvent(k));
+                            else
+                                continue;
+                        a.Raise(new NewKnowledgeEvent(k));
+                    }
+                }
                 //else
                 //{
                     //kl = _knowledgeBase.Keys.First(pk => k.Equals(pk));
@@ -83,6 +90,11 @@ namespace NabfProject.KnowledgeManagerModel
         {
             foreach (Knowledge k in _knowledgeBase.Keys)
             {
+                if (k is TargetedKnowledge)
+                    if (((TargetedKnowledge)k).TargetedAgent == agent.Name)
+                        agent.Raise(new NewKnowledgeEvent(k));
+                    else
+                        continue;
                 agent.Raise(new NewKnowledgeEvent(k));
             }
         }
