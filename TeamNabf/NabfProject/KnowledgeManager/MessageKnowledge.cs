@@ -5,15 +5,15 @@ using System.Text;
 
 namespace NabfProject.KnowledgeManagerModel
 {
-    public class RepairerLocationKnowledge : TargetedKnowledge
+    public class MessageKnowledge : Knowledge
     {
         public string TargetedAgent { get; private set; }
-        public string NodeOfRepairer { get; private set; }
+        public string Message { get; private set; }
 
-        public RepairerLocationKnowledge(string repairee, string nodeOfRepairer)
+        public MessageKnowledge(string repairee, string message)
         {
             TargetedAgent = repairee;
-            NodeOfRepairer = nodeOfRepairer;
+            Message = message;
         }
 		public override bool Equals(object obj)
 		{
@@ -25,7 +25,7 @@ namespace NabfProject.KnowledgeManagerModel
 
 		public override int GetHashCode()
 		{
-            return this.TargetedAgent.GetHashCode() + this.NodeOfRepairer.GetHashCode();
+            return this.TargetedAgent.GetHashCode() + this.Message.GetHashCode();
 		}
 
 		public bool Equals(Knowledge other)
@@ -38,24 +38,24 @@ namespace NabfProject.KnowledgeManagerModel
             if (other.GetType() != this.GetType())
                 return false;
 
-            RepairerLocationKnowledge rlk = (RepairerLocationKnowledge)other;
+            MessageKnowledge rlk = (MessageKnowledge)other;
 
-			return (rlk.NodeOfRepairer == this.NodeOfRepairer && rlk.TargetedAgent == this.TargetedAgent);
+			return (rlk.Message == this.Message && rlk.TargetedAgent == this.TargetedAgent);
         }
 
         int IComparable<Knowledge>.CompareTo(Knowledge other)
         {
             if (other == null)
                 throw new ArgumentException("Input of method CompareTo in " + this.GetType().Name + " is null");
-            else if (other is RepairerLocationKnowledge)
+            else if (other is MessageKnowledge)
                 return -1;
             else
-                throw new ArgumentException("Object : " + other.GetType().Name + " of CompareTo is not of type RepairerLocationKnowledge");
+                throw new ArgumentException("Object : " + other.GetType().Name + " of CompareTo is not of type MessageKnowledge");
         }
 
         public string GetTypeToString()
         {
-            return "repairerLocationKnowledge";
+            return "messageKnowledge";
         }
     }
 }

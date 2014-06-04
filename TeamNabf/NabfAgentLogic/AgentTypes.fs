@@ -132,6 +132,7 @@ module AgentTypes =
         | NewRoundPercept
         | AgentRolePercept  of AgentRolePercept
         | KnowledgeSent     of Percept list
+        | HeuristicUpdate   of VertexName * VertexName * int
         
         | JobPercept        of JobPercept
 

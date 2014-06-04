@@ -174,6 +174,16 @@ namespace NabfAgentLogic.IiLang
                         ]) -> (Some (int weight), node1, node2) : Edge
             | _ -> raise <| InvalidIilException ("surveyedEdge", [iilData])
 
+        let parseIilHeuristic iilData =
+            match iilData with
+            | [ Function ("heuristicUpdate",
+                        [ Function ("node1", [Identifier node1])
+                        ; Function ("node2", [Identifier node2])
+                        ; Function ("distance", [Numeral dist])
+                        ]) 
+                ] -> HeuristicUpdate (node1, node2, int dist)
+            | _ -> raise <| InvalidIilException ("heuristicUpdate", iilData)
+
         let parseIilAchievement achievement =
             let (|Name|_|) name (str : string) = 
                 if str.StartsWith name then
@@ -292,6 +302,7 @@ namespace NabfAgentLogic.IiLang
                 | "visibleEntities"   -> List.map (parseIilVisibleEntity >> EnemySeen) data
                 | "visibleVertices"   -> List.map (parseIilVisibleVertex >> VertexSeen) data
                 | "roleKnowledge"     -> [parseIilAgentRole data]
+                | "heuristicUpdate"   -> [parseIilHeuristic data]
                 | _ -> raise <| InvalidIilException ("iilPercept", data)
             | _ -> failwith "no"    
         

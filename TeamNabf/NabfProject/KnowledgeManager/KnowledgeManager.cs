@@ -46,7 +46,7 @@ namespace NabfProject.KnowledgeManagerModel
 				bool updatedKnowledge = false;
 				if (!_knowledgeBase.ContainsKey(k))
 				{
-                    if (!(k is TargetedKnowledge))
+                    if (!(k is MessageKnowledge))
 					    _knowledgeBase.Add(k,k);
 					updatedKnowledge = true;
 					//_knowledgeToAgent.Add(k, sender);
@@ -69,8 +69,8 @@ namespace NabfProject.KnowledgeManagerModel
                     {
                         if (a == sender)
                             continue;
-                        if (k is TargetedKnowledge)
-                            if (((TargetedKnowledge)k).TargetedAgent == a.Name)
+                        if (k is MessageKnowledge)
+                            if (((MessageKnowledge)k).TargetedAgent == a.Name)
                                 a.Raise(new NewKnowledgeEvent(k));
                             else
                                 continue;
@@ -91,8 +91,8 @@ namespace NabfProject.KnowledgeManagerModel
         {
             foreach (Knowledge k in _knowledgeBase.Keys)
             {
-                if (k is TargetedKnowledge)
-                    if (((TargetedKnowledge)k).TargetedAgent == agent.Name)
+                if (k is MessageKnowledge)
+                    if (((MessageKnowledge)k).TargetedAgent == agent.Name)
                         agent.Raise(new NewKnowledgeEvent(k));
                     else
                         continue;

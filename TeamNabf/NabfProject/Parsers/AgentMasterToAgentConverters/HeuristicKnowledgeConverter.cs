@@ -35,7 +35,7 @@ namespace NabfProject.Parsers.KnowledgeConverters
 
         public override IilElement BeginConversionToForeign(HeuristicKnowledge gobj)
         {
-            return new IilPerceptCollection(new IilPercept("heuristicUpdates"
+            return new IilPerceptCollection(new IilPercept("heuristicUpdate"
                     , new IilFunction("heuristicUpdate"
                         , new IilFunction("node1", new IilIdentifier(gobj.Node1))
                         , new IilFunction("node2", new IilIdentifier(gobj.Node2))
