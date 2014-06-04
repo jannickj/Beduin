@@ -7,8 +7,26 @@ module HandlePercepts =
     open NabfAgentLogic.Logging
     open NabfAgentLogic.LogicLib
     open NabfAgentLogic.Search.HeuristicDijkstra
+    open Constants
 
-    
+    ///////////////////////////////////Helper functions//////////////////////////////////////
+
+    let rec addListToMap mapToUpdate list =
+        match list with 
+        | (key,value)::tail -> 
+                                let newMap = Map.add key value mapToUpdate
+                                addListToMap newMap tail
+        | [] -> mapToUpdate
+
+    let rec addListOfMapsToMap mapToUpdate list =
+        match list with 
+        | head::tail -> 
+                        let newMap = addListToMap mapToUpdate (Map.toList head)
+                        addListOfMapsToMap newMap tail
+        | [] -> mapToUpdate
+
+
+    ///////////////////////////////End of Helper functions///////////////////////////////////
 
 (* handlePercept State -> Percept -> State *)
     let handlePercept state percept =
@@ -186,6 +204,9 @@ module HandlePercepts =
             | KnowledgeSent pl -> 
                     let updatedNK = List.filter (fun p -> List.exists ((=) p) pl) state.NewKnowledge
                     { state with NewKnowledge = updatedNK }
+
+            | HeuristicUpdate (n1,n2,dist) -> {state with HeuristicMap = Map.add (n1,n2) dist state.HeuristicMap}
+
             | _ -> state
 
     let clearTempBeliefs (state:State) =
@@ -313,11 +334,23 @@ module HandlePercepts =
             else
                 false
 
-        if state.World.Count > oldState.World.Count && RNGesus && state.Self.Role <> Some Saboteur then 
+        if state.World.Count > oldState.World.Count then             
             
             let result = 
-                { state with UpdateMap = true
+
+                let nodeNames = List.map fst (Map.toList state.World)
+                let nodeNumbers = List.map (fun (s:string) -> s.Remove(0,1) |> int ) nodeNames  
+                let myNumber = (state.Self.Name.Remove(0, OUR_TEAM.Length) |> int)
+                let nodeNumbersToFindHeuristicFor = List.filter (fun i -> i % NUMBER_OF_AGENTS = myNumber) nodeNumbers
+                let nodeNamesToFindHeuristicFor = List.map (fun i -> String.concat "v" [ i |> string]) nodeNumbersToFindHeuristicFor
+                let heuristics = List.map (fun s -> allDistancesMap state.World s) nodeNamesToFindHeuristicFor
+                let newHeuristicMap = addListOfMapsToMap state.HeuristicMap heuristics
+                
+                { state with //UpdateMap = true
                         //HeuristicMap = allPairsDistances state.World
+                        HeuristicMap = newHeuristicMap
+                        
+                        NewKnowledge = List.append state.NewKnowledge (List.map (fun ((n1,n2),dist) -> HeuristicUpdate(n1,n2,dist)) (Map.toList newHeuristicMap))
                 }
             
             result
@@ -325,11 +358,12 @@ module HandlePercepts =
             state
 
     let updateHeuristicsMapSingle percepts oldState state =
-        if state.World.Count > oldState.World.Count && state.Self.Role <> Some Saboteur then 
+        if state.World.Count > oldState.World.Count then 
             
             let result = 
                 { state with //UpdateMap = true ;
                              HeuristicMap = allDistancesMap state.World state.Self.Node
+
                 }
             
             result
