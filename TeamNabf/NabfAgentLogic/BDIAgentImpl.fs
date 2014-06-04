@@ -25,6 +25,8 @@
                     | (_, Activity, _) -> match intB with
                                             | (_, Activity, _) -> Conflictive
                                             | _ -> Harmonic
+                
+                override this.IsIntentionEqual ((S1,_,_),(S2,_,_)) = S1 = S2
 
                 override this.OptimizeState(curState) =
                     if curState.UpdateMap then
