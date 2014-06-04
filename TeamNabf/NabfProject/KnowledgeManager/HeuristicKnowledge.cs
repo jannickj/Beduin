@@ -5,15 +5,17 @@ using System.Text;
 
 namespace NabfProject.KnowledgeManagerModel
 {
-    public class RepairerLocationKnowledge : TargetedKnowledge
+    public class HeuristicKnowledge : Knowledge
     {
-        public string TargetedAgent { get; private set; }
-        public string NodeOfRepairer { get; private set; }
+        public string Node1 { get; private set; }
+        public string Node2 { get; private set; }
+        public int Distance { get; private set;}
 
-        public RepairerLocationKnowledge(string repairee, string nodeOfRepairer)
+        public HeuristicKnowledge(string node1, string node2, int distance)
         {
-            TargetedAgent = repairee;
-            NodeOfRepairer = nodeOfRepairer;
+            Node1 = node1;
+            Node2 = node2;
+            Distance = distance;
         }
 		public override bool Equals(object obj)
 		{
@@ -25,7 +27,7 @@ namespace NabfProject.KnowledgeManagerModel
 
 		public override int GetHashCode()
 		{
-            return this.TargetedAgent.GetHashCode() + this.NodeOfRepairer.GetHashCode();
+			return this.Node1.GetHashCode() + this.Node2.GetHashCode();
 		}
 
 		public bool Equals(Knowledge other)
@@ -33,29 +35,29 @@ namespace NabfProject.KnowledgeManagerModel
             if (other == null)
                 throw new ArgumentException("Input of method Equals in " + this.GetType().Name + " is null");
             else if (!(other is Knowledge))
-                throw new ArgumentException("Object : " + other.GetType().Name + " of Equals is not implementing interface Knowledge");
+                throw new ArgumentException("Object : " + other.GetType().Name + " of Equals in " + other.GetType().Name + " is not implementing interface Knowledge");
 
             if (other.GetType() != this.GetType())
                 return false;
 
-            RepairerLocationKnowledge rlk = (RepairerLocationKnowledge)other;
+            HeuristicKnowledge hk = (HeuristicKnowledge)other;
 
-			return (rlk.NodeOfRepairer == this.NodeOfRepairer && rlk.TargetedAgent == this.TargetedAgent);
+			return (hk.Node1 == this.Node1 && hk.Node2 == this.Node2);
         }
 
         int IComparable<Knowledge>.CompareTo(Knowledge other)
         {
             if (other == null)
                 throw new ArgumentException("Input of method CompareTo in " + this.GetType().Name + " is null");
-            else if (other is RepairerLocationKnowledge)
+            else if (other is HeuristicKnowledge)
                 return -1;
             else
-                throw new ArgumentException("Object : " + other.GetType().Name + " of CompareTo is not of type RepairerLocationKnowledge");
+                throw new ArgumentException("Object : " + other.GetType().Name + " of CompareTo in " + other.GetType().Name + " is not of type HeuristicKnowledge");
         }
 
         public string GetTypeToString()
         {
-            return "repairerLocationKnowledge";
+            return "heuristicKnowledge";
         }
     }
 }

@@ -46,7 +46,8 @@ namespace NabfProject.KnowledgeManagerModel
 				bool updatedKnowledge = false;
 				if (!_knowledgeBase.ContainsKey(k))
 				{
-					_knowledgeBase.Add(k,k);
+                    if (!(k is TargetedKnowledge))
+					    _knowledgeBase.Add(k,k);
 					updatedKnowledge = true;
 					//_knowledgeToAgent.Add(k, sender);
 					//_agentToKnowledge.Add(sender, k);
