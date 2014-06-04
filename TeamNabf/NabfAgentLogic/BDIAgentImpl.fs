@@ -41,4 +41,7 @@
                         { curState with HeuristicMap = optState.HeuristicMap }
                     else
                         curState
+                override this.IsIntentionEqual(intent1, intent2) =
+                    match (intent1, intent2) with
+                    | ((A,_,_), (B,_,_)) -> A = B
     end

@@ -56,7 +56,7 @@
         let ACTION_COST_CHEAP = 1
         let ACTION_COST_EXPENSIVE = 2
         let ACTION_COST_DISABLED = 3
-       
+        
         let OUR_TEAM = "Nabf"
         let EXPLORE_FACTOR_LIGHT = 0.7
         let MAX_PLANNING_TIME_MS = 500.0
