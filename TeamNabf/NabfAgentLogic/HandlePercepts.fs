@@ -345,12 +345,17 @@ module HandlePercepts =
                 let nodeNamesToFindHeuristicFor = List.map (fun i -> String.concat "v" [ i |> string]) nodeNumbersToFindHeuristicFor
                 let heuristics = List.map (fun s -> allDistancesMap state.World s) nodeNamesToFindHeuristicFor
                 let newHeuristicMap = addListOfMapsToMap state.HeuristicMap heuristics
+
+                let difHeus = List.filter (fun (key,dist) -> match Map.tryFind key state.HeuristicMap with
+                                                             | Some (oldDist) -> dist < oldDist
+                                                             | _ -> false
+                                                             ) <| Map.toList newHeuristicMap
                 
                 { state with //UpdateMap = true
                         //HeuristicMap = allPairsDistances state.World
                         HeuristicMap = newHeuristicMap
                         
-                        NewKnowledge = List.append state.NewKnowledge (List.map (fun ((n1,n2),dist) -> HeuristicUpdate(n1,n2,dist)) (Map.toList newHeuristicMap))
+                        NewKnowledge = List.append state.NewKnowledge (List.map (fun ((n1,n2),dist) -> HeuristicUpdate(n1,n2,dist)) difHeus)
                 }
             
             result
