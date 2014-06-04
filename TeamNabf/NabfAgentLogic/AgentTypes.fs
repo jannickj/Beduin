@@ -6,7 +6,7 @@ module AgentTypes =
     open Constants
 
     type TeamName = string
-    type AgentName = string
+    type AgentName = string 
 
    
     
