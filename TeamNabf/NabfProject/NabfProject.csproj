@@ -58,6 +58,7 @@
     <Compile Include="Events\NoticeRemovedEvent.cs" />
     <Compile Include="Events\RoundChangedEvent.cs" />
     <Compile Include="Events\SimulationSubscribedEvent.cs" />
+    <Compile Include="KnowledgeManager\HeuristicKnowledge.cs" />
     <Compile Include="KnowledgeManager\RepairerLocationKnowledge.cs" />
     <Compile Include="KnowledgeManager\TargetedKnowledge.cs" />
     <Compile Include="Parsers\AgentMasterDataParsers.cs" />
@@ -70,6 +71,8 @@
     <Compile Include="Parsers\AgentMasterToAgentConverters\ConverterReceivedJob.cs" />
     <Compile Include="Parsers\AgentMasterToAgentConverters\ConverterRoundChanged.cs" />
     <Compile Include="Parsers\AgentMasterToAgentConverters\ConverterFiredFromJob.cs" />
+    <Compile Include="Parsers\AgentMasterToAgentConverters\RepairerLocationKnowledgeConverter.cs" />
+    <Compile Include="Parsers\AgentMasterToAgentConverters\HeuristicKnowledgeConverter.cs" />
     <Compile Include="Parsers\AgentMasterToAgentConverters\EdgeKnowledgeConverter.cs" />
     <Compile Include="Parsers\AgentMasterToAgentConverters\NodeKnowledgeConverter.cs" />
     <Compile Include="Parsers\AgentMasterToAgentConverters\NoticeConverter.cs" />

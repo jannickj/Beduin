@@ -21,6 +21,8 @@ namespace NabfProject.Parsers
             this.AddConverter(new KnowledgeConverters.EdgeKnowledgeConverter());
             this.AddConverter(new KnowledgeConverters.NodeKnowledgeConverter());
             this.AddConverter(new KnowledgeConverters.RoleKnowledgeConverter());
+            this.AddConverter(new KnowledgeConverters.HeuristicKnowledgeConverter());
+            this.AddConverter(new KnowledgeConverters.RepairerLocationKnowledgeConverter());
             this.AddConverter(new NoticeConverters.NoticeConverter());
 		}
 
