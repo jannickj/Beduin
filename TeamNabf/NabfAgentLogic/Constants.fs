@@ -52,6 +52,8 @@
 
         let RECHARGE_FACTOR = 0.5
 
+        let EDGE_COST_MAX = 9
+
         let ACTION_COST_MAX = 9
         let ACTION_COST_CHEAP = 1
         let ACTION_COST_EXPENSIVE = 2
@@ -59,7 +61,7 @@
        
         let OUR_TEAM = "Nabf"
         let EXPLORE_FACTOR_LIGHT = 0.7
-        let MAX_PLANNING_TIME_MS = 500.0
+        let MAX_PLANNING_TIME_MS = 100L
 
         let NUMBER_OF_AGENTS = 28
 

@@ -8,6 +8,7 @@ module Planning =
     open FsPlanning.Agent.Planning
     open Logging
     open Constants
+    open System.Diagnostics
 
     type Plan = (ActionSpecification list) * (Objective list)
     let test = 1
@@ -21,16 +22,19 @@ module Planning =
     let distance (goals : Goal list) state cost =
         let heuristics = 
             List.choose id 
-                ( List.map (fun (_,heuOpt) ->
+                ( List.map (fun (_, heuOpt) ->
                             match heuOpt with
                             | Some heuFunc -> Some <| heuFunc state
                             | None ->  None
                            ) goals
                 )
-        match heuristics with 
-           | [] -> 0
-           | [single] -> single
-           | multi -> List.min multi 
+        let heuValue = 
+            match heuristics with 
+            | [] -> 0
+            | [single] -> single
+            | multi -> List.min multi 
+
+        heuValue + (heuValue / EDGE_COST_MAX) * turnCost state
       
     let realGoalCount goalFun state =
         List.length <| List.filter (fun (func,_) -> func state) (goalFun state)
@@ -60,10 +64,8 @@ module Planning =
         | Plan _ -> failwith "Trying to search on predefined plan"
 
     let agentProblem (state : State) goal = 
-        let breakTime = System.DateTime.Now + System.TimeSpan.FromMilliseconds Constants.MAX_PLANNING_TIME_MS
         { InitialState = state
-//        ; GoalTest     = wrappedGoalTest <| timedGoalTest breakTime (goalFunc goal)
-        ; GoalTest = wrappedGoalTest <| goalTest (goalFunc goal)
+        ; GoalTest     = wrappedGoalTest <| goalTest (goalFunc goal)
         ; Actions      = fun state -> List.filter (isApplicable state) (roleActions state)
         ; Result       = fun state action -> action.Effect state
         ; StepCost     = fun state action -> action.Cost state
@@ -94,20 +96,32 @@ module Planning =
             | Some p -> Some (List.map actionSpecification <| p, goals)
             | None -> None
         | goal :: _ -> 
-            let plan = solveSearchNodePath aStar <| agentProblem state goal
-//            let prunedPlan = prunePlan plan goal
-            match plan with 
-            | Some {Cost = _; Path = path} -> 
-                let actions = List.map (fun node -> node.Action.Value) path
-                logImportant (sprintf "Found plan: %A" <| List.map (fun action -> action.ActionType) actions)
-                Some (actions, goals)
-            | None -> None
-//            match prunedPlan with 
-//            | Some path when not <| List.forall (fun node -> realGoalCount (goalFunc goal) node.State = 0) path -> 
+            let stopwatch = System.Diagnostics.Stopwatch.StartNew()
+
+            let breakTest (stopwatch : Stopwatch) = 
+                logImportant <| sprintf "%A" stopwatch.ElapsedMilliseconds
+                if stopwatch.ElapsedMilliseconds > Constants.MAX_PLANNING_TIME_MS then
+                    logImportant "BREAK"
+                    true
+                else
+                    logImportant "no break"
+                    false
+
+
+            let plan = solveSearchNodePath aStar (agentProblem state goal) (fun () -> breakTest stopwatch)
+            let prunedPlan = prunePlan plan goal
+//            match plan with 
+//            | Some {Cost = _; Path = path} -> 
 //                let actions = List.map (fun node -> node.Action.Value) path
 //                logImportant (sprintf "Found plan: %A" <| List.map (fun action -> action.ActionType) actions)
 //                Some (actions, goals)
-//            | _ -> None
+//            | None -> None
+            match prunedPlan with 
+            | Some path when not <| List.forall (fun node -> realGoalCount (goalFunc goal) node.State = 0) path -> 
+                let actions = List.map (fun node -> node.Action.Value) path
+                logImportant (sprintf "Found plan: %A" <| List.map (fun action -> action.ActionType) actions)
+                Some (actions, goals)
+            | _ -> None
         | [] -> Some ([], goals)
 
        
