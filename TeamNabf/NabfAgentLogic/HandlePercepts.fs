@@ -305,11 +305,14 @@ module HandlePercepts =
           
 
         | EnemySeen { Role = role ; Name = name} -> 
-            //if (role.IsSome)
-                
-            //else
-        
-        false//Should be shared when we learn of the agents role, as well as every time it is spotted!! TODO!!!
+            match (List.filter (fun a -> a.Name = name) oldState.EnemyData) with
+            | head::tail ->                             
+                            if (role.IsSome && head.Role.IsNone) then
+                                true
+                            else
+                                false
+            | _ -> false
+        //false//Should be shared when we learn of the agents role, as well as every time it is spotted!! TODO!!!
 //            let agentIsKnown agentData = 
 //                match agentData with
 //                | { Name = agentDataName ; Role = Some _ } -> agentDataName = name
