@@ -202,7 +202,7 @@ module HandlePercepts =
                 | _ -> state
 
             | KnowledgeSent pl -> 
-                    let updatedNK = List.filter (fun p -> List.exists ((=) p) pl) state.NewKnowledge
+                    let updatedNK = List.filter (fun p -> not <| List.exists ((=) p) pl) state.NewKnowledge
                     { state with NewKnowledge = updatedNK }
 
             | HeuristicUpdate (n1,n2,dist) -> {state with HeuristicMap = Map.add (n1,n2) dist state.HeuristicMap}
@@ -296,7 +296,7 @@ module HandlePercepts =
                 let edge = Set.filter (fun (_, endNode) -> endNode = node2) oldState.World.[node1].Edges
                 if edge.Count = 1 then 
                                     match edge.MaximumElement with
-                                    | (value, _) -> value.IsNone
+                                    | (value, _) -> value.IsNone && edgeValue.IsSome
                 elif edge.Count = 0 then true
                 else
                     raise(System.Exception("Handle edge seen percept - found "+ string(edge.Count) + " of the given edge in the world."))
@@ -304,7 +304,12 @@ module HandlePercepts =
                 false //Check this, will we ever see an edge before one of its vertices?
           
 
-        | EnemySeen { Role = role ; Name = name} -> false//Should be shared when we learn of the agents role, as well as every time it is spotted!! TODO!!!
+        | EnemySeen { Role = role ; Name = name} -> 
+            //if (role.IsSome)
+                
+            //else
+        
+        false//Should be shared when we learn of the agents role, as well as every time it is spotted!! TODO!!!
 //            let agentIsKnown agentData = 
 //                match agentData with
 //                | { Name = agentDataName ; Role = Some _ } -> agentDataName = name
@@ -339,10 +344,13 @@ module HandlePercepts =
                 let heuristics = List.map (fun s -> allDistancesMap state.World s) nodeNamesToFindHeuristicFor
                 let newHeuristicMap = addListOfMapsToMap state.HeuristicMap heuristics
 
-                let difHeus = List.filter (fun (key,dist) -> match Map.tryFind key state.HeuristicMap with
-                                                             | Some (oldDist) -> dist < oldDist
-                                                             | _ -> false
-                                                             ) <| Map.toList newHeuristicMap
+                let difHeus = List.filter 
+                                            (
+                                                fun (key,dist) -> match Map.tryFind key state.HeuristicMap with
+                                                                    | Some (oldDist) -> dist < oldDist
+                                                                    | _ -> true
+                                            ) 
+                                                <| Map.toList newHeuristicMap
                 
                 { state with //UpdateMap = true
                         //HeuristicMap = allPairsDistances state.World

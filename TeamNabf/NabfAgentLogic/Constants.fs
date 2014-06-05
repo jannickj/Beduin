@@ -44,8 +44,8 @@
         /// Other constants
         ///////////////////////////////
         let UNKNOWN_EDGE_COST = 5
-        let ZONE_ORIGIN_VALUE = 8
-        let ZONE_BORDER_VALUE = 6
+        let ZONE_ORIGIN_VALUE = 10
+        let ZONE_BORDER_VALUE = 8
         let MINIMUM_VALUE_VALUE = 8
 
         let SIMULATED_EDGE_COST = 1

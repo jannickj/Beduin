@@ -17,6 +17,13 @@ namespace NabfProject.KnowledgeManagerModel
 
         //private Dictionary<Knowledge, bool> _knowledgeBase = new Dictionary<Knowledge, bool>();
 		private Dictionary<Knowledge,Knowledge> _knowledgeBase = new Dictionary<Knowledge,Knowledge>();
+        
+        private int _redudantEdgeKnowledgeCounter = 0;
+        private int _redudantNodeKnowledgeCounter = 0;
+        private int _redudantRoleKnowledgeCounter = 0;
+        private int _redudantMessageKnowledgeCounter = 0;
+        private int _redudantHeuristicKnowledgeCounter = 0;
+        private const bool verbose = true;
 
 		public Knowledge[] KnowledgeBase
 		{
@@ -55,12 +62,49 @@ namespace NabfProject.KnowledgeManagerModel
 				else
 				{
 					var oldKnowledge = _knowledgeBase[k];
-					if (oldKnowledge.CompareTo(k) > 0)
-					{
-						_knowledgeBase.Remove(k);
-						_knowledgeBase.Add(k, k);
+                    if (oldKnowledge.CompareTo(k) > 0)
+                    {
+                        _knowledgeBase.Remove(k);
+                        _knowledgeBase.Add(k, k);
                         updatedKnowledge = true;
-					}
+                    }
+                    else
+                    {
+                        if (verbose)
+                        {
+                            if (k is HeuristicKnowledge)
+                            {
+                                _redudantHeuristicKnowledgeCounter++;
+                                if (_redudantHeuristicKnowledgeCounter % 100 == 0)
+                                    Console.WriteLine("total numbers of redudant HEURISTIC knowledge is: " + _redudantHeuristicKnowledgeCounter);
+                            }
+                            if (k is MessageKnowledge)
+                            {
+                                _redudantMessageKnowledgeCounter++;
+                                if (_redudantMessageKnowledgeCounter % 100 == 0)
+                                    Console.WriteLine("total numbers of redudant MESSAGE knowledge is: " + _redudantMessageKnowledgeCounter);
+                            }
+                            if (k is EdgeKnowledge)
+                            {
+                                _redudantEdgeKnowledgeCounter++;
+                                if (_redudantEdgeKnowledgeCounter % 100 == 0)
+                                    Console.WriteLine("total numbers of redudant EDGE knowledge is: " + _redudantEdgeKnowledgeCounter);
+                            }
+                            if (k is NodeKnowledge)
+                            {
+                                _redudantNodeKnowledgeCounter++;
+                                if (_redudantNodeKnowledgeCounter % 100 == 0)
+                                    Console.WriteLine("total numbers of redudant NODE knowledge is: " + _redudantNodeKnowledgeCounter);
+                            }
+                            if (k is RoleKnowledge)
+                            {
+                                _redudantRoleKnowledgeCounter++;
+                                if (_redudantRoleKnowledgeCounter % 100 == 0)
+                                    Console.WriteLine("total numbers of redudant ROLE knowledge is: " + _redudantRoleKnowledgeCounter);
+                            }
+
+                        }
+                    }
 				}
 
                 if (updatedKnowledge)

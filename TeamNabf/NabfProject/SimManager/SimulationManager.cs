@@ -27,6 +27,13 @@ namespace NabfProject.SimManager
         private bool _jobsFoundForThisRound = false;
         private int _numberOfAgentsFinishedApplying = 0;
 
+        private const bool verbose = true;
+        private int _sentKnowledgeCounter = 0;
+        private int _sentJobCounter = 0;
+        private int _updatedJobCounter = 0;
+        private int _applicationsReceivedCounter = 0;
+        private int _noticesRemovedCounter = 0;
+
         public SimulationManager(SimulationFactory sf, int timeBeforeApplyCloses = _standardTimeBeforeApplyCloses)
         {
             TimeBeforeApplyCloses = timeBeforeApplyCloses;
@@ -122,6 +129,13 @@ namespace NabfProject.SimManager
             TryGetKnowledgeManager(id, out km);
 
             km.SendKnowledgeToManager(sentKnowledge, sender);
+
+            if (verbose)
+            {
+                _sentKnowledgeCounter++;
+                if (_sentKnowledgeCounter % 1000 == 0)
+                    Console.WriteLine("total numbers of sent knowledge is: " + _sentKnowledgeCounter);
+            }
         }
 
         public bool CreateAndAddNotice(int simID, NoticeBoard.JobType type, int agentsNeeded, List<NodeKnowledge> whichNodes, List<NodeKnowledge> zoneNodes, string agentToRepair, int value, out Notice notice)
@@ -130,6 +144,13 @@ namespace NabfProject.SimManager
             TryGetNoticeBoard(simID, out nb);
 
             bool ret = nb.CreateAndAddNotice(type, agentsNeeded, whichNodes, zoneNodes, agentToRepair, value, out notice);
+
+            if (verbose)
+            {
+                _sentJobCounter++;
+                if (_sentJobCounter % 10 == 0)
+                    Console.WriteLine("total numbers of created jobs is: " + _sentJobCounter);
+            }
 
             return ret;
         }
@@ -141,6 +162,13 @@ namespace NabfProject.SimManager
             NoticeBoard nb;
             TryGetNoticeBoard(simID, out nb);
 
+            if (verbose)
+            {
+                _noticesRemovedCounter++;
+                if (_noticesRemovedCounter % 10 == 0)
+                    Console.WriteLine("total numbers of jobs removed is: " + _noticesRemovedCounter);
+            }
+
             return nb.RemoveNotice(noticeId);
         }
 
@@ -150,6 +178,13 @@ namespace NabfProject.SimManager
                 return false;
             NoticeBoard nb;
             TryGetNoticeBoard(simID, out nb);
+
+            if (verbose)
+            {
+                _updatedJobCounter++;
+                if (_updatedJobCounter % 10 == 0)
+                    Console.WriteLine("total numbers of updated jobs is: " + _updatedJobCounter);
+            }
 
             return nb.UpdateNotice(noticeID, whichNodes, zoneNodes, agentsNeeded, value, agentToRepair);               
         }
@@ -187,6 +222,13 @@ namespace NabfProject.SimManager
 
             if (numberOfAgents <= _numberOfAgentsFinishedApplying)
                 FindJobs(simID);
+
+            if (verbose)
+            {
+                _applicationsReceivedCounter++;
+                if (_applicationsReceivedCounter % 280 == 0)
+                    Console.WriteLine("total numbers of job applications received is: " + _applicationsReceivedCounter);
+            }
         }
         public void UnApplyToNotice(int simID, Int64 noticeId, NabfAgent a)
         {
