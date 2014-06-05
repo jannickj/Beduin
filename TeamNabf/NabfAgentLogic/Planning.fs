@@ -20,21 +20,25 @@ module Planning =
                 false
 
     let distance (goals : Goal list) state cost =
-        let heuristics = 
-            List.choose id 
-                ( List.map (fun (_, heuOpt) ->
-                            match heuOpt with
-                            | Some heuFunc -> Some <| heuFunc state
-                            | None ->  None
-                           ) goals
-                )
+
+        let heuristics = List.map (fun heuFunc -> heuFunc state) <| List.choose snd goals
+//        let heuristics = 
+//            List.choose id 
+//                ( List.map (fun (_, heuOpt) ->
+//                            match heuOpt with
+//                            | Some heuFunc -> Some <| heuFunc state
+//                            | None ->  None
+//                           ) goals
+//                )
         let heuValue = 
             match heuristics with 
             | [] -> 0
             | [single] -> single
             | multi -> List.min multi 
 
-        heuValue + (heuValue / EDGE_COST_MAX) * turnCost state
+        let minimumTraversalCost = (heuValue / EDGE_COST_MAX) * turnCost state
+        let rechargesRequiredCost = (heuValue / state.Self.MaxEnergy.Value) * turnCost state
+        heuValue + minimumTraversalCost + rechargesRequiredCost
       
     let realGoalCount goalFun state =
         List.length <| List.filter (fun (func,_) -> func state) (goalFun state)
@@ -48,14 +52,6 @@ module Planning =
     
     let goalTest goalFun state = 
         List.forall (fun (func,_) -> func state) <| goalFun state
-            
-    let timedGoalTest breakTime (goalFun : State -> Goal list) state = 
-        let someGoalSatisfied = List.exists (fun (func,_) -> func state) <| goalFun state
-        if System.DateTime.Now >= breakTime then
-            logImportant "Timeout!!!!"
-            true
-        else
-            goalTest goalFun state
         
     let goalFunc goal = 
         match goal with
@@ -85,7 +81,7 @@ module Planning =
 
     let prunePlan plan goals = 
         match plan with
-        | Some {Cost = _; Path = path} ->Some <| prunePlanHelper (List.rev path) goals
+        | Some {Cost = _; Path = path} -> Some <| prunePlanHelper (List.rev path) goals
         | None -> None
 
     let makePlan initstate goals =
@@ -97,25 +93,10 @@ module Planning =
             | None -> None
         | goal :: _ -> 
             let stopwatch = System.Diagnostics.Stopwatch.StartNew()
-
-            let breakTest (stopwatch : Stopwatch) = 
-                logImportant <| sprintf "%A" stopwatch.ElapsedMilliseconds
-                if stopwatch.ElapsedMilliseconds > Constants.MAX_PLANNING_TIME_MS then
-                    logImportant "BREAK"
-                    true
-                else
-                    logImportant "no break"
-                    false
-
+            let breakTest (stopwatch : Stopwatch) = stopwatch.ElapsedMilliseconds > Constants.MAX_PLANNING_TIME_MS
 
             let plan = solveSearchNodePath aStar (agentProblem state goal) (fun () -> breakTest stopwatch)
             let prunedPlan = prunePlan plan goal
-//            match plan with 
-//            | Some {Cost = _; Path = path} -> 
-//                let actions = List.map (fun node -> node.Action.Value) path
-//                logImportant (sprintf "Found plan: %A" <| List.map (fun action -> action.ActionType) actions)
-//                Some (actions, goals)
-//            | None -> None
             match prunedPlan with 
             | Some path when not <| List.forall (fun node -> realGoalCount (goalFunc goal) node.State = 0) path -> 
                 let actions = List.map (fun node -> node.Action.Value) path
