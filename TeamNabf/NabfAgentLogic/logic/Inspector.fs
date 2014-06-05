@@ -42,7 +42,7 @@ module Inspector =
             Some(
                     "inspect agent " + head.Name
                     , Activity
-                    , [Requirement(((fun state -> agentHasFulfilledRequirementEnemies head.Name state (fun ag -> ag.Role.IsSome)),None) )]
+                    , [Requirement(((fun state -> agentHasFulfilledRequirementEnemies head.Name state (fun ag -> ag.Role.IsSome)),None, [Inspect <| Some head.Name]) )]
                 )
 
     let applyToOccupyJob (inputState:State) = 

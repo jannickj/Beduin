@@ -8,9 +8,6 @@ module AgentTypes =
     type TeamName = string
     type AgentName = string
 
-   
-    
-
     type ActionResult =
         | Successful
         | Failed
@@ -74,8 +71,6 @@ module AgentTypes =
         | Parry
         | Repair    of AgentName
 
-    
-
     type JobID = int
     type JobValue = int
     type Desirability = int
@@ -108,7 +103,6 @@ module AgentTypes =
         ; SimEdges       :   int
         ; SimVertices    :   int
         ; SimRole        :   AgentRole
-//        ; SimTotalSteps  :   int
         }
     
     type JobPercept =
@@ -132,7 +126,6 @@ module AgentTypes =
         | NewRoundPercept
         | AgentRolePercept  of AgentRolePercept
         | KnowledgeSent     of Percept list
-        
         | JobPercept        of JobPercept
 
     type SimulationID = int
@@ -159,8 +152,6 @@ module AgentTypes =
     type Score = int
     type ActionID = int
     type ActionRequestData = Deadline * CurrentTime * ActionID
-    
-    
 
     type AgentServerMessage =
         | JobMessage of JobPercept
@@ -176,7 +167,6 @@ module AgentTypes =
     type ServerMessage = 
         | AgentServerMessage of AgentServerMessage
         | MarsServerMessage of MarsServerMessage
-   
 
     type SubSetState =
         {
@@ -186,10 +176,6 @@ module AgentTypes =
             PlannerRepairedAgents  : AgentName Set
             PlannerInspectedEnemies : AgentName Set
             PlannerDisabledEnemies  : AgentName Set
-
-//            World           : Graph
-//            Friends         : Agent list
-//            Enemies         : Agent list
         }
 
     [<CustomEquality>]
@@ -225,8 +211,6 @@ module AgentTypes =
             PlannerRepairedAgents   : AgentName Set
             PlannerInspectedEnemies : AgentName Set
             PlannerDisabledEnemies  : AgentName Set
-
-
         }           
         member self.GetSubSet =
             { 
@@ -239,9 +223,6 @@ module AgentTypes =
                 PlannerRepairedAgents = self.PlannerRepairedAgents
                 PlannerInspectedEnemies = self.PlannerInspectedEnemies
                 PlannerDisabledEnemies = self.PlannerDisabledEnemies
-//                World = self.World; 
-//                Friends = self.FriendlyData;
-//                Enemies = self.EnemyData
             }
             
         override self.GetHashCode() = self.GetSubSet.GetHashCode()
@@ -264,14 +245,19 @@ module AgentTypes =
         | Activity
         | Inherent
 
+    type GoalType =
+        | GotoGoal    of VertexName option
+        | ProbeGoal   of VertexName option
+        | AttackGoal  of AgentName option
+        | RepairGoal  of AgentName option
+        | InspectGoal of AgentName option
+        | CheckGoal
 
-    type Goal = (State -> bool) * Option<(State -> int)>
+    type Goal = (State -> bool) * (State -> int) option * Action list
 
     type Objective = 
         | Plan of (State -> (AgentAction list) option)
         | Requirement of Goal
         | MultiGoal of (State -> Goal list)
 
-
     type Intention = string*IntentionType*(Objective list)
-    //type Solution = int * (AgentAction list)

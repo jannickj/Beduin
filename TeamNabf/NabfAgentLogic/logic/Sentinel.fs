@@ -22,7 +22,7 @@ module Sentinel =
                 (   "occupy node " + node + "and then parry"
                 ,   Activity
                 ,   [
-                        Requirement <| ((fun state -> (state.Self.Node = node)), Some (fun state -> (distanceBetweenNodes state.Self.Node node state)))
+                        Requirement <| ((fun state -> (state.Self.Node = node)), Some (fun state -> (distanceBetweenNodes state.Self.Node node state)), [Goto ""])
                     ;   Requirement(
                                     (fun state ->  
                                                     if (checkIfEnemyOnNode state state.Self.Node) then
@@ -33,7 +33,7 @@ module Sentinel =
                                                                 match state.LastAction with
                                                                 | (Recharge _) -> true
                                                                 | _ -> false
-                                    ), None
+                                    ), None, [Parry]
                                    )
                     ]
                 )

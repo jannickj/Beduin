@@ -13,6 +13,7 @@ module Planning =
     type Plan = (ActionSpecification list) * (Objective list)
     let test = 1
     let flip f x y = f y x
+    let snd3 (_, a, _) = a 
 
     let wrappedGoalTest goalTest state = 
         try goalTest state with
@@ -21,15 +22,7 @@ module Planning =
 
     let distance (goals : Goal list) state cost =
 
-        let heuristics = List.map (fun heuFunc -> heuFunc state) <| List.choose snd goals
-//        let heuristics = 
-//            List.choose id 
-//                ( List.map (fun (_, heuOpt) ->
-//                            match heuOpt with
-//                            | Some heuFunc -> Some <| heuFunc state
-//                            | None ->  None
-//                           ) goals
-//                )
+        let heuristics = List.map (fun heuFunc -> heuFunc state) <| List.choose snd3 goals
         let heuValue = 
             match heuristics with 
             | [] -> 0
@@ -41,17 +34,17 @@ module Planning =
         heuValue + minimumTraversalCost + rechargesRequiredCost
       
     let realGoalCount goalFun state =
-        List.length <| List.filter (fun (func,_) -> func state) (goalFun state)
+        List.length <| List.filter (fun (func, _, _) -> func state) (goalFun state)
 
     let goalCount (goalFun : State -> Goal list) state =
-        List.length <| List.filter (fun (func,_) -> not <| func state) (goalFun state)
+        List.length <| List.filter (fun (func, _, _) -> not <| func state) (goalFun state)
 
     let h goalFun state cost = 
         let goals = goalFun state
         (goalCount goalFun state, cost + distance goals state cost)
     
     let goalTest goalFun state = 
-        List.forall (fun (func,_) -> func state) <| goalFun state
+        List.forall (fun (func, _, _) -> func state) <| goalFun state
         
     let goalFunc goal = 
         match goal with
@@ -116,33 +109,33 @@ module Planning =
         | _ -> ()
         makePlan state goals
 
-    let rec repairPlanHelper state plan = 
-
-        let restPlan state action actionList =
-            let restOfPlan = repairPlanHelper state actionList
-            match restOfPlan with
-            | Some plan -> Some <| action :: plan
-            | None -> None
-
-        match plan with
-        | action :: tail when isApplicable state action ->
-            restPlan (action.Effect state) action tail
-        | action :: tail ->
-            logImportant <| sprintf "Inconsistency found! state does not satisfy %A" action.ActionType
-            logInfo <| sprintf "the following errors were found: %A" (unSatisfiedPreconditions state action)
-            let gluePlan = makePlan state ([Requirement <| ((flip isApplicable action), None)])
-
-            match gluePlan with
-            // If we find a non-empty glue plan [a; b; c], prepend it to the plan and continue recursing
-            | Some (newAction :: newTail, _) -> 
-                logInfo <| sprintf "Found glue plan %A" (List.map (fun action -> action.ActionType) (newAction :: newTail))
-                restPlan (newAction.Effect state) newAction (newTail @ action :: tail)
-      
-            | Some (_, _) -> restPlan (action.Effect state) action tail
-            | None -> 
-                logImportant <| sprintf "Failed to find glue plan" 
-                None
-        | _ -> Some plan
+//    let rec repairPlanHelper state plan = 
+//
+//        let restPlan state action actionList =
+//            let restOfPlan = repairPlanHelper state actionList
+//            match restOfPlan with
+//            | Some plan -> Some <| action :: plan
+//            | None -> None
+//
+//        match plan with
+//        | action :: tail when isApplicable state action ->
+//            restPlan (action.Effect state) action tail
+//        | action :: tail ->
+//            logImportant <| sprintf "Inconsistency found! state does not satisfy %A" action.ActionType
+//            logInfo <| sprintf "the following errors were found: %A" (unSatisfiedPreconditions state action)
+//            let gluePlan = makePlan state ([Requirement <| ((flip isApplicable action), None)])
+//
+//            match gluePlan with
+//            // If we find a non-empty glue plan [a; b; c], prepend it to the plan and continue recursing
+//            | Some (newAction :: newTail, _) -> 
+//                logInfo <| sprintf "Found glue plan %A" (List.map (fun action -> action.ActionType) (newAction :: newTail))
+//                restPlan (newAction.Effect state) newAction (newTail @ action :: tail)
+//      
+//            | Some (_, _) -> restPlan (action.Effect state) action tail
+//            | None -> 
+//                logImportant <| sprintf "Failed to find glue plan" 
+//                None
+//        | _ -> Some plan
 
     let repairPlan state intent (plan : Plan) = 
         
@@ -154,7 +147,7 @@ module Planning =
                 | None -> None
             | action :: tail ->
                 logImportant <| sprintf "Inconsistency found! state does not satisfy %A" action.ActionType
-                let gluePlan = makePlan state ([Requirement <| ((flip isApplicable action), None)])
+                let gluePlan = makePlan state ([Requirement <| ((flip isApplicable action), None, [])])
                 match gluePlan with
                 | Some (plan, _) ->
                     logInfo <| sprintf "Found glue plan %A" (List.map (fun action -> action.ActionType) plan)
@@ -178,7 +171,7 @@ module Planning =
 
     let solutionFinished state intent solution = 
         match solution with
-        | (_, [Requirement (req,_)]) ->  wrappedGoalTest req state
+        | (_, [Requirement (req, _, _)]) ->  wrappedGoalTest req state
         | (_, [MultiGoal goalFun]) -> wrappedGoalTest (goalTest goalFun) state
         | (_, []) -> true
         | _ -> false
@@ -186,11 +179,11 @@ module Planning =
     let rec nextAction state (intent : Intention) (plan : Plan) =
         match plan with
         | (action :: rest, goals) -> Some (action.ActionType, (rest, goals))
-        | ([], (Requirement (req,_)) :: t) when req state -> 
+        | ([], (Requirement (req, _, _)) :: t) when req state -> 
             match makePlan state t with
             | Some newPlan -> nextAction state intent newPlan
             | None -> None
-        | ([], (Requirement (req,_)) :: t) when not <| req state ->
+        | ([], (Requirement (req, _, _)) :: t) when not <| req state ->
             let (_,goals) = plan
             match makePlan state goals with
             | Some newPlan -> nextAction state intent newPlan

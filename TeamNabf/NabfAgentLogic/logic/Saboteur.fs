@@ -48,7 +48,7 @@ module Saboteur =
                     "attack agent " + head.Name
                     , Activity
                     , [Requirement(
-                                        ((fun state -> agentHasFulfilledRequirementEnemies head.Name state (fun ag -> ag.Status = EntityStatus.Disabled)), None) 
+                                        ((fun state -> agentHasFulfilledRequirementEnemies head.Name state (fun ag -> ag.Status = EntityStatus.Disabled)), None, [Repair head.Name]) 
                                     )]
                 )
     
@@ -62,12 +62,12 @@ module Saboteur =
                 (   "attack agent on node " + node
                 ,   Activity
                 ,   [
-                        Requirement <| ((fun state -> state.Self.Node = node), Some (fun state -> (distanceBetweenNodes state.Self.Node node state)))
+                        Requirement <| ((fun state -> state.Self.Node = node), Some (fun state -> (distanceBetweenNodes state.Self.Node node state)), [Goto ""])
                     ;   Requirement <| ((fun state ->  
                                             match state.LastAction with
                                             | (Attack _) -> true
                                             | _ -> false
-                                    ), None)
+                                    ), None, [Attack ""])
                     ]
                 )
         | [] -> None
@@ -81,7 +81,7 @@ module Saboteur =
                     "attack agent " + head.Name
                     , Activity
                     , [Requirement(
-                                    ((fun state -> agentHasFulfilledRequirementEnemies head.Name state (fun ag -> ag.Status = EntityStatus.Disabled)), None)
+                                    ((fun state -> agentHasFulfilledRequirementEnemies head.Name state (fun ag -> ag.Status = EntityStatus.Disabled)), None, [Attack head.Name])
                     
                     )]
                 )
