@@ -38,7 +38,7 @@ module Repairer =
             Some(
                     "repair agent " + head.Name
                     , Activity
-                    , [Requirement(((fun state -> agentHasFulfilledRequirementFriendlies head.Name state (fun ag -> ag.Health = ag.MaxHealth)),None))]
+                    , [Requirement ((fun state -> agentHasFulfilledRequirementFriendlies head.Name state (fun ag -> ag.Health = ag.MaxHealth)), None, RepairGoal <| Some head.Name)]
                 )
 
     let applyToRepairJob (inputState:State) = 
@@ -67,7 +67,7 @@ module Repairer =
                                         match state.LastAction with
                                         | (Repair _) -> true
                                         | _ -> false
-                                        ), None)
+                                        ), None, RepairGoal <| Some agent)
                 )]
                 )
         | [] -> None

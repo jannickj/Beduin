@@ -70,12 +70,12 @@ module Common =
     let exploreMap (inputState:State) = 
         let agentsOnMyNode = List.filter (fun a -> a.Node = inputState.Self.Node && not(a.Name = inputState.Self.Name)) inputState.FriendlyData
         if (agentsOnMyNode.IsEmpty) then
-            findAndDo inputState.Self.Node nodeIsUnexplored "mark as explored" false inputState
+            findAndDo inputState.Self.Node nodeIsUnexplored CheckGoal "mark as explored" false inputState
         else
             if (myRankIsGreatest inputState.Self.Name agentsOnMyNode) then
-                findAndDo inputState.Self.Node nodeIsUnexplored "mark as explored" true inputState
+                findAndDo inputState.Self.Node nodeIsUnexplored CheckGoal "mark as explored" true inputState
             else
-                findAndDo inputState.Self.Node nodeIsUnexplored "mark as explored" false inputState
+                findAndDo inputState.Self.Node nodeIsUnexplored CheckGoal "mark as explored" false inputState
 //        if inputState.ExploredCount < inputState.TotalNodeCount
 //        then
 //            let count = inputState.MyExploredCount
@@ -104,7 +104,7 @@ module Common =
                 let here = inputState.Self.Node
                 Some("get repaired.",Activity,[Plan(fun state -> Some [
                                                                  Communicate( CreateJob( (None,5,JobType.RepairJob,1),RepairJob(state.Self.Node,state.Self.Name) ) )
-                                                                 ]);Requirement(((fun state -> state.LastAction = Recharge),None))])
+                                                                 ]);Requirement( ((fun state -> state.LastAction = Recharge), None, CheckGoal ) ) ] )
         else
             None
             
