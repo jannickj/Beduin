@@ -48,7 +48,7 @@ namespace NabfProject.KnowledgeManagerModel
             if (other == null)
                 throw new ArgumentException("Input of method CompareTo in " + this.GetType().Name + " is null");
             else if (other is MessageKnowledge)
-                return -1;
+                return 1;
             else
                 throw new ArgumentException("Object : " + other.GetType().Name + " of CompareTo is not of type MessageKnowledge");
         }

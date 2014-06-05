@@ -50,7 +50,14 @@ namespace NabfProject.KnowledgeManagerModel
             if (other == null)
                 throw new ArgumentException("Input of method CompareTo in " + this.GetType().Name + " is null");
             else if (other is HeuristicKnowledge)
-                return -1;
+            {
+                if (this.Distance < ((HeuristicKnowledge)other).Distance) //less is higher in the sort order of heuristic knowledge
+                    return -1;
+                else if (this.Distance == ((HeuristicKnowledge)other).Distance)
+                    return 0;
+                else
+                    return 1;
+            }
             else
                 throw new ArgumentException("Object : " + other.GetType().Name + " of CompareTo in " + other.GetType().Name + " is not of type HeuristicKnowledge");
         }
