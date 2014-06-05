@@ -271,15 +271,35 @@ module ActionSpecifications =
     let gotoActions (state : State) = 
         List.map moveAction <| getNeighbourIds state.Self.Node state.World
     
-    let attackActions (state : State) = 
-        List.map attackAction <| agentsAt state.Self.Node state.EnemyData
+    let attackActions agent (state : State) = 
+        let agentsHere = agentsAt state.Self.Node state.EnemyData
+        match agent with
+        | Some agent -> 
+            if List.exists ((=) agent) agentsHere then
+                [attackAction agent]
+            else 
+                []
+        | None -> 
+            List.map attackAction <| agentsHere
+
 
     let rechargeActions state = [rechargeAction]
 
-    let repairActions (state : State) = 
-        List.map repairAction <| agentsAt state.Self.Node state.FriendlyData
+    let repairActions agent (state : State) = 
+        let agentsHere = agentsAt state.Self.Node state.FriendlyData
+        match agent with
+        | Some agent -> 
+            if List.exists ((=) agent) agentsHere then
+                [attackAction agent]
+            else 
+                []
+        | None -> 
+            List.map repairAction <| agentsHere
 
-    let probeActions state = [probeAction None]
+    let probeActions vertex state = 
+        match vertex with
+        | Some vertex when state.Self.Node <> vertex -> []
+        | _ -> [probeAction None]
 
     let inspectActions state = [inspectAction None]
 
@@ -287,14 +307,27 @@ module ActionSpecifications =
 
     let commonActions state = gotoActions state @ rechargeActions state
 
-    let roleActions state =
-        match state.Self.Role with
-        | Some Explorer  -> probeActions state   @ commonActions state 
-        | Some Inspector -> inspectActions state @ commonActions state 
-        | Some Repairer  -> repairActions state  @ commonActions state 
-        | Some Saboteur  -> attackActions state  @ commonActions state 
-        | Some Sentinel  -> parryActions state   @ commonActions state 
-        | None -> failwith "agent role is unknown"
+//    let roleActions state =
+//        match state.Self.Role with
+//        | Some Explorer  -> probeActions state   @ commonActions state 
+//        | Some Inspector -> inspectActions state @ commonActions state 
+//        | Some Repairer  -> repairActions state  @ commonActions state 
+//        | Some Saboteur  -> attackActions state  @ commonActions state 
+//        | Some Sentinel  -> parryActions state   @ commonActions state 
+//        | None -> failwith "agent role is unknown"
+
+    let availableActions goal state =
+        let (_, _, goalType) = goal
+        let actions = 
+            match goalType with
+            | GotoGoal -> gotoActions state @ rechargeActions state
+            | AttackGoal agent -> attackActions agent state
+            | InspectGoal -> inspectActions state
+            | ProbeGoal vertex -> probeActions vertex state
+            | RepairGoal agent -> repairActions agent state
+            | ParryGoal -> parryActions state
+            | CheckGoal -> []
+        rechargeAction :: actions
 
     let actionSpecification (action : AgentAction) =
         match action with

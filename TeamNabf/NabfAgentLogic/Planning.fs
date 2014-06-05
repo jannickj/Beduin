@@ -53,9 +53,12 @@ module Planning =
         | Plan _ -> failwith "Trying to search on predefined plan"
 
     let agentProblem (state : State) goal = 
+
+        let headGoal = List.head <| (goalFunc goal) state 
+
         { InitialState = state
         ; GoalTest     = wrappedGoalTest <| goalTest (goalFunc goal)
-        ; Actions      = fun state -> List.filter (isApplicable state) (roleActions state)
+        ; Actions      = fun state -> List.filter (isApplicable state) (availableActions headGoal state)
         ; Result       = fun state action -> action.Effect state
         ; StepCost     = fun state action -> action.Cost state
         ; Heuristic    = h (goalFunc goal)
@@ -147,7 +150,7 @@ module Planning =
                 | None -> None
             | action :: tail ->
                 logImportant <| sprintf "Inconsistency found! state does not satisfy %A" action.ActionType
-                let gluePlan = makePlan state ([Requirement <| ((flip isApplicable action), None, [])])
+                let gluePlan = makePlan state ([Requirement <| ((flip isApplicable action), None, CheckGoal)])
                 match gluePlan with
                 | Some (plan, _) ->
                     logInfo <| sprintf "Found glue plan %A" (List.map (fun action -> action.ActionType) plan)
