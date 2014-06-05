@@ -110,7 +110,7 @@ namespace NabfServerApplication
                 //agent.Register(new Trigger<ActionStartingEvent<SubscribeSimulationAction>>(evt => ReceivedMessage(evt.Action)));
                 agent.Register(new Trigger<ActionStartingEvent<AgentCrashed>>(evt =>
                     {
-                        var message = "Agent "+evt.Action.Source.Name+" disconnected: \n  "+evt.Action.Exception.Message;
+                        var message = "Agent "+evt.Action.Source.Name+" disconnected: \n  "+evt.Action.Exception.Message + " \n Stack trace:\n"+evt.Action.Exception.StackTrace;
                         //Console.SetCursorPosition(15, consolepos[agent] * 2 + agentoffset);
                         Console.WriteLine(message);
 

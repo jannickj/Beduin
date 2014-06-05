@@ -389,7 +389,7 @@ module HandlePercepts =
                                 |> updateExploredCount state
                                 |> updateTraversedEdgeCost state
                                 |> selectSharedPercepts percepts state
-                                |> updateHeuristicsMapSingle percepts state
+                                |> updateHeuristicsMap percepts state
 
         let fixState = { state with UpdateMap = false }
 
