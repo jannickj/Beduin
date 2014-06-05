@@ -151,7 +151,7 @@ module LogicLib =
         | None -> None
 
 
-    let findAndDo startNode condition actionString findNextBest (inputState:State) =
+    let findAndDo startNode condition actionList actionString findNextBest (inputState:State) =
         let targetOpt = 
             match findNextBest with
             | true -> findTargetNode startNode condition inputState
@@ -164,11 +164,10 @@ module LogicLib =
                     (   "go to node " + target + " and " + actionString
                     ,   Activity
                     ,   [ Plan <| planRouteTo target
-                        ; Requirement(
-                                        (fun state -> not <| condition state target
-                                                            
-                                        ), None
-                                        )
+                        ; Requirement ( fun state -> not <| condition state target             
+                                      , None
+                                      , actionList
+                                      )
                         ]
                     )
 
