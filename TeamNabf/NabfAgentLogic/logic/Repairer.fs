@@ -38,7 +38,8 @@ module Repairer =
             Some(
                     "repair agent " + head.Name
                     , Activity
-                    , [Requirement ((fun state -> agentHasFulfilledRequirementFriendlies head.Name state (fun ag -> ag.Health = ag.MaxHealth)), None, RepairGoal <| Some head.Name)]
+                    , [Requirement (Repaired head.Name)]
+//                    , [Requirement ((fun state -> agentHasFulfilledRequirementFriendlies head.Name state (fun ag -> ag.Health = ag.MaxHealth)), None, RepairGoal <| Some head.Name)]
                 )
 
     let applyToRepairJob (inputState:State) = 
@@ -57,17 +58,8 @@ module Repairer =
             let (jobid,node) = List.find (fun (jid,_) -> id.Value = jid) inputState.MyJobs
             let (_,RepairJob(_,agent)) = (getJobFromJobID inputState jobid) : Job
             Some
-                (   "repair agent " + agent + " on node " + node
-                ,   Activity
-                ,   [
-                        //Requirement(((fun state -> state.Self.Node = node)), Some (fun state -> (distanceBetweenNodes state.Self.Node node state)))
-                        Plan <| planRouteTo node
-                        ; Requirement(
-                                    ((fun state ->  
-                                        match state.LastAction with
-                                        | (Repair _) -> true
-                                        | _ -> false
-                                        ), None, RepairGoal <| Some agent)
-                )]
+                ( "repair agent " + agent + " on node " + node
+                , Activity
+                , [Requirement (Repaired agent)]
                 )
         | [] -> None

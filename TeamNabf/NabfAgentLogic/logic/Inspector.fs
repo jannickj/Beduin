@@ -5,6 +5,7 @@ module Inspector =
     open AgentTypes
     open LogicLib
     open Constants
+    open Graphing.Graph
 
     let distanceToOccupyJobMod = 0.1
 
@@ -25,7 +26,7 @@ module Inspector =
         let (distanceToJob,personalValueMod) = (getDistanceToJobAndNumberOfEnemyNodes jobTargetNode s)
         
         //final desire
-        int <| (((float newValue) * personalValueMod) - (float oldJobValue))    +     (-(distanceToJob * DISTANCE_TO_OCCUPY_JOB_MOD))    +    INSPECTOR_OCCUPYJOB_MOD
+        int <| (((float newValue) * personalValueMod) - (float oldJobValue)) + (-(distanceToJob * DISTANCE_TO_OCCUPY_JOB_MOD)) + INSPECTOR_OCCUPYJOB_MOD
    
 
     let nodeHasUninspectedAgent (state:State) node =
@@ -42,7 +43,7 @@ module Inspector =
             Some(
                     "inspect agent " + head.Name
                     , Activity
-                    , [Requirement(((fun state -> agentHasFulfilledRequirementEnemies head.Name state (fun ag -> ag.Role.IsSome)),None, InspectGoal) )]
+                    , [Requirement (Inspected head.Name)]
                 )
 
     let applyToOccupyJob (inputState:State) = 
@@ -58,16 +59,12 @@ module Inspector =
     let workOnDisruptJob (inputState:State) = None //advanced feature
     
     let findAgentToInspect (inputState:State) = 
-        //findAndDo inputState.Self.Node nodeHasUninspectedAgent "inspect an agent" false inputState
-        let worldArray = Map.toArray inputState.World
+        let neighbours = List.filter ((<>) inputState.LastPosition) <| getNeighbourIds inputState.Self.Node inputState.World
         let rand = System.Random()
-        let index = rand.Next(0,inputState.World.Count)
-        let target = worldArray.[index]
+        let index = rand.Next(0, List.length neighbours)
+        let target = List.nth neighbours index
         Some
-            (   "go to node " + (fst <| target)
+            (   "go to node " +  target
             ,   Activity
-            ,   [
-                    //Requirement <| ((fun state -> (state.Self.Node = (fst <| target))), None )//Some (distanceBetweenAgentAndNode (fst <| target))
-                    Plan <| planRouteTo (fst target)
-                ]
+            ,   [Requirement (At target)]
             )

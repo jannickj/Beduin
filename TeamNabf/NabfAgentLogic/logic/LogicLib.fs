@@ -84,15 +84,8 @@ module LogicLib =
     let getDistanceToJobAndNumberOfEnemyNodes (targetNode:VertexName) (s:State) =
         let number_of_enemy_nodes = 0.0
         let distance_to_job = 1.0
-        
 
         (distance_to_job   ,   1.0  -  (number_of_enemy_nodes  *  DESIRE_COST_OF_MOVING_THROUGH_ONE_ENEMY_NODE)) 
-
-    
-
-
-    //let isPartOfOccupyJob n (s:State) = List.exists (fun (j:Job) -> j ) s.Jobs
-
 
     let distanceBetweenNodes node1 node2 (state:State) : int = 
                 if state.HeuristicMap.ContainsKey(node1, node2) then 
@@ -122,54 +115,67 @@ module LogicLib =
                     Some ( snd <| List.min filteredNodes )
 
         
-    let planRouteTo target (state:State) =
-        let startNode = state.Self.Node
+    let findNextBestUnexplored state =
+        let isVertexUnExplored vertex = 
+            List.forall (fun (cost, _) -> Option.isSome cost) (Set.toList state.World.[vertex].Edges)
+
         let definiteCost cost = 
             match cost with 
             | Some c -> c
             | None -> Constants.UNKNOWN_EDGE_COST
 
-        let planPath startVertex goalVertex (world : Graph) = 
-            let pathProblem = 
-                { InitialState = startVertex
-                ; GoalTest = (=) goalVertex
-                ; Actions = fun vertex -> Set.toList world.[vertex].Edges
-                ; Result = fun _ (_, vertex) -> vertex
-                ; StepCost = fun _ (cost, _) -> definiteCost cost
-                ; Heuristic = fun _ cost -> cost
-                }
+        let goalTest statePair = 
+            match statePair with
+            | (Some oldVertex, newVertex) when oldVertex <> newVertex -> 
+                isVertexUnExplored newVertex
+            | _ -> false
 
-            Astar.solve Astar.aStar pathProblem (fun () -> false)
+        let result (oldVertex, _) (_, resultVertex) =
+            match oldVertex with
+            | Some vertex -> (Some vertex, resultVertex)
+            | None ->
+                if isVertexUnExplored resultVertex then
+                    (Some resultVertex, resultVertex)
+                else
+                    (None, resultVertex)
 
-        let solution = planPath startNode target state.World
-
-        match solution with
-        | Some sol -> 
-            let path = sol.Path
-            //let path = List.map (fun node -> node.Action.Value) sol.Path
-            Some <| List.map (fun (_, vertex) -> Perform (Goto vertex)) path
-        | None -> None
-
-
-    let findAndDo startNode condition actionList actionString findNextBest (inputState:State) =
-        let targetOpt = 
-            match findNextBest with
-            | true -> findTargetNode startNode condition inputState
-            | false -> findNextBestNode startNode condition inputState
+        let pathProblem = 
+            { InitialState = (None, state.World.[state.Self.Node].Identifier)
+            ; GoalTest = goalTest
+            ; Actions = fun (_, vertex) -> Set.toList state.World.[vertex].Edges
+            ; Result = result
+            ; StepCost = fun _ (cost, _) -> definiteCost cost
+            ; Heuristic = fun _ cost -> cost
+            }
         
-        match targetOpt with
+        let solution = Astar.solve Astar.aStar pathProblem (fun () -> false)
+        match solution with
+        | Some solution -> 
+            Some <| snd (List.head <| List.rev solution.Path)
         | None -> None
-        | Some target ->
-               Some
-                    (   "go to node " + target + " and " + actionString
-                    ,   Activity
-                    ,   [ Plan <| planRouteTo target
-                        ; Requirement ( fun state -> not <| condition state target             
-                                      , None
-                                      , actionList
-                                      )
-                        ]
-                    )
+
+//    let planRouteTo target (state:State) = 
+//        findNode (fun vertexName -> vertexName = target) state
+        
+//    let findAndDo startNode condition actionList actionString findNextBest (inputState:State) =
+//        let targetOpt = 
+//            match findNextBest with
+//            | true -> findTargetNode startNode condition inputState
+//            | false -> findNextBestNode startNode condition inputState
+//        
+//        match targetOpt with
+//        | None -> None
+//        | Some target ->
+//               Some
+//                    (   "go to node " + target + " and " + actionString
+//                    ,   Activity
+//                    ,   [ Plan <| planRouteTo target
+//                        ; Requirement ( fun state -> not <| condition state target             
+//                                      , None
+//                                      , actionList
+//                                      )
+//                        ]
+//                    )
 
 
     let myRankIsGreatest myName (other:Agent List) =

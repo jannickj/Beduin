@@ -273,35 +273,40 @@ module ActionSpecifications =
     
     let attackActions agent (state : State) = 
         let agentsHere = agentsAt state.Self.Node state.EnemyData
-        match agent with
-        | Some agent -> 
-            if List.exists ((=) agent) agentsHere then
-                [attackAction agent]
-            else 
-                []
-        | None -> 
-            List.map attackAction <| agentsHere
+        if List.exists ((=) agent) agentsHere then
+            [attackAction agent]
+        else 
+            []
+//        match agent with
+//        | Some agent -> 
+//            if List.exists ((=) agent) agentsHere then
+//                [attackAction agent]
+//            else 
+//                []
+//        | None -> 
+//            List.map attackAction <| agentsHere
 
 
     let rechargeActions state = [rechargeAction]
 
     let repairActions agent (state : State) = 
         let agentsHere = agentsAt state.Self.Node state.FriendlyData
-        match agent with
-        | Some agent -> 
-            if List.exists ((=) agent) agentsHere then
-                [attackAction agent]
-            else 
-                []
-        | None -> 
-            List.map repairAction <| agentsHere
+        if List.exists ((=) agent) agentsHere then
+            [attackAction agent]
+        else 
+            []
 
     let probeActions vertex state = 
         match vertex with
         | Some vertex when state.Self.Node <> vertex -> []
         | _ -> [probeAction None]
 
-    let inspectActions state = [inspectAction None]
+    let inspectActions agent state = 
+        let agentsHere = agentsAt state.Self.Node state.FriendlyData
+        if List.exists ((=) agent) agentsHere then
+            [inspectAction None]
+        else 
+            []
 
     let parryActions state = [parryAction]
 
@@ -317,16 +322,22 @@ module ActionSpecifications =
 //        | None -> failwith "agent role is unknown"
 
     let availableActions goal state =
-        let (_, _, goalType) = goal
         let actions = 
-            match goalType with
-            | GotoGoal -> gotoActions state @ rechargeActions state
-            | AttackGoal agent -> attackActions agent state
-            | InspectGoal -> inspectActions state
-            | ProbeGoal vertex -> probeActions vertex state
-            | RepairGoal agent -> repairActions agent state
-            | ParryGoal -> parryActions state
-            | CheckGoal -> []
+            match goal with
+            | At _ | Explored _ -> 
+                gotoActions state
+            | Attacked agent -> 
+                gotoActions state @ attackActions agent state
+            | Inspected agent -> 
+                gotoActions state @ inspectActions agent state
+            | Probed vertex -> 
+                gotoActions state @ probeActions vertex state
+            | Repaired agent -> 
+                gotoActions state @ repairActions agent state
+            | Parried -> 
+                parryActions state
+            | Recharged -> 
+                rechargeActions state
         rechargeAction :: actions
 
     let actionSpecification (action : AgentAction) =
