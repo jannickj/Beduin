@@ -138,10 +138,8 @@ module Common =
 //                                                Set.add p ps) ss s.NewKnowledge
 //                                    ()
 //                                    )               
-            Logging.logCritical "Rebel against Soeren The Man!"
             Some ("share my knowledge", Communication, [Plan (fun state -> 
                                                                             if (state.NewKnowledge.Length > 0) then
-                                                                                Logging.logCritical <| sprintf "Sharing knowledge. We shared %A knowledge" state.NewKnowledge.Length
                                                                                 Some [(Communicate <| ShareKnowledge ( state.NewKnowledge))] 
                                                                             else
                                                                                 None
