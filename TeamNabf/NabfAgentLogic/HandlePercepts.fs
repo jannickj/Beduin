@@ -343,7 +343,7 @@ module HandlePercepts =
                 let nodeNumbers = List.map (fun (s:string) -> s.Remove(0,1) |> int ) nodeNames  
                 let myNumber = (state.Self.Name.Remove(0, OUR_TEAM.Length) |> int)
                 let nodeNumbersToFindHeuristicFor = List.filter (fun i -> i % NUMBER_OF_AGENTS = myNumber) nodeNumbers
-                let nodeNamesToFindHeuristicFor = List.map (fun i -> String.concat "v" [ i |> string]) nodeNumbersToFindHeuristicFor
+                let nodeNamesToFindHeuristicFor = List.map (fun i -> "v" + (string i)) nodeNumbersToFindHeuristicFor
                 let heuristics = List.map (fun s -> allDistancesMap state.World s) nodeNamesToFindHeuristicFor
                 let newHeuristicMap = addListOfMapsToMap state.HeuristicMap heuristics
 
@@ -359,7 +359,7 @@ module HandlePercepts =
                         //HeuristicMap = allPairsDistances state.World
                         HeuristicMap = newHeuristicMap
                         
-                        NewKnowledge = List.append state.NewKnowledge (List.map (fun ((n1,n2),dist) -> HeuristicUpdate(n1,n2,dist)) difHeus)
+                        //NewKnowledge = List.append state.NewKnowledge (List.map (fun ((n1,n2),dist) -> HeuristicUpdate(n1,n2,dist)) difHeus)
                 }
             
             result

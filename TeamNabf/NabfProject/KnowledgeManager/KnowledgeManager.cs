@@ -82,7 +82,7 @@ namespace NabfProject.KnowledgeManagerModel
                             if (k is HeuristicKnowledge)
                             {
                                 _redudantHeuristicKnowledgeCounter++;
-                                if (_redudantHeuristicKnowledgeCounter % 100 == 0)
+                                if (_redudantHeuristicKnowledgeCounter % 1000 == 0)
                                     Console.WriteLine("total numbers of --REDUDANT-- HEURISTIC knowledge is: " + _redudantHeuristicKnowledgeCounter);
                             }
                             if (k is MessageKnowledge)
@@ -122,7 +122,7 @@ namespace NabfProject.KnowledgeManagerModel
                         if (k is HeuristicKnowledge)
                         {
                             _heuristicKnowledgeCounter++;
-                            if (_heuristicKnowledgeCounter % 2 == 0)
+                            if (_heuristicKnowledgeCounter % 1000 == 0)
                                 Console.WriteLine("total numbers of sent HEURISTIC knowledge is: " + _heuristicKnowledgeCounter);
                         }
                         if (k is MessageKnowledge)
