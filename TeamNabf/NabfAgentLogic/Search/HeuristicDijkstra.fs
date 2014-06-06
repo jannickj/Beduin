@@ -6,6 +6,7 @@ module HeuristicDijkstra =
     open Graphing.Graph
     open Graphing
     open NabfAgentLogic.Constants
+    open NabfAgentLogic.AgentTypes
 
     type Action = 
         | Move of VertexName 
@@ -41,4 +42,9 @@ module HeuristicDijkstra =
     let allPairsDistances world =
         let all = List.map (fun a -> (a,(allDistances world a))) <| List.map fst (Map.toList world)
         List.fold folder Map.empty all
+
+    let updateHeuristic (state:State) forNode =
+        let (heuMap,countMap) = state.DistanceHeuristics
+        //ma
+        ()
         
