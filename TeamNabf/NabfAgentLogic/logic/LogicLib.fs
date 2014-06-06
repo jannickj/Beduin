@@ -92,9 +92,10 @@ module LogicLib =
 
     let distanceBetweenNodes node1 node2 (state:State) : int = 
                 if state.HeuristicMap.ContainsKey(node1, node2) then 
-                    state.HeuristicMap.[node1, node2]
+                    let (cost,dist) = state.HeuristicMap.[node1, node2]
+                    (state.Self.MaxEnergy.Value/2)*dist+cost
                 else
-                    666
+                    INFINITE_HEURISTIC
 
     let distanceBetweenAgentAndNode node state : int = distanceBetweenNodes state.Self.Node node state
     

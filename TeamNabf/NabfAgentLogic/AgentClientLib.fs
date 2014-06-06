@@ -56,6 +56,6 @@ module AgentClientLib =
             ;   PlannerRepairedAgents = Set.empty
             ;   PlannerInspectedEnemies = Set.empty
             ;   PlannerDisabledEnemies = Set.empty
-            ;   HeuristicMap = Map.empty<VertexName*VertexName, int>
+            ;   HeuristicMap = Map.empty<VertexName*VertexName, _>
             ;   UpdateMap = false
             } : State

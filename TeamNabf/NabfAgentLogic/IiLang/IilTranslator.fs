@@ -179,9 +179,10 @@ namespace NabfAgentLogic.IiLang
             | [ Function ("heuristicUpdate",
                         [ Function ("node1", [Identifier node1])
                         ; Function ("node2", [Identifier node2])
+                        ; Function ("distance", [Numeral cost])
                         ; Function ("distance", [Numeral dist])
                         ]) 
-                ] -> HeuristicUpdate (node1, node2, int dist)
+                ] -> HeuristicUpdate (node1, node2, (int cost, int dist))
             | _ -> raise <| InvalidIilException ("heuristicUpdate", iilData)
 
         let parseIilAchievement achievement =
@@ -418,7 +419,7 @@ namespace NabfAgentLogic.IiLang
             | EdgeSeen (Some cost,vn1,vn2) -> [Function ("edgeKnowledge", [Identifier vn1; Identifier vn2; Numeral (float cost)])]
             | EdgeSeen (None,vn1,vn2) -> [Function ("edgeKnowledge", [Identifier vn1; Identifier vn2; Numeral 0.0])]
             | EnemySeen { Role = Some role; Name = name } -> [Function ("roleKnowledge", [Identifier (sprintf "%A" role); Identifier name; Numeral (float 100)])]
-            | HeuristicUpdate (n1,n2,dist) -> [Function ("heuristicKnowledge", [Identifier n1; Identifier n2; Numeral (float dist)])]
+            | HeuristicUpdate (n1,n2,(cost,dist)) -> [Function ("heuristicKnowledge", [Identifier n1; Identifier n2; Numeral (float cost); Numeral (float dist)])]
             | _ -> []
 
         let buildIilMetaAction maction simid =

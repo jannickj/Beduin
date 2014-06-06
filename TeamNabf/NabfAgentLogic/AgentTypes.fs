@@ -126,7 +126,7 @@ module AgentTypes =
         | NewRoundPercept
         | AgentRolePercept  of AgentRolePercept
         | KnowledgeSent     of Percept list
-        | HeuristicUpdate   of VertexName * VertexName * int
+        | HeuristicUpdate   of VertexName * VertexName * (int*int)
         
         | JobPercept        of JobPercept
 
@@ -205,7 +205,7 @@ module AgentTypes =
             NewKnowledge     : Percept list
             MyExploredCount  : int
             ProbedCount      : int
-            HeuristicMap     : Map<VertexName*VertexName, int>
+            HeuristicMap     : Map<VertexName*VertexName, (int*int)>
             UpdateMap        : bool
 
             ///USED FOR PLANNING ONLY DONT USE THEM IN INTENTION CHECKS

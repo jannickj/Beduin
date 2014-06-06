@@ -5,6 +5,7 @@ module HeuristicDijkstra =
     open FsPlanning.Search.Astar
     open Graphing.Graph
     open Graphing
+    open NabfAgentLogic.Constants
 
     type Action = 
         | Move of VertexName 
@@ -14,7 +15,7 @@ module HeuristicDijkstra =
         let ne = Set.filter (fun (_,name) -> name=node2) vertex.Edges
         match Set.toList ne with
         | [((Some c), name)] -> c
-        | _ -> 1
+        | _ -> MINIMUM_EDGE_COST
 
     let allDistances world from = 
         let prob =  {
@@ -33,7 +34,7 @@ module HeuristicDijkstra =
         let maplist = List.collect (fun (cost,node) -> [((node,from),cost);((from,node),cost)]) distances
         Map.ofList maplist
     
-    let folder (state:Map<VertexName*VertexName,int>) (node,nodesWithCost) = 
+    let folder (state:Map<VertexName*VertexName,_>) (node,nodesWithCost) = 
         let expand = List.map (fun (cost,onode) -> ((node,onode),cost)) nodesWithCost
         Map.ofList ((Map.toList state)@expand)
 
