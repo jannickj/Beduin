@@ -21,7 +21,7 @@ module Planning =
         match objective with
         | MultiGoal func  -> func 
         | Requirement req -> fun _ -> [req]
-        | Plan _ -> failwith "Trying to search on predefined plan"
+        | Plan _          -> failwith "Trying to search on predefined plan"
 
     let goalList objective state = goalFunc objective <| state
 
@@ -60,18 +60,14 @@ module Planning =
         ; Heuristic    = h goals
         }
 
-    //let perform actionspec = Perform actionspec.ActionType
-
-    let rec prunePlanHelper path goal =
-        []
-//        let goals = goalList objective state
-//        let gC searchnode = unSatisfiedGoalCount (goalFunc goal) searchnode.State
-//        match path with
-//        | searchNode1 :: searchNode2 :: tail when gC searchNode1 < gC searchNode2 ->
-//            List.rev <| searchNode2 :: tail
-//        | sn1 :: sn2 :: tail -> prunePlanHelper (sn2 :: tail) goal
-//        | [sn] -> [sn]
-//        | [] -> []
+    let rec prunePlanHelper path goals =
+        let gC searchnode = unSatisfiedGoalCount goals searchnode.State
+        match path with
+        | searchNode1 :: searchNode2 :: tail when gC searchNode1 < gC searchNode2 ->
+            List.rev <| searchNode2 :: tail
+        | sn1 :: sn2 :: tail -> prunePlanHelper (sn2 :: tail) goals
+        | [sn] -> [sn]
+        | [] -> []
 
     let prunePlan plan goals = 
         match plan with
@@ -174,6 +170,11 @@ module Planning =
 
     let solutionFinished state intent solution = 
         match solution with
+        | (_, [Plan plan]) -> 
+            match plan state with
+            | Some [] 
+            | None -> true
+            | _ -> false
         | (_, [objective]) -> (wrappedGoalTest <| goalTest (goalList objective state)) state
         | (_, []) -> true
         | _ -> false
