@@ -90,12 +90,13 @@ module LogicLib =
     //let isPartOfOccupyJob n (s:State) = List.exists (fun (j:Job) -> j ) s.Jobs
 
 
-    let distanceBetweenNodes node1 node2 (state:State) : int = 
-                if state.HeuristicMap.ContainsKey(node1, node2) then 
-                    let (cost,dist) = state.HeuristicMap.[node1, node2]
-                    (state.Self.MaxEnergy.Value/2)*dist+cost
-                else
-                    INFINITE_HEURISTIC
+    let distanceBetweenNodes node1 node2 (state:State) : int =
+        let (heuMap,_) = state.GraphHeuristic
+        let [nodeA;nodeB] = List.sort [node1; node2]
+        match Map.tryFind (nodeA,nodeB) heuMap with
+        | Some (cost,dist) ->
+            (state.Self.MaxEnergy.Value/2)*dist+cost
+        | None -> INFINITE_HEURISTIC
 
     let distanceBetweenAgentAndNode node state : int = distanceBetweenNodes state.Self.Node node state
     

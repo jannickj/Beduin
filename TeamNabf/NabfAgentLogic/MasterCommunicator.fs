@@ -9,9 +9,10 @@
         class
             
             let mutable awaitingPercepts = []
-            let stopwatch = System.Diagnostics.Stopwatch.StartNew()
+            let mutable timerStarted = false
+            
 
-
+            let timerLock = new Object()
             let perceptLock = new Object()
             let actionLock = new Object()
 
@@ -22,10 +23,19 @@
             [<CLIEvent>]
             member this.NewAction = NewActionEvent.Publish
 
-            member this.TryTrigger () =
-                if stopwatch.ElapsedMilliseconds > PERCEPT_TIME_BUFFER then
-                        NewPerceptsEvent.Trigger(this, new EventArgs())
-                        stopwatch.Restart()
+            member this.StartTriggerTimer () =
+                lock timerLock 
+                    (fun () ->
+                        if not timerStarted then
+                            timerStarted <- true
+                            let timer = new Timers.Timer(PERCEPT_TIME_BUFFER)
+                            timer.AutoReset <- false
+                            timer.Elapsed.Add(fun _ -> 
+                                NewPerceptsEvent.Trigger(this, new EventArgs())
+                                lock timerLock (fun () -> timerStarted <- false)
+                                )
+                            timer.Start()
+                    )
 
             member this.SetMessage (msg:AgentServerMessage) =
                 match msg with
@@ -35,7 +45,7 @@
                         lock perceptLock (fun () -> awaitingPercepts <- percepts @ awaitingPercepts)
                 | _ -> ()
 
-                this.TryTrigger()
+                this.StartTriggerTimer()
 
 
             interface Actuator<AgentAction> with

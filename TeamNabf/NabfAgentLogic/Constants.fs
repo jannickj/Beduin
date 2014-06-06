@@ -70,4 +70,4 @@
         let NUMBER_OF_AGENTS = 28
         let INFINITE_HEURISTIC = 10000
 
-        let PERCEPT_TIME_BUFFER = 999L
+        let PERCEPT_TIME_BUFFER = 1000.0

@@ -28,19 +28,6 @@
                 
                 override this.IsIntentionEqual ((S1,_,_),(S2,_,_)) = S1 = S2
 
-                override this.OptimizeState(curState) =
-                    if curState.UpdateMap then
-                        logImportant <| sprintf "Updating Heuristic Map on %A nodes" curState.World.Count
-                        let r = {curState with 
-                                        HeuristicMap = allPairsDistances curState.World
-                                        ; UpdateMap = false}
-                        logImportant "Done updating Heuristic Map"                   
-                        r
-                    else
-                        curState
-                override this.ImplementOptimizedState(curState,optState)=
-                    if curState.HeuristicMap.Count < optState.HeuristicMap.Count then
-                        { curState with HeuristicMap = optState.HeuristicMap }
-                    else
-                        curState
+                override this.OptimizeState(curState) = curState
+                override this.ImplementOptimizedState(curState,optState)= curState
     end

@@ -33,7 +33,6 @@ module StructureBuilder =
             ;   LastAction = Skip
             ;   TeamZoneScore = 0
             ;   Jobs = []
-            ;   UpdateMap = false
             ;   MyJobs = []
             ;   TotalNodeCount = List.length <| Map.toList world
             ;   MyExploredCount = 0
@@ -43,7 +42,7 @@ module StructureBuilder =
             ;   PlannerRepairedAgents = Set.empty
             ;   PlannerInspectedEnemies = Set.empty
             ;   PlannerDisabledEnemies = Set.empty
-            ;   HeuristicMap = Map.empty<string*string, _>
+            ;   GraphHeuristic = (Map.empty<string*string, _>,Map.empty)
             } : State
 
     let buildState node role world = buildStateWithEnergy node role world 30 

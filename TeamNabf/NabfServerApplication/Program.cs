@@ -32,7 +32,14 @@ namespace NabfServerApplication
         static void Main(string[] args)
         {
             //Console.Clear();
-            string[] ipp = args[0].Split(new Char[]{':'});
+            string[] input;
+
+            if (args.Length == 0)
+                input = new string[] { "127.0.0.1:1337" };
+            else
+                input = args;
+
+            string[] ipp = input[0].Split(new Char[]{':'});
             string ip = ipp[0];
             int port = Convert.ToInt32(ipp[1]);
 

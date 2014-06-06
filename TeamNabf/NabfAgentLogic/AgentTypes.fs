@@ -205,7 +205,7 @@ module AgentTypes =
             NewKnowledge     : Percept list
             MyExploredCount  : int
             ProbedCount      : int
-            DistanceHeuristics : (Map<VertexName*VertexName, (int*int)>* Map<VertexName,int>)
+            GraphHeuristic   : (Map<VertexName*VertexName, (int*int)>* Map<VertexName,int>)
 
             ///USED FOR PLANNING ONLY DONT USE THEM IN INTENTION CHECKS
             PlannerProbed           : VertexName Set
