@@ -153,8 +153,7 @@ module HandlePercepts =
                 match agentRole with
                 | (name, role, certainty) -> if certainty = 100 then addAgentRole name (Some role)
                                                 else state// We might want to add functionality for certainty < 100%
-                | _ -> state
-
+           
             | JobPercept job -> 
                 let jobIDFromHeader (header:JobHeader) =
                         match header with
@@ -200,16 +199,18 @@ module HandlePercepts =
 
                     { state with MyJobs =  existingJobRemoved }
 
-                | _ -> state
-
+               
             | KnowledgeSent pl -> 
                     let updatedNK = List.filter (fun p -> not <| List.exists ((=) p) pl) state.NewKnowledge
+                    logCritical <| sprintf "Clearing knowledge sent. We sent %A knowledge" pl.Length
                     { state with NewKnowledge = updatedNK }
 
             | HeuristicUpdate (n1,n2,dist) -> {state with HeuristicMap = Map.add (n1,n2) dist state.HeuristicMap}
 
-            | _ -> state
+            | unhandled -> logError (sprintf "Unhandled percept: %A" unhandled) 
+                           state //fix this later by handling remaining percepts
 
+            
     let clearTempBeliefs (state:State) =
         let newEnemyData = List.map (fun enemy -> { enemy with Agent.Node = ""}) state.EnemyData
         { state with 
@@ -291,7 +292,7 @@ module HandlePercepts =
                     false
             else
                 true
-        | VertexSeen (vertexName, ownedBy) -> not (oldState.World.ContainsKey(vertexName))
+        | VertexSeen (vertexName, ownedBy) -> not (oldState.World.ContainsKey vertexName )
         | EdgeSeen (edgeValue, node1, node2) ->
             if oldState.World.ContainsKey(node1) then
                 let edge = Set.filter (fun (_, endNode) -> endNode = node2) oldState.World.[node1].Edges
@@ -370,7 +371,7 @@ module HandlePercepts =
     let updateHeuristicsMapSingle percepts oldState state =
         if state.World.Count > oldState.World.Count then 
             
-            let stopwatch = System.Diagnostics.Stopwatch.StartNew()
+            //let stopwatch = System.Diagnostics.Stopwatch.StartNew()
 
             let result = 
                 { state with //UpdateMap = true ;
@@ -378,7 +379,7 @@ module HandlePercepts =
 
                 }
 
-            logCritical <| sprintf "millieseconds used on single heuristic calc: %A" stopwatch.ElapsedMilliseconds
+            //logCritical <| sprintf "millieseconds used on single heuristic calc: %A" stopwatch.ElapsedMilliseconds
 
             result
         else

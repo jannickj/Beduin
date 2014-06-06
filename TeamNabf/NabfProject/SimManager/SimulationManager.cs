@@ -34,6 +34,8 @@ namespace NabfProject.SimManager
         private int _applicationsReceivedCounter = 0;
         private int _noticesRemovedCounter = 0;
         private int _sentKnowledgeCounter = 0;
+        private bool _notPrintedSentKnowledgeCounterThisRound = true;
+        private bool _notPrintedStatusThisRound = true;
 
         public SimulationManager(SimulationFactory sf, int timeBeforeApplyCloses = _standardTimeBeforeApplyCloses)
         {
@@ -134,9 +136,22 @@ namespace NabfProject.SimManager
             if (verbose)
             {
                 _sentKnowledgeCounter += sentKnowledge.Count;
-                _callsToSendKnowledge++;
-                if (_callsToSendKnowledge % 100 == 0)
-                    Console.WriteLine("----------total numbers of sent knowledge is: " + _sentKnowledgeCounter);                
+                if (_currentRoundNumber % 20 == 0 && _notPrintedSentKnowledgeCounterThisRound)
+                {
+                    Console.WriteLine("--------total numbers of sent knowledge is: " + _sentKnowledgeCounter);
+                    _notPrintedSentKnowledgeCounterThisRound = false;
+                }
+                else if (_currentRoundNumber % 9 == 0)
+                    _notPrintedSentKnowledgeCounterThisRound = true;
+
+                if (_currentRoundNumber % 100 == 0 && _notPrintedStatusThisRound)
+                {
+                    Console.WriteLine("--- status on all current knowledge here (TO DO) ---");
+                    _notPrintedStatusThisRound = false;
+                }
+                else if (_currentRoundNumber % 90 == 0)
+                    _notPrintedStatusThisRound = true;
+
             }
         }
 
