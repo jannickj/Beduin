@@ -8,6 +8,7 @@ module HandlePercepts =
     open NabfAgentLogic.LogicLib
     open NabfAgentLogic.Search.HeuristicDijkstra
     open Constants
+    
 
     ///////////////////////////////////Helper functions//////////////////////////////////////
 
@@ -369,12 +370,16 @@ module HandlePercepts =
     let updateHeuristicsMapSingle percepts oldState state =
         if state.World.Count > oldState.World.Count then 
             
+            let stopwatch = System.Diagnostics.Stopwatch.StartNew()
+
             let result = 
                 { state with //UpdateMap = true ;
                              HeuristicMap = allDistancesMap state.World state.Self.Node
 
                 }
-            
+
+            logCritical <| sprintf "millieseconds used on single heuristic calc: %A" stopwatch.ElapsedMilliseconds
+
             result
         else
             state

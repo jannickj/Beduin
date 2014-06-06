@@ -28,11 +28,12 @@ namespace NabfProject.SimManager
         private int _numberOfAgentsFinishedApplying = 0;
 
         private const bool verbose = true;
-        private int _sentKnowledgeCounter = 0;
+        private int _callsToSendKnowledge = 0;
         private int _sentJobCounter = 0;
         private int _updatedJobCounter = 0;
         private int _applicationsReceivedCounter = 0;
         private int _noticesRemovedCounter = 0;
+        private int _sentKnowledgeCounter = 0;
 
         public SimulationManager(SimulationFactory sf, int timeBeforeApplyCloses = _standardTimeBeforeApplyCloses)
         {
@@ -132,9 +133,10 @@ namespace NabfProject.SimManager
 
             if (verbose)
             {
-                _sentKnowledgeCounter++;
-                if (_sentKnowledgeCounter % 1000 == 0)
-                    Console.WriteLine("total numbers of sent knowledge is: " + _sentKnowledgeCounter);                
+                _sentKnowledgeCounter += sentKnowledge.Count;
+                _callsToSendKnowledge++;
+                if (_callsToSendKnowledge % 100 == 0)
+                    Console.WriteLine("----------total numbers of sent knowledge is: " + _sentKnowledgeCounter);                
             }
         }
 

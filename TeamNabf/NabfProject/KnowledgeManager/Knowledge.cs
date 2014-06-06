@@ -9,6 +9,7 @@ namespace NabfProject.KnowledgeManagerModel
     {
         string GetTypeToString();
 
+
         
     }
 }

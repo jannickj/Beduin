@@ -28,6 +28,7 @@ namespace NabfProject.KnowledgeManagerModel
         private int _roleKnowledgeCounter = 0;
         private int _heuristicKnowledgeCounter = 0;
         private int _messageKnowledgeCounter = 0;
+        private int _callsToSendKnowledge = 0;
         private const bool verbose = true;
 
 		public Knowledge[] KnowledgeBase
@@ -53,9 +54,11 @@ namespace NabfProject.KnowledgeManagerModel
         public void SendKnowledgeToManager(List<Knowledge> sentKnowledge, NabfAgent sender)
         {
             //Knowledge kl;
+            Knowledge oldKnowledge;
+            bool updatedKnowledge;
             foreach (Knowledge k in sentKnowledge)
             {
-				bool updatedKnowledge = false;
+				updatedKnowledge = false;
 				if (!_knowledgeBase.ContainsKey(k))
 				{
                     if (!(k is MessageKnowledge))
@@ -66,7 +69,7 @@ namespace NabfProject.KnowledgeManagerModel
 				}
 				else
 				{
-					var oldKnowledge = _knowledgeBase[k];
+                    oldKnowledge = _knowledgeBase[k];
                     if (oldKnowledge.CompareTo(k) > 0)
                     {
                         _knowledgeBase.Remove(k);
@@ -74,8 +77,7 @@ namespace NabfProject.KnowledgeManagerModel
                         updatedKnowledge = true;
                     }
                     else
-                    {
-                        
+                    {                        
                         if (verbose)
                         {
                             #region debug code
@@ -170,7 +172,10 @@ namespace NabfProject.KnowledgeManagerModel
                     //_agentToKnowledge.Add(sender, kl);
                 //}
             }
-            //SendKnowledgeToSubscribedAgents();            
+            //SendKnowledgeToSubscribedAgents();   
+            _callsToSendKnowledge++;
+            if (_callsToSendKnowledge % 10 == 0)
+                Console.WriteLine("***size of Knowledge Base is: " + _knowledgeBase.Keys.Count);
         }
         
         public void SendOutAllKnowledgeToAgent(NabfAgent agent)
