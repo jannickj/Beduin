@@ -3,11 +3,13 @@
     open System
     open AgentTypes
     open JSLibrary.Data.GenericEvents;
+    open Constants
 
     type MasterCommunicator() =
         class
             
             let mutable awaitingPercepts = []
+            let stopwatch = System.Diagnostics.Stopwatch.StartNew()
 
 
             let perceptLock = new Object()
@@ -20,6 +22,10 @@
             [<CLIEvent>]
             member this.NewAction = NewActionEvent.Publish
 
+            member this.TryTrigger () =
+                if stopwatch.ElapsedMilliseconds > PERCEPT_TIME_BUFFER then
+                        NewPerceptsEvent.Trigger(this, new EventArgs())
+                        stopwatch.Restart()
 
             member this.SetMessage (msg:AgentServerMessage) =
                 match msg with
@@ -28,8 +34,9 @@
                 | SharedPercepts percepts ->
                         lock perceptLock (fun () -> awaitingPercepts <- percepts @ awaitingPercepts)
                 | _ -> ()
-                 
-                NewPerceptsEvent.Trigger(this, new EventArgs())
+
+                this.TryTrigger()
+
 
             interface Actuator<AgentAction> with
                 member this.CanPerformAction action =
@@ -42,6 +49,7 @@
                     | Communicate act ->
                         match act with
                         | ShareKnowledge pl -> lock perceptLock (fun () -> awaitingPercepts <- (KnowledgeSent pl)::awaitingPercepts)
+                                               NewPerceptsEvent.Trigger(this, new EventArgs())
                         | _ -> ()
                         lock actionLock (fun () -> NewActionEvent.Trigger(this, new UnaryValueEvent<_>((act))))
                         ()

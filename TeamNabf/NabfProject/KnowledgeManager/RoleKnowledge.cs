@@ -30,7 +30,7 @@ namespace NabfProject.KnowledgeManagerModel
 
             RoleKnowledge ek = (RoleKnowledge)other;
 
-            return ek.Role == this.Role && ek.AgentId == this.AgentId;
+            return ek.AgentId == this.AgentId;
         }
 
         int IComparable<Knowledge>.CompareTo(Knowledge other)

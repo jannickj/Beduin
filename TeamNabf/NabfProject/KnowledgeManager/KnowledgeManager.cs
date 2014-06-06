@@ -28,6 +28,7 @@ namespace NabfProject.KnowledgeManagerModel
         private int _roleKnowledgeCounter = 0;
         private int _heuristicKnowledgeCounter = 0;
         private int _messageKnowledgeCounter = 0;
+        private int _callsToSendKnowledge = 0;
         private const bool verbose = true;
 
 		public Knowledge[] KnowledgeBase
@@ -53,9 +54,11 @@ namespace NabfProject.KnowledgeManagerModel
         public void SendKnowledgeToManager(List<Knowledge> sentKnowledge, NabfAgent sender)
         {
             //Knowledge kl;
+            Knowledge oldKnowledge;
+            bool updatedKnowledge;
             foreach (Knowledge k in sentKnowledge)
             {
-				bool updatedKnowledge = false;
+				updatedKnowledge = false;
 				if (!_knowledgeBase.ContainsKey(k))
 				{
                     if (!(k is MessageKnowledge))
@@ -66,7 +69,7 @@ namespace NabfProject.KnowledgeManagerModel
 				}
 				else
 				{
-					var oldKnowledge = _knowledgeBase[k];
+                    oldKnowledge = _knowledgeBase[k];
                     if (oldKnowledge.CompareTo(k) > 0)
                     {
                         _knowledgeBase.Remove(k);
@@ -74,8 +77,7 @@ namespace NabfProject.KnowledgeManagerModel
                         updatedKnowledge = true;
                     }
                     else
-                    {
-                        
+                    {                        
                         if (verbose)
                         {
                             #region debug code
@@ -88,25 +90,25 @@ namespace NabfProject.KnowledgeManagerModel
                             if (k is MessageKnowledge)
                             {
                                 _redudantMessageKnowledgeCounter++;
-                                if (_redudantMessageKnowledgeCounter % 100 == 0)
+                                if (_redudantMessageKnowledgeCounter % 200 == 0)
                                     Console.WriteLine("total numbers of --REDUDANT-- MESSAGE knowledge is: " + _redudantMessageKnowledgeCounter);
                             }
                             if (k is EdgeKnowledge)
                             {
                                 _redudantEdgeKnowledgeCounter++;
-                                if (_redudantEdgeKnowledgeCounter % 100 == 0)
+                                if (_redudantEdgeKnowledgeCounter % 200 == 0)
                                     Console.WriteLine("total numbers of --REDUDANT-- EDGE knowledge is: " + _redudantEdgeKnowledgeCounter);
                             }
                             if (k is NodeKnowledge)
                             {
                                 _redudantNodeKnowledgeCounter++;
-                                if (_redudantNodeKnowledgeCounter % 100 == 0)
+                                if (_redudantNodeKnowledgeCounter % 200 == 0)
                                     Console.WriteLine("total numbers of --REDUDANT-- NODE knowledge is: " + _redudantNodeKnowledgeCounter);
                             }
                             if (k is RoleKnowledge)
                             {
                                 _redudantRoleKnowledgeCounter++;
-                                if (_redudantRoleKnowledgeCounter % 100 == 0)
+                                if (_redudantRoleKnowledgeCounter % 10 == 0)
                                     Console.WriteLine("total numbers of --REDUDANT-- ROLE knowledge is: " + _redudantRoleKnowledgeCounter);
                             }
                             #endregion
@@ -134,13 +136,13 @@ namespace NabfProject.KnowledgeManagerModel
                         if (k is EdgeKnowledge)
                         {
                             _edgeKnowledgeCounter++;
-                            if (_edgeKnowledgeCounter % 100 == 0)
+                            if (_edgeKnowledgeCounter % 50 == 0)
                                 Console.WriteLine("total numbers of sent EDGE knowledge is: " + _edgeKnowledgeCounter);
                         }
                         if (k is NodeKnowledge)
                         {
                             _nodeKnowledgeCounter++;
-                            if (_nodeKnowledgeCounter % 100 == 0)
+                            if (_nodeKnowledgeCounter % 50 == 0)
                                 Console.WriteLine("total numbers of sent NODE knowledge is: " + _nodeKnowledgeCounter);
                         }
                         if (k is RoleKnowledge)
@@ -170,7 +172,10 @@ namespace NabfProject.KnowledgeManagerModel
                     //_agentToKnowledge.Add(sender, kl);
                 //}
             }
-            //SendKnowledgeToSubscribedAgents();            
+            //SendKnowledgeToSubscribedAgents();   
+            _callsToSendKnowledge++;
+            if (_callsToSendKnowledge % 50 == 0)
+                Console.WriteLine("--------size of Knowledge Base is: " + _knowledgeBase.Keys.Count);
         }
         
         public void SendOutAllKnowledgeToAgent(NabfAgent agent)
