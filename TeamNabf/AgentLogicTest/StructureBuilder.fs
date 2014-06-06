@@ -43,7 +43,7 @@ module StructureBuilder =
             ;   PlannerRepairedAgents = Set.empty
             ;   PlannerInspectedEnemies = Set.empty
             ;   PlannerDisabledEnemies = Set.empty
-            ;   HeuristicMap = Map.empty<string*string, int>
+            ;   HeuristicMap = Map.empty<string*string, _>
             } : State
 
     let buildState node role world = buildStateWithEnergy node role world 30 

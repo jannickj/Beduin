@@ -43,6 +43,7 @@
         ///////////////////////////////
         /// Other constants
         ///////////////////////////////
+        let MINIMUM_EDGE_COST = 1
         let UNKNOWN_EDGE_COST = 5
         let ZONE_ORIGIN_VALUE = 10
         let ZONE_BORDER_VALUE = 8
@@ -64,4 +65,4 @@
         let MAX_PLANNING_TIME_MS = 100L
 
         let NUMBER_OF_AGENTS = 28
-
+        let INFINITE_HEURISTIC = 10000
