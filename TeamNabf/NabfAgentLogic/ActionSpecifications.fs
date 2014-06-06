@@ -324,7 +324,7 @@ module ActionSpecifications =
     let availableActions goal state =
         let actions = 
             match goal with
-            | At _ | Explored _ -> 
+            | At _ | Explored _ | Occupied -> 
                 gotoActions state
             | Attacked agent -> 
                 gotoActions state @ attackActions agent state
@@ -353,5 +353,5 @@ module ActionSpecifications =
             | Recharge -> rechargeAction
             | Repair agent -> repairAction agent
             | Skip -> rechargeAction
-            | Survey -> failwith "survery does not have an actionspecification"
+            | Survey -> failwith "survey does not have an actionspecification"
 

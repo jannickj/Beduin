@@ -5,6 +5,7 @@ module GoalSpecifications =
     open Graphing.Graph
     open LogicLib
     open Constants
+    open Logging
 
     let agentAt agentName state =
         let agent = List.find (fun ag -> ag.Name = agentName) (state.EnemyData @ state.FriendlyData)

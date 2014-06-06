@@ -106,16 +106,10 @@ module Common =
             
     //Find a node of at leas value 8 to stand on.
     let generateMinimumValue (inputState:State) = 
-        //findAndDo inputState.Self.Node nodeHasMinValue "generate value" inputState
-        let targetOpt = findTargetNode inputState.Self.Node nodeHasMinValue inputState
-        match targetOpt with
-        | None -> None
-        | Some target ->
-                Some
-                        (   "get minimum value at " + target
-                        ,   Activity
-                        ,   [ Requirement Occupied ]
-                        )
+        Some ( "get minimum value"
+             , Activity
+             , [ Requirement Occupied ]
+             )
 
     let shareKnowledge (s:State) : Option<Intention> =
          Some ("share my knowledge", Communication, [Plan (fun state -> Some [(Communicate <| ShareKnowledge ( state.NewKnowledge))] )])
@@ -123,11 +117,10 @@ module Common =
     
     let applyToOccupyJob  modifier (inputState:State) = 
         let applicationList = createApplicationList inputState JobType.OccupyJob (calculateDesireOccupyJob modifier)
-        Some(
-                "apply to all occupy jobs"
-                , Communication
-                , [Plan(fun state -> Some applicationList)]
-            )
+        Some ( "apply to all occupy jobs"
+             , Communication
+             , [Plan (fun state -> Some applicationList)]
+             )
     
 
     let workOnOccupyJob (inputState:State) =
@@ -136,12 +129,10 @@ module Common =
         match myOccupyJobs with
         | ((id,_,_,_),_)::_ -> 
             let (_,node) = List.find (fun (jid,_) -> id.Value = jid) inputState.MyJobs
-            Some
-                (   "occupy node " + node
-                ,   Activity
-                ,   [
-                        Requirement (At node)
-                    ;   Plan <| fun _ -> Some [Perform Recharge]
-                    ]
-                )
+            Some ( "occupy node " + node
+                 , Activity
+                 , [ Requirement (At node)
+                   ; Plan <| fun _ -> Some [Perform Recharge]
+                   ]
+                 )
         | [] -> None
