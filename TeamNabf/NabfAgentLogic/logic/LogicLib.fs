@@ -79,16 +79,12 @@ module LogicLib =
         let ((_,value,_,_),_) = (getJobFromJobID s id)
         value
 
-    //pathfind through the graph. When the path is found, count it's length and register each node which is held by an enemy
+    //pathfind through the graph. When the path is found, count it's length and return it
     //returns: (dist to job * number of enemy node)
     let getDistanceToJobAndNumberOfEnemyNodes (targetNode:VertexName) (s:State) =
-        let number_of_enemy_nodes = 0.0
-        let distance_to_job = 1.0
-        
+        let distance_to_job = 1.0        
 
-        (distance_to_job   ,   1.0  -  (number_of_enemy_nodes  *  DESIRE_COST_OF_MOVING_THROUGH_ONE_ENEMY_NODE)) 
-
-    
+        distance_to_job     
 
 
     //let isPartOfOccupyJob n (s:State) = List.exists (fun (j:Job) -> j ) s.Jobs

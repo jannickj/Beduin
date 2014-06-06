@@ -134,7 +134,7 @@ namespace NabfProject.SimManager
             {
                 _sentKnowledgeCounter++;
                 if (_sentKnowledgeCounter % 1000 == 0)
-                    Console.WriteLine("total numbers of sent knowledge is: " + _sentKnowledgeCounter);
+                    Console.WriteLine("total numbers of sent knowledge is: " + _sentKnowledgeCounter);                
             }
         }
 
