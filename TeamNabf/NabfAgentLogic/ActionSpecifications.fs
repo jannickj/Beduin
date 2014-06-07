@@ -336,7 +336,7 @@ module ActionSpecifications =
                 gotoActions state @ repairActions agent state
             | Parried -> 
                 parryActions state
-            | Recharged -> 
+            | Charged _ -> 
                 rechargeActions state
         rechargeAction :: actions
 

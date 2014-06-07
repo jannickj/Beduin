@@ -256,7 +256,7 @@ module AgentTypes =
         | Explored  of VertexName option
         | Occupied
         | Parried
-        | Recharged
+        | Charged   of int option
 
     type Objective = 
         | Plan of (State -> (AgentAction list) option)

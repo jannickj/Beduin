@@ -99,7 +99,7 @@ module Common =
                 let here = inputState.Self.Node
                 Some("get repaired.",Activity,[Plan(fun state -> Some [
                                                                  Communicate( CreateJob( (None,5,JobType.RepairJob,1),RepairJob(state.Self.Node,state.Self.Name) ) )
-                                                                 ]); Requirement Recharged])
+                                                                 ]); Requirement <| Charged None])
 //                                                                 Requirement( ((fun state -> state.LastAction = Recharge), None, CheckGoal ) ) ] )
         else
             None

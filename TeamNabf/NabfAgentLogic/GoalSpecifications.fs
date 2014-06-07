@@ -32,8 +32,10 @@ module GoalSpecifications =
     let parried state = 
         state.LastAction = Parry
     
-    let recharged state =
-        state.LastAction = Recharge
+    let charged charge (state : State) =
+        match charge with
+        | Some charge -> charge >= state.Self.Energy.Value
+        | None -> state.LastAction = Recharge
 
     let agentRepaired agent state =
         state.LastAction = Repair agent
@@ -54,7 +56,7 @@ module GoalSpecifications =
         | Explored None -> explored
         | Inspected agent -> agentInspected agent
         | Parried -> parried
-        | Recharged -> recharged
+        | Charged charge -> charged charge
         | Occupied -> occupied
         | Repaired agent -> agentRepaired agent
 
@@ -75,6 +77,6 @@ module GoalSpecifications =
 
         | Explored None 
         | Probed None
-        | Recharged
+        | Charged _
         | Occupied
         | Parried-> fun _ -> 0
