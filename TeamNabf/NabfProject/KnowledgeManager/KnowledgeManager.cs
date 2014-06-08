@@ -18,17 +18,17 @@ namespace NabfProject.KnowledgeManagerModel
         //private Dictionary<Knowledge, bool> _knowledgeBase = new Dictionary<Knowledge, bool>();
 		private Dictionary<Knowledge,Knowledge> _knowledgeBase = new Dictionary<Knowledge,Knowledge>();
         
-        private int _redudantEdgeKnowledgeCounter = 0;
-        private int _redudantNodeKnowledgeCounter = 0;
-        private int _redudantRoleKnowledgeCounter = 0;
-        private int _redudantMessageKnowledgeCounter = 0;
-        private int _redudantHeuristicKnowledgeCounter = 0;
-        private int _nodeKnowledgeCounter = 0;
-        private int _edgeKnowledgeCounter = 0;
-        private int _roleKnowledgeCounter = 0;
-        private int _heuristicKnowledgeCounter = 0;
-        private int _messageKnowledgeCounter = 0;
-        private int _callsToSendKnowledge = 0;
+        public int _redudantEdgeKnowledgeCounter = 0;
+        public int _redudantNodeKnowledgeCounter = 0;
+        public int _redudantRoleKnowledgeCounter = 0;
+        public int _redudantMessageKnowledgeCounter = 0;
+        public int _redudantHeuristicKnowledgeCounter = 0;
+        public int _nodeKnowledgeCounter = 0;
+        public int _edgeKnowledgeCounter = 0;
+        public int _roleKnowledgeCounter = 0;
+        public int _heuristicKnowledgeCounter = 0;
+        public int _messageKnowledgeCounter = 0;
+        public int _callsToSendKnowledge = 0;
         private const bool verbose = true;
 
 		public Knowledge[] KnowledgeBase
