@@ -373,20 +373,7 @@ module HandlePercepts =
 //            state
 
     let updateHeuristicsMapSingle percepts oldState state =
-        if state.World.Count > oldState.World.Count then 
-            
-            //let stopwatch = System.Diagnostics.Stopwatch.StartNew()
-
-            let result = 
-                { state with GraphHeuristic = updateHeuristic state state.Self.Node
-
-                }
-
-            //logCritical <| sprintf "millieseconds used on single heuristic calc: %A" stopwatch.ElapsedMilliseconds
-
-            result
-        else
-            state
+        { state with GraphHeuristic = updateHeuristic state state.Self.Node}
     
     (* let updateState : State -> Percept list -> State *)
     let updateState state percepts = 
