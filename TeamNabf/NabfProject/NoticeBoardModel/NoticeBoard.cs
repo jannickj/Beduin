@@ -155,17 +155,29 @@ namespace NabfProject.NoticeBoardModel
 
             foreach (NabfAgent a in _sharingList)
             {
-                a.Raise(new NewNoticeEvent(n));
-                if (n is OccupyJob)
-                    Console.WriteLine("WhichNode: " + ((OccupyJob)n).WhichNodes + ". ZoneNodes: " + ((OccupyJob)n).ZoneNodes);
-                    //_createdOccupyJob++;
-                if (n is RepairJob)
-                    _createdRepairJob++;
-                if (n is DisruptJob)
-                    _createdDisruptJob++;
-                if (n is AttackJob)
-                    _createdAttackJob++;
+                a.Raise(new NewNoticeEvent(n));                
             }
+            if (n is OccupyJob)
+            {
+                //Console.WriteLine("WhichNodes:");
+                //foreach (NodeKnowledge nk in ((OccupyJob)n).WhichNodes)
+                //{
+                //    Console.WriteLine("" + nk.ToString());
+                //}
+                //Console.WriteLine("ZoneNodes:");
+                //foreach (NodeKnowledge nk in ((OccupyJob)n).ZoneNodes)
+                //{
+                //    Console.WriteLine("" + nk.ToString());
+                //}
+                //Console.WriteLine("WhichNode: " + ((OccupyJob)n).WhichNodes + ". ZoneNodes: " + ((OccupyJob)n).ZoneNodes);
+                _createdOccupyJob++;
+            }
+            if (n is RepairJob)
+                _createdRepairJob++;
+            if (n is DisruptJob)
+                _createdDisruptJob++;
+            if (n is AttackJob)
+                _createdAttackJob++;
 
             return b;
         }
