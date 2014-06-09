@@ -1,4 +1,4 @@
-﻿namespace NabfAgentLogic
+namespace NabfAgentLogic
 module LogicLib =
     
     open FsPlanning.Agent.Planning
@@ -7,7 +7,9 @@ module LogicLib =
     open Constants
     open FsPlanning.Search
     open FsPlanning.Search.Problem
-    
+    open ActionSpecifications
+
+    let flip f x y = f y x
 
     let nodeListContains n (nl:string list) =
         (List.tryFind (fun s -> s = n) nl).IsSome
@@ -38,6 +40,9 @@ module LogicLib =
         
     let nearbyAllies state = 
         List.filter (fun a -> nodeListContains a.Node (neighbourNodes state state.Self)) state.FriendlyData 
+
+    let isUnexplored state vertex = 
+        not (List.exists (fun (value, _) -> Option.isSome value) <| Set.toList state.World.[vertex].Edges)
 
     let getJobsByType (jobtype:JobType) (list : Job list) : Job list = List.filter 
                                                                         (
@@ -95,7 +100,9 @@ module LogicLib =
         let [nodeA;nodeB] = List.sort [node1; node2]
         match Map.tryFind (nodeA,nodeB) heuMap with
         | Some (cost,dist) ->
-            (state.Self.MaxEnergy.Value/2)*dist+cost
+            //let rechargesRequiredCost = (cost / (state.Self.MaxEnergy.Value/2)) * turnCost state
+            let minimumTraversalCost = dist * turnCost state
+            minimumTraversalCost + cost
         | None -> INFINITE_HEURISTIC
 
     let distanceBetweenAgentAndNode node state : int = distanceBetweenNodes state.Self.Node node state
@@ -120,56 +127,80 @@ module LogicLib =
                     Some ( snd <| List.min filteredNodes )
 
         
-    let planRouteTo target (state:State) =
-        let startNode = state.Self.Node
+    let findNextBestUnexplored state =
+        let isVertexUnExplored vertex = 
+            List.forall (fun (cost, _) -> Option.isSome cost) (Set.toList state.World.[vertex].Edges)
+
         let definiteCost cost = 
             match cost with 
             | Some c -> c
             | None -> Constants.UNKNOWN_EDGE_COST
 
-        let planPath startVertex goalVertex (world : Graph) = 
-            let pathProblem = 
-                { InitialState = startVertex
-                ; GoalTest = (=) goalVertex
-                ; Actions = fun vertex -> Set.toList world.[vertex].Edges
-                ; Result = fun _ (_, vertex) -> vertex
-                ; StepCost = fun _ (cost, _) -> definiteCost cost
-                ; Heuristic = fun _ cost -> cost
-                }
+        let goalTest statePair = 
+            match statePair with
+            | (Some oldVertex, newVertex) when oldVertex <> newVertex -> 
+                isVertexUnExplored newVertex
+            | _ -> false
 
-            Astar.solve Astar.aStar pathProblem (fun () -> false)
+        let result (oldVertex, _) (_, resultVertex) =
+            match oldVertex with
+            | Some vertex -> (Some vertex, resultVertex)
+            | None ->
+                if isVertexUnExplored resultVertex then
+                    (Some resultVertex, resultVertex)
+                else
+                    (None, resultVertex)
 
-        let solution = planPath startNode target state.World
-
-        match solution with
-        | Some sol -> 
-            let path = sol.Path
-            //let path = List.map (fun node -> node.Action.Value) sol.Path
-            Some <| List.map (fun (_, vertex) -> Perform (Goto vertex)) path
-        | None -> None
-
-
-    let findAndDo startNode condition actionList actionString findNextBest (inputState:State) =
-        let targetOpt = 
-            match findNextBest with
-            | true -> findTargetNode startNode condition inputState
-            | false -> findNextBestNode startNode condition inputState
+        let pathProblem = 
+            { InitialState = (None, state.World.[state.Self.Node].Identifier)
+            ; GoalTest = goalTest
+            ; Actions = fun (_, vertex) -> Set.toList state.World.[vertex].Edges
+            ; Result = result
+            ; StepCost = fun _ (cost, _) -> definiteCost cost
+            ; Heuristic = fun _ cost -> cost
+            }
         
-        match targetOpt with
+        let solution = Astar.solve Astar.aStar pathProblem (fun () -> false)
+        match solution with
+        | Some solution -> 
+            Some <| snd (List.head <| List.rev solution.Path)
         | None -> None
-        | Some target ->
-               Some
-                    (   "go to node " + target + " and " + actionString
-                    ,   Activity
-                    ,   [ Plan <| planRouteTo target
-                        ; Requirement ( fun state -> not <| condition state target             
-                                      , None
-                                      , actionList
-                                      )
-                        ]
-                    )
+
+//    let planRouteTo target (state:State) = 
+//        findNode (fun vertexName -> vertexName = target) state
+        
+//    let findAndDo startNode condition actionList actionString findNextBest (inputState:State) =
+//        let targetOpt = 
+//            match findNextBest with
+//            | true -> findTargetNode startNode condition inputState
+//            | false -> findNextBestNode startNode condition inputState
+//        
+//        match targetOpt with
+//        | None -> None
+//        | Some target ->
+//               Some
+//                    (   "go to node " + target + " and " + actionString
+//                    ,   Activity
+//                    ,   [ Plan <| planRouteTo target
+//                        ; Requirement ( fun state -> not <| condition state target             
+//                                      , None
+//                                      , actionList
+//                                      )
+//                        ]
+//                    )
 
 
     let myRankIsGreatest myName (other:Agent List) =
         let qq = List.filter (fun a -> a.Name > myName) other
         qq.IsEmpty
+
+
+    let nearestVertexSatisfying (state : State) (condition : (State -> VertexName -> bool)) =
+        List.map fst (Map.toList state.World)
+        |> List.filter (condition state)
+        |> List.minBy (flip distanceBetweenAgentAndNode <| state)
+
+        
+    let nodeHasNoAlliedAgents (inputState:State) (node:Vertex) : bool =
+        let friendliesOnNode = List.filter (fun a -> a.Node = node.Identifier) inputState.FriendlyData
+        friendliesOnNode.Length = 0

@@ -145,7 +145,7 @@ namespace NabfServerApplication
                     if (updated)
                     {
                         //Console.SetCursorPosition(0, 0);
-                        Console.WriteLine("Begin simulation " + simId + ", Round: " + roundId);
+                        //Console.WriteLine("Begin simulation " + simId + ", Round: " + roundId);
                     }
 
 

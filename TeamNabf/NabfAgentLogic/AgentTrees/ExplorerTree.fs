@@ -18,7 +18,7 @@ module ExplorerTree =
                         (   inPhase1,
                             ManyDesires
                                 [
-                                    Desire(findNodeToProbe)
+                                    Desire findNodeToProbe
                                     Desire(applyToOccupyJob EXPLORER_OCCUPYJOB_MOD)
                                 ]
                         )

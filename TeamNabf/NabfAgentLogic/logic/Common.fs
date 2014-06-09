@@ -39,11 +39,6 @@ module Common =
             | (_ , rdata) :: tail -> if rdata = RepairJob(inputState.Self.Node,inputState.Self.Name) then Some knownJobs.Head else tryFindRepairJob inputState tail
             | [] -> None
 
-            
-    let nodeIsUnexplored (state:State) node =
-        let n = state.World.[node] 
-        not <| Set.exists (fun (e:DirectedEdge) -> (fst e).IsSome) n.Edges
-
 
     let nodeHasMinValue (state:State) node =
         let n = state.World.[node] 
@@ -71,24 +66,25 @@ module Common =
     //Try to make it so the agent has explored one more node
     let exploreMap (inputState:State) = 
         let agentsOnMyNode = List.filter (fun a -> a.Node = inputState.Self.Node && not(a.Name = inputState.Self.Name)) inputState.FriendlyData
-        if (agentsOnMyNode.IsEmpty) then
-            findAndDo inputState.Self.Node nodeIsUnexplored CheckGoal "mark as explored" false inputState
-        else
-            if (myRankIsGreatest inputState.Self.Name agentsOnMyNode) then
-                findAndDo inputState.Self.Node nodeIsUnexplored CheckGoal "mark as explored" true inputState
+
+        let nearestUnexplored = nearestVertexSatisfying inputState isUnexplored
+
+        let goal = 
+            if (agentsOnMyNode.IsEmpty) then
+                Explored nearestUnexplored
             else
-                findAndDo inputState.Self.Node nodeIsUnexplored CheckGoal "mark as explored" false inputState
-//        if inputState.ExploredCount < inputState.TotalNodeCount
-//        then
-//            let count = inputState.MyExploredCount
-//            Some("explore one more node."
-//                ,Activity
-//                ,[Requirement(
-//                    ((fun state -> state.MyExploredCount > count),)
-//                    )]
-//                )
-//        else
-//            None
+                if (myRankIsGreatest inputState.Self.Name agentsOnMyNode) then
+                    let nextBest = findNextBestUnexplored inputState
+                    match nextBest with
+                    | Some vertex -> Explored vertex
+                    | None -> Explored nearestUnexplored
+                else
+                    Explored nearestUnexplored
+
+        Some ( "explore one more node."
+             , Activity
+             , [Requirement goal]
+             )
 
     //When disabled, post a repair job, then recharge while waiting for a repairer. Temporary version to be updated later.
     //Works by creating a plan to recharge one turn each turn.
@@ -104,34 +100,29 @@ module Common =
             //Otherwise, create the job, then start waiting
             | _ -> 
                 let here = inputState.Self.Node
-                Some("get repaired.",Activity,[Plan(fun state -> Some [
-                                                                 Communicate( CreateJob( (None,5,JobType.RepairJob,1),RepairJob(state.Self.Node,state.Self.Name) ) )
-                                                                 ]);Requirement( ((fun state -> state.LastAction = Recharge), None, CheckGoal ) ) ] )
+                let communicateJob state = 
+                    Some [ Communicate <| CreateJob ( (None,5,JobType.RepairJob,1),RepairJob(state.Self.Node,state.Self.Name) ) ]
+                Some ( "get repaired."
+                     , Activity
+                     , [ Plan <| communicateJob
+                       ; Requirement <| Charged None
+                       ]
+                     )
         else
             None
             
     //Find a node of at leas value 8 to stand on.
     let generateMinimumValue (inputState:State) = 
-        //findAndDo inputState.Self.Node nodeHasMinValue "generate value" inputState
-        let targetOpt = findTargetNode inputState.Self.Node nodeHasMinValue inputState
-        match targetOpt with
-        | None -> None
-        | Some target ->
-                Some
-                        (   "get minimum value at " + target
-                        ,   Activity
-                        ,   [
-                                //Requirement((fun state -> (state.Self.Node = target)), Some (distanceBetweenAgentAndNode target));
-                                Plan <| planRouteTo target
-                                Plan(fun s -> Some [Perform(Recharge)])
-                            ]
-                        )
+        Some ( "get minimum value"
+             , Activity
+             , [ Requirement GenerateMinValue ]
+             )
 
 //    let _oldKnowledge = ref (Set.empty<Percept>)
 //    let _redundant = ref 0
 //    let lockObject = new System.Object()
 
-    let shareKnowledge (s:State) : Option<Intention> =
+    let shareKnowledge (inputState:State) : Option<Intention> =
 //         lock lockObject (fun () -> let ss = !_oldKnowledge
 //                                    let ns = List.fold (fun ps p -> 
 //                                                
@@ -149,11 +140,10 @@ module Common =
     
     let applyToOccupyJob  modifier (inputState:State) = 
         let applicationList = createApplicationList inputState JobType.OccupyJob (calculateDesireOccupyJob modifier)
-        Some(
-                "apply to all occupy jobs"
-                , Communication
-                , [Plan(fun state -> Some applicationList)]
-            )
+        Some ( "apply to all occupy jobs"
+             , Communication
+             , [Plan (fun state -> Some applicationList)]
+             )
     
 
     let workOnOccupyJob (inputState:State) =
@@ -162,13 +152,10 @@ module Common =
         match myOccupyJobs with
         | ((id,_,_,_),_)::_ -> 
             let (_,node) = List.find (fun (jid,_) -> id.Value = jid) inputState.MyJobs
-            Some
-                (   "occupy node " + node
-                ,   Activity
-                ,   [
-                        //Requirement <| ((fun state -> state.Self.Node = node), Some (fun state -> (distanceBetweenNodes state.Self.Node node state)))
-                        Plan <| planRouteTo node
-                    ;   Plan <| fun _ -> Some [Perform Recharge]
-                    ]
-                )
+            Some ( "occupy node " + node
+                 , Activity
+                 , [ Requirement (At node)
+                   ; Plan <| fun _ -> Some [Perform Recharge]
+                   ]
+                 )
         | [] -> None
