@@ -136,37 +136,37 @@ module Planning =
 //        | _ -> Some plan
 
     let repairPlan state intent (plan : Plan) = 
-        
-        let rec helper state plan =
-            match plan with
-            | action :: tail when isApplicable state action ->
-                match helper (action.Effect state) tail with
-                | Some plan -> Some <| [action] @ plan
-                | None -> None
-            | action :: tail ->
-                logImportant <| sprintf "Inconsistency found! state does not satisfy %A" action.ActionType
-//                let gluePlan = makePlan state ([Requirement <| ((flip isApplicable action), None, CheckGoal)])
-//                match gluePlan with
-//                | Some (plan, _) ->
-//                    logInfo <| sprintf "Found glue plan %A" (List.map (fun action -> action.ActionType) plan)
-//                    Some <| plan @ (action :: tail)
-//                | None -> 
-//                    logImportant <| sprintf "Failed to find glue plan" 
-//                    None
-                Some []
-            | [] -> Some []
+        formulatePlan state intent
+//        let rec helper state plan =
+//            match plan with
+//            | action :: tail when isApplicable state action ->
+//                match helper (action.Effect state) tail with
+//                | Some plan -> Some <| [action] @ plan
+//                | None -> None
+//            | action :: tail ->
+//                logImportant <| sprintf "Inconsistency found! state does not satisfy %A" action.ActionType
+////                let gluePlan = makePlan state ([Requirement <| ((flip isApplicable action), None, CheckGoal)])
+////                match gluePlan with
+////                | Some (plan, _) ->
+////                    logInfo <| sprintf "Found glue plan %A" (List.map (fun action -> action.ActionType) plan)
+////                    Some <| plan @ (action :: tail)
+////                | None -> 
+////                    logImportant <| sprintf "Failed to find glue plan" 
+////                    None
+//                Some []
+//            | [] -> Some []
 
         
-        let (path, goals) = plan
-        logInfo <| sprintf "Repairing plan %A" (List.map (fun action -> action.ActionType) path)
-//        let newPlan = repairPlanHelper state path
-        let newPlan = helper state path
-
-        match newPlan with
-        | Some p -> 
-            logInfo <| sprintf "repaired plan: %A" (List.map (fun action -> action.ActionType) p)
-            Some (p, goals)
-        | None -> None
+//        let (path, goals) = plan
+//        logInfo <| sprintf "Repairing plan %A" (List.map (fun action -> action.ActionType) path)
+////        let newPlan = repairPlanHelper state path
+//        let newPlan = helper state path
+//
+//        match newPlan with
+//        | Some p -> 
+//            logInfo <| sprintf "repaired plan: %A" (List.map (fun action -> action.ActionType) p)
+//            Some (p, goals)
+//        | None -> None
 
     let solutionFinished state intent solution = 
         match solution with
