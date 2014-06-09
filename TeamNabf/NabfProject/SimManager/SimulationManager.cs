@@ -143,7 +143,7 @@ namespace NabfProject.SimManager
             {
                 if (_currentRoundNumber % 20 == 0 && _notPrintedSentKnowledgeCounterThisRound)
                 {
-                    Console.WriteLine("--------total numbers of sent knowledge is: " + _sentKnowledgeCounter);
+                    Console.WriteLine("Total numbers of sent knowledge is: " + _sentKnowledgeCounter);
                     _notPrintedSentKnowledgeCounterThisRound = false;
                 }
                 else if (_currentRoundNumber % 9 == 0)

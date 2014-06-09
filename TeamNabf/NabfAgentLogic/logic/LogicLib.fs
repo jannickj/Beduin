@@ -199,3 +199,11 @@ module LogicLib =
         List.map fst (Map.toList state.World)
         |> List.filter (condition state)
         |> List.minBy (flip distanceBetweenAgentAndNode <| state)
+
+        
+    let nodeHasNoOtherFriendlyAgentsOnIt (inputState:State) node : bool =
+        let friendliesOnNode = List.filter (fun a -> a.Node = node) inputState.FriendlyData
+        if (friendliesOnNode.Length = 1) then
+            friendliesOnNode.Head.Name = inputState.Self.Name
+        else
+            false

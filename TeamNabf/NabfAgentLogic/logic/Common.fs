@@ -65,15 +65,15 @@ module Common =
 
     //Try to make it so the agent has explored one more node
     let exploreMap (inputState:State) = 
-        let agentsOnMyNode = List.filter (fun a -> a.Node = inputState.Self.Node && not(a.Name = inputState.Self.Name)) inputState.FriendlyData
+        let otherAgentsOnMyNode = List.filter (fun a -> a.Node = inputState.Self.Node && not(a.Name = inputState.Self.Name)) inputState.FriendlyData
 
         let nearestUnexplored = nearestVertexSatisfying inputState isUnexplored
 
         let goal = 
-            if (agentsOnMyNode.IsEmpty) then
+            if (nodeHasNoOtherFriendlyAgentsOnIt inputState inputState.Self.Node) then
                 Explored nearestUnexplored
             else
-                if (myRankIsGreatest inputState.Self.Name agentsOnMyNode) then
+                if (myRankIsGreatest inputState.Self.Name otherAgentsOnMyNode) then
                     let nextBest = findNextBestUnexplored inputState
                     match nextBest with
                     | Some vertex -> Explored vertex
@@ -115,14 +115,14 @@ module Common =
     let generateMinimumValue (inputState:State) = 
         Some ( "get minimum value"
              , Activity
-             , [ Requirement Occupied ]
+             , [ Requirement GenerateMinValue ]
              )
 
 //    let _oldKnowledge = ref (Set.empty<Percept>)
 //    let _redundant = ref 0
 //    let lockObject = new System.Object()
 
-    let shareKnowledge (s:State) : Option<Intention> =
+    let shareKnowledge (inputState:State) : Option<Intention> =
 //         lock lockObject (fun () -> let ss = !_oldKnowledge
 //                                    let ns = List.fold (fun ps p -> 
 //                                                

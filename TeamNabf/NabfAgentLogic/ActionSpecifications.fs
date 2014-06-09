@@ -325,7 +325,7 @@ module ActionSpecifications =
     let availableActions goal state =
         let actions = 
             match goal with
-            | At _ | Explored _ | Occupied -> 
+            | At _ | Explored _ | GenerateMinValue -> 
                 gotoActions state
             | Attacked agent -> 
                 gotoActions state @ attackActions agent state
