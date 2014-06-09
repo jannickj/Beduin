@@ -262,9 +262,10 @@ namespace NabfAgentLogic.IiLang
             match visibleVertex with
             | Function ("visibleVertex", data) ->
                 match data with
-                |   [ Function ("name", [Identifier name])
-                    ; Function ("team", [team])]                -> (name, parseIilTeamName team)
-                |   [ Function ("name", [Identifier name])]     -> (name, None)
+                | [ Function ("name", [Identifier name])
+                  ; Function ("team", [team])]                -> (name, parseIilTeamName team)
+                | [ Function ("name", [Identifier name])]     -> (name, None)
+                | _ -> raise <| InvalidIilException ("visibleVertex", [visibleVertex])
             | _ -> raise <| InvalidIilException ("visibleVertex", [visibleVertex])
 
         let parseIilSimStart iilSimStart = 

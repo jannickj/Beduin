@@ -97,10 +97,14 @@ module Common =
             //Otherwise, create the job, then start waiting
             | _ -> 
                 let here = inputState.Self.Node
-                Some("get repaired.",Activity,[Plan(fun state -> Some [
-                                                                 Communicate( CreateJob( (None,5,JobType.RepairJob,1),RepairJob(state.Self.Node,state.Self.Name) ) )
-                                                                 ]); Requirement <| Charged None])
-//                                                                 Requirement( ((fun state -> state.LastAction = Recharge), None, CheckGoal ) ) ] )
+                let communicateJob state = 
+                    Some [ Communicate <| CreateJob ( (None,5,JobType.RepairJob,1),RepairJob(state.Self.Node,state.Self.Name) ) ]
+                Some ( "get repaired."
+                     , Activity
+                     , [ Plan <| communicateJob
+                       ; Requirement <| Charged None
+                       ]
+                     )
         else
             None
             
