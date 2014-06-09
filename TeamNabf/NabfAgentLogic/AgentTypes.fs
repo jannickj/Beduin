@@ -105,6 +105,15 @@ module AgentTypes =
         ; SimRole        :   AgentRole
         }
     
+    type Message =
+        | MyLocation of VertexName
+
+    type RecipientName = AgentName
+    type SenderName = AgentName
+        //add new types here
+
+    type Mail = SenderName*RecipientName*Message
+
     type JobPercept =
         | AddedOrChangedJob of Job
         | RemovedJob of Job
@@ -128,7 +137,9 @@ module AgentTypes =
         | KnowledgeSent     of Percept list
         | HeuristicUpdate   of VertexName * VertexName * (int*int)
         
+        | MailPercept       of Mail
         | JobPercept        of JobPercept
+
 
     type SimulationID = int
 
@@ -141,6 +152,7 @@ module AgentTypes =
         | SimulationSubscribe
         | ShareKnowledge of Percept list
         | NewRound of int
+        | SendMail of Mail
     
     type AgentAction = 
         | Communicate of CommunicationAction
@@ -205,6 +217,7 @@ module AgentTypes =
             NewKnowledge     : Percept list
             MyExploredCount  : int
             ProbedCount      : int
+            MailsReceived    : Mail list
             GraphHeuristic   : (Map<VertexName*VertexName, (int*int)>* Map<VertexName,int>)
 
             ///USED FOR PLANNING ONLY DONT USE THEM IN INTENTION CHECKS
@@ -263,3 +276,5 @@ module AgentTypes =
         | MultiGoal of (State -> Goal list)
 
     type Intention = string*IntentionType*(Objective list)
+
+    

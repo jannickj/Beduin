@@ -210,7 +210,8 @@ module HandlePercepts =
             | HeuristicUpdate (n1,n2,dist) -> 
                 let (heuMap,countMap) = state.GraphHeuristic 
                 {state with GraphHeuristic = (Map.add (n1,n2) dist heuMap,countMap)}
-
+            | MailPercept mail ->
+                { state with MailsReceived = mail::state.MailsReceived }
             | unhandled -> logError (sprintf "Unhandled percept: %A" unhandled) 
                            state //fix this later by handling remaining percepts
 

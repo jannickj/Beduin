@@ -3,6 +3,7 @@ namespace NabfAgentLogic.IiLang
         open Graphing.Graph
         open IiLangDefinitions
         open NabfAgentLogic.AgentTypes
+        open MessageTranslator
 
         exception InvalidIilException of string * (Element list)
             with 
@@ -185,6 +186,15 @@ namespace NabfAgentLogic.IiLang
                 ] -> HeuristicUpdate (node1, node2, (int cost, int dist))
             | _ -> raise <| InvalidIilException ("heuristicUpdate", iilData)
 
+        let parseIilMailMessage iilData =
+            match iilData with
+            | [ Function ("message",
+                        [ Function ("recipient", [Identifier recipient])
+                        ; Function ("message", [Identifier msg])
+                        ]) 
+                ] -> MailPercept <| readMail recipient msg
+            | _ -> raise <| InvalidIilException ("message", iilData)
+
         let parseIilAchievement achievement =
             let (|Name|_|) name (str : string) = 
                 if str.StartsWith name then
@@ -305,6 +315,7 @@ namespace NabfAgentLogic.IiLang
                 | "visibleVertices"   -> List.map (parseIilVisibleVertex >> VertexSeen) data
                 | "roleKnowledge"     -> [parseIilAgentRole data]
                 | "heuristicUpdate"   -> [parseIilHeuristic data]
+                | "message"           -> [parseIilMailMessage data]
                 | _ -> raise <| InvalidIilException ("iilPercept", data)
             | _ -> failwith "no"    
         
@@ -444,4 +455,8 @@ namespace NabfAgentLogic.IiLang
                 Action ("addKnowledgeAction",[Numeral (float simid); Function ("knowledges",iilfuncs)])
             | UnapplyJob jobid ->
                 Action ("unapplyJob", [Numeral (float simid); Numeral (float jobid)])
+            | SendMail mail ->
+                let (mailtext,recipient) = buildMail mail
+                let iilfuncs = [Function ("messageKnowledge", [Identifier recipient; Identifier mailtext])]
+                Action ("addKnowledgeAction",[Numeral (float simid); Function ("knowledges",iilfuncs)])
                 

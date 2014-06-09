@@ -57,4 +57,5 @@ module AgentClientLib =
             ;   PlannerInspectedEnemies = Set.empty
             ;   PlannerDisabledEnemies = Set.empty
             ;   GraphHeuristic = (Map.empty,Map.empty)
+            ;   MailsReceived = []
             } : State
