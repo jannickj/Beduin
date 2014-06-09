@@ -45,15 +45,17 @@ module Explorer =
     let nodePartOfZone (s:State) =
         let occupyJobs = (List.filter (fun ((_,_,jType,_),_) -> jType = JobType.OccupyJob) s.Jobs)
         let occupyJobSet = Set.ofList (List.concat (List.map (fun (_,OccupyJob(_,l)) -> l) occupyJobs))
-        logCritical <| sprintf "%A" s.Jobs
-        logCritical <| sprintf "%A" occupyJobs
-        logCritical <| sprintf "%A" occupyJobSet
-        logCritical <| sprintf "%A" (Set.contains s.Self.Node occupyJobSet)
+        logCritical <| sprintf "All jobs in state: %A" s.Jobs
+        logCritical <| sprintf "Jobs in occupyJobs: %A" occupyJobs
+        logCritical <| sprintf "Nodes in occupyJobSet: %A" occupyJobSet
+        logCritical <| sprintf "bool value of nodePartOfZone: %A" (Set.contains s.Self.Node occupyJobSet)
         Set.contains s.Self.Node occupyJobSet
 
     let nodeHostile (s:State) = false // Not implemented yet!
 
-    let newZoneFound (s:State) = (onHighValueNode s) && (not (nodePartOfZone s)) && (not (nodeHostile s))
+    let newZoneFound (s:State) = 
+        logCritical <| sprintf "bool value of newZoneFound: %A" ((onHighValueNode s) && (not (nodePartOfZone s)) && (not (nodeHostile s)))
+        (onHighValueNode s) && (not (nodePartOfZone s)) && (not (nodeHostile s))
 
     let hasValueHigherThan node value (s:State) = s.World.[node].Value.IsSome && s.World.[node].Value.Value >= value
     
