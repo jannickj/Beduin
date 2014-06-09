@@ -3,13 +3,16 @@
     open System
     open AgentTypes
     open JSLibrary.Data.GenericEvents;
+    open Constants
 
     type MasterCommunicator() =
         class
             
             let mutable awaitingPercepts = []
+            let mutable timerStarted = false
+            
 
-
+            let timerLock = new Object()
             let perceptLock = new Object()
             let actionLock = new Object()
 
@@ -20,6 +23,19 @@
             [<CLIEvent>]
             member this.NewAction = NewActionEvent.Publish
 
+            member this.StartTriggerTimer () =
+                lock timerLock 
+                    (fun () ->
+                        if not timerStarted then
+                            timerStarted <- true
+                            let timer = new Timers.Timer(PERCEPT_TIME_BUFFER)
+                            timer.AutoReset <- false
+                            timer.Elapsed.Add(fun _ -> 
+                                NewPerceptsEvent.Trigger(this, new EventArgs())
+                                lock timerLock (fun () -> timerStarted <- false)
+                                )
+                            timer.Start()
+                    )
 
             member this.SetMessage (msg:AgentServerMessage) =
                 match msg with
@@ -28,8 +44,9 @@
                 | SharedPercepts percepts ->
                         lock perceptLock (fun () -> awaitingPercepts <- percepts @ awaitingPercepts)
                 | _ -> ()
-                 
-                NewPerceptsEvent.Trigger(this, new EventArgs())
+
+                this.StartTriggerTimer()
+
 
             interface Actuator<AgentAction> with
                 member this.CanPerformAction action =
@@ -42,6 +59,7 @@
                     | Communicate act ->
                         match act with
                         | ShareKnowledge pl -> lock perceptLock (fun () -> awaitingPercepts <- (KnowledgeSent pl)::awaitingPercepts)
+                                               NewPerceptsEvent.Trigger(this, new EventArgs())
                         | _ -> ()
                         lock actionLock (fun () -> NewActionEvent.Trigger(this, new UnaryValueEvent<_>((act))))
                         ()

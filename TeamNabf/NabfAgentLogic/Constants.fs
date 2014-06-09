@@ -16,7 +16,10 @@
         let DISTANCE_TO_DISRUPT_JOB_MOD = 0.1
         let DISTANCE_TO_ATTACK_JOB_MOD = 0.1
 
-        let DESIRE_COST_OF_MOVING_THROUGH_ONE_ENEMY_NODE = 0.02 //job value will be multiplied by 1.0*this_constant. This constant may not be negative and not exceed 1.0
+        let DESIRE_COST_OF_MOVING_THROUGH_ONE_ENEMY_NODE = 0.02 //distance to job will be (dist + number_of_enemy_nodes*this_constant), meaning
+                                                                //nodes with enemies on them on the route will be considered more expensive,
+                                                                // so that agents who have a safe path will desire a job more
+                                                                //This constant may not be negative and not exceed 1.0
 
         //don't change these. Modify the above constants as what they actually do is clearly understood
         let REPAIRER_OCCUPYJOB_MOD = -0.0
@@ -43,8 +46,9 @@
         ///////////////////////////////
         /// Other constants
         ///////////////////////////////
+        let MINIMUM_EDGE_COST = 1
         let UNKNOWN_EDGE_COST = 5
-        let ZONE_ORIGIN_VALUE = 10
+        let ZONE_ORIGIN_VALUE = 9
         let ZONE_BORDER_VALUE = 8
         let MINIMUM_VALUE_VALUE = 8
 
@@ -64,4 +68,6 @@
         let MAX_PLANNING_TIME_MS = 100L
 
         let NUMBER_OF_AGENTS = 28
+        let INFINITE_HEURISTIC = 10000
 
+        let PERCEPT_TIME_BUFFER = 1000.0

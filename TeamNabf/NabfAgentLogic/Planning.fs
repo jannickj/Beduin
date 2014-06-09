@@ -216,5 +216,8 @@ module Planning =
                     solutionFinished state intent solution
                 member self.NextAction (state, intent, solution) = 
                     nextAction state intent solution
+                member self.UpdateStateBeforePlanning (state, intent) = state
+                
+                member self.UpdateStateOnSolutionFinished (state, intent, solution) = state
         end
  

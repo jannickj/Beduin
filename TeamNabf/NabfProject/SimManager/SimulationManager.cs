@@ -28,11 +28,14 @@ namespace NabfProject.SimManager
         private int _numberOfAgentsFinishedApplying = 0;
 
         private const bool verbose = true;
-        private int _sentKnowledgeCounter = 0;
+        private int _callsToSendKnowledge = 0;
         private int _sentJobCounter = 0;
         private int _updatedJobCounter = 0;
         private int _applicationsReceivedCounter = 0;
+        private int _unappliesReceivedCounter = 0;
         private int _noticesRemovedCounter = 0;
+        private int _sentKnowledgeCounter = 0;
+        private bool _notPrintedSentKnowledgeCounterThisRound = true;
 
         public SimulationManager(SimulationFactory sf, int timeBeforeApplyCloses = _standardTimeBeforeApplyCloses)
         {
@@ -132,9 +135,14 @@ namespace NabfProject.SimManager
 
             if (verbose)
             {
-                _sentKnowledgeCounter++;
-                if (_sentKnowledgeCounter % 1000 == 0)
-                    Console.WriteLine("total numbers of sent knowledge is: " + _sentKnowledgeCounter);
+                _sentKnowledgeCounter += sentKnowledge.Count;
+                if (_currentRoundNumber % 20 == 0 && _notPrintedSentKnowledgeCounterThisRound)
+                {
+                    Console.WriteLine("--------total numbers of sent knowledge is: " + _sentKnowledgeCounter);
+                    _notPrintedSentKnowledgeCounterThisRound = false;
+                }
+                else if (_currentRoundNumber % 9 == 0)
+                    _notPrintedSentKnowledgeCounterThisRound = true;
             }
         }
 
@@ -226,7 +234,7 @@ namespace NabfProject.SimManager
             if (verbose)
             {
                 _applicationsReceivedCounter++;
-                if (_applicationsReceivedCounter % 280 == 0)
+                if (_applicationsReceivedCounter % 100 == 0)
                     Console.WriteLine("total numbers of job applications received is: " + _applicationsReceivedCounter);
             }
         }
@@ -241,6 +249,13 @@ namespace NabfProject.SimManager
             bool b = nb.TryGetNoticeFromId(noticeId, out notice);
             if (b == false)
                 return;
+
+            if (verbose)
+            {
+                _unappliesReceivedCounter++;
+                if (_unappliesReceivedCounter % 100 == 0)
+                    Console.WriteLine("total numbers of job applications received is: " + _unappliesReceivedCounter);
+            }
 
             nb.UnApplyToNotice(notice, a, true);
         }
@@ -273,6 +288,31 @@ namespace NabfProject.SimManager
             _applicationClosed = false;
             _jobsFoundForThisRound = false;
             _numberOfAgentsFinishedApplying = 0;
+
+            if (_currentRoundNumber % 100 == 0)
+            {
+                KnowledgeManager km;
+                TryGetKnowledgeManager(simID, out km); 
+                Console.WriteLine("  ");
+                Console.WriteLine("--- status on all current jobs on round " + _currentRoundNumber + " ---");
+                Console.WriteLine("Total number of sent jobs: " + _sentJobCounter);
+                Console.WriteLine("Total number of sent job updates: " + _updatedJobCounter);
+                Console.WriteLine("Total number of sent applications: " + _applicationsReceivedCounter);
+                Console.WriteLine("Total number of sent un-applications: " + _unappliesReceivedCounter);
+                Console.WriteLine("Total number of sent job removals: " + _noticesRemovedCounter);
+                
+                Console.WriteLine("  ");
+
+                Console.WriteLine("--- status on all current knowledge on round " + _currentRoundNumber + " ---");
+                Console.WriteLine("Knowledge base size: "+km.KnowledgeBase.Length);
+                Console.WriteLine("Total knowledge sent: " + _sentKnowledgeCounter);
+                Console.WriteLine("Total redudant knowledge sent: " + (km._redudantEdgeKnowledgeCounter + km._redudantNodeKnowledgeCounter + km._redudantRoleKnowledgeCounter + km._redudantHeuristicKnowledgeCounter + km._redudantMessageKnowledgeCounter));
+                Console.WriteLine("Total useful knowledge sent: " + (km._edgeKnowledgeCounter + km._nodeKnowledgeCounter + km._roleKnowledgeCounter + km._heuristicKnowledgeCounter + km._messageKnowledgeCounter));
+                Console.WriteLine("Redudant knowledge sent. Edge: " + km._redudantEdgeKnowledgeCounter + ". Node " + km._redudantNodeKnowledgeCounter + ". Role " + km._redudantRoleKnowledgeCounter + ". Heuristic " + km._redudantHeuristicKnowledgeCounter + ". Message " + km._redudantMessageKnowledgeCounter);
+                Console.WriteLine("Useful knowledge sent. Edge:   " + km._edgeKnowledgeCounter + ". Node " + km._nodeKnowledgeCounter + ". Role " + km._roleKnowledgeCounter + ". Heuristic " + km._heuristicKnowledgeCounter + ". Message " + km._messageKnowledgeCounter);
+                Console.WriteLine("  ");
+            }
+
             return true;
         }
 

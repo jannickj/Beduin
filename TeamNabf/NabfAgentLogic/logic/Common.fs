@@ -23,9 +23,11 @@ module Common =
         let jobTargetNode = 
             match jobData with
             | OccupyJob (_,zone) -> zone.Head
-        
 
-        let (distanceToJob,personalValueMod) = (getDistanceToJobAndNumberOfEnemyNodes jobTargetNode s)
+        let distanceToJob = (getDistanceToJobAndNumberOfEnemyNodes jobTargetNode s)
+        
+        let personalValueMod = 1 |> float//if an agent has some kind of "personal" preference 
+                                         //that modifies how much it desires the new job, using the input modifier 
         
         //final desire
         int <| (((float newValue) * personalValueMod) - (float oldJobValue))    +     (-(distanceToJob * DISTANCE_TO_OCCUPY_JOB_MOD))    +    modifier
@@ -125,8 +127,24 @@ module Common =
                             ]
                         )
 
+//    let _oldKnowledge = ref (Set.empty<Percept>)
+//    let _redundant = ref 0
+//    let lockObject = new System.Object()
+
     let shareKnowledge (s:State) : Option<Intention> =
-         Some ("share my knowledge", Communication, [Plan (fun state -> Some [(Communicate <| ShareKnowledge ( state.NewKnowledge))] )])
+//         lock lockObject (fun () -> let ss = !_oldKnowledge
+//                                    let ns = List.fold (fun ps p -> 
+//                                                
+//                                                Set.add p ps) ss s.NewKnowledge
+//                                    ()
+//                                    )               
+            Some ("share my knowledge", Communication, [Plan (fun state -> 
+                                                                            if (state.NewKnowledge.Length > 0) then
+                                                                                Some [(Communicate <| ShareKnowledge ( state.NewKnowledge))] 
+                                                                            else
+                                                                                None
+                                                                                )])
+         
     
     
     let applyToOccupyJob  modifier (inputState:State) = 

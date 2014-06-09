@@ -79,26 +79,24 @@ module LogicLib =
         let ((_,value,_,_),_) = (getJobFromJobID s id)
         value
 
-    //pathfind through the graph. When the path is found, count it's length and register each node which is held by an enemy
+    //pathfind through the graph. When the path is found, count it's length and return it
     //returns: (dist to job * number of enemy node)
     let getDistanceToJobAndNumberOfEnemyNodes (targetNode:VertexName) (s:State) =
-        let number_of_enemy_nodes = 0.0
-        let distance_to_job = 1.0
-        
+        let distance_to_job = 1.0        
 
-        (distance_to_job   ,   1.0  -  (number_of_enemy_nodes  *  DESIRE_COST_OF_MOVING_THROUGH_ONE_ENEMY_NODE)) 
-
-    
+        distance_to_job     
 
 
     //let isPartOfOccupyJob n (s:State) = List.exists (fun (j:Job) -> j ) s.Jobs
 
 
-    let distanceBetweenNodes node1 node2 (state:State) : int = 
-                if state.HeuristicMap.ContainsKey(node1, node2) then 
-                    state.HeuristicMap.[node1, node2]
-                else
-                    666
+    let distanceBetweenNodes node1 node2 (state:State) : int =
+        let (heuMap,_) = state.GraphHeuristic
+        let [nodeA;nodeB] = List.sort [node1; node2]
+        match Map.tryFind (nodeA,nodeB) heuMap with
+        | Some (cost,dist) ->
+            (state.Self.MaxEnergy.Value/2)*dist+cost
+        | None -> INFINITE_HEURISTIC
 
     let distanceBetweenAgentAndNode node state : int = distanceBetweenNodes state.Self.Node node state
     

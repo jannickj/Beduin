@@ -8,6 +8,7 @@ module HandlePercepts =
     open NabfAgentLogic.LogicLib
     open NabfAgentLogic.Search.HeuristicDijkstra
     open Constants
+    
 
     ///////////////////////////////////Helper functions//////////////////////////////////////
 
@@ -152,8 +153,7 @@ module HandlePercepts =
                 match agentRole with
                 | (name, role, certainty) -> if certainty = 100 then addAgentRole name (Some role)
                                                 else state// We might want to add functionality for certainty < 100%
-                | _ -> state
-
+           
             | JobPercept job -> 
                 let jobIDFromHeader (header:JobHeader) =
                         match header with
@@ -199,23 +199,26 @@ module HandlePercepts =
 
                     { state with MyJobs =  existingJobRemoved }
 
-                | _ -> state
-
+               
             | KnowledgeSent pl -> 
                     let updatedNK = List.filter (fun p -> not <| List.exists ((=) p) pl) state.NewKnowledge
+                    logCritical <| sprintf "Clearing knowledge sent. We sent %A knowledge" pl.Length
                     { state with NewKnowledge = updatedNK }
 
-            | HeuristicUpdate (n1,n2,dist) -> {state with HeuristicMap = Map.add (n1,n2) dist state.HeuristicMap}
+            | HeuristicUpdate (n1,n2,dist) -> 
+                let (heuMap,countMap) = state.GraphHeuristic 
+                {state with GraphHeuristic = (Map.add (n1,n2) dist heuMap,countMap)}
 
-            | _ -> state
+            | unhandled -> logError (sprintf "Unhandled percept: %A" unhandled) 
+                           state //fix this later by handling remaining percepts
 
+            
     let clearTempBeliefs (state:State) =
         let newEnemyData = List.map (fun enemy -> { enemy with Agent.Node = ""}) state.EnemyData
         { state with 
             NewEdges = []
             NewVertices = []
             EnemyData = newEnemyData
-            UpdateMap = false
         }
 
     let updateTraversedEdgeCost (oldState : State) (newState : State) =
@@ -290,7 +293,7 @@ module HandlePercepts =
                     false
             else
                 true
-        | VertexSeen (vertexName, ownedBy) -> not (oldState.World.ContainsKey(vertexName))
+        | VertexSeen (vertexName, ownedBy) -> not (oldState.World.ContainsKey vertexName )
         | EdgeSeen (edgeValue, node1, node2) ->
             if oldState.World.ContainsKey(node1) then
                 let edge = Set.filter (fun (_, endNode) -> endNode = node2) oldState.World.[node1].Edges
@@ -305,11 +308,14 @@ module HandlePercepts =
           
 
         | EnemySeen { Role = role ; Name = name} -> 
-            //if (role.IsSome)
-                
-            //else
-        
-        false//Should be shared when we learn of the agents role, as well as every time it is spotted!! TODO!!!
+            match (List.filter (fun a -> a.Name = name) oldState.EnemyData) with
+            | head::tail ->                             
+                            if (role.IsSome && head.Role.IsNone) then
+                                true
+                            else
+                                false
+            | _ -> false
+        //false//Should be shared when we learn of the agents role, as well as every time it is spotted!! TODO!!!
 //            let agentIsKnown agentData = 
 //                match agentData with
 //                | { Name = agentDataName ; Role = Some _ } -> agentDataName = name
@@ -331,47 +337,51 @@ module HandlePercepts =
                 NewKnowledge = state.NewKnowledge @ propagatedPercepts
         }
 
-    let updateHeuristicsMap percepts oldState state =
-        if state.World.Count > oldState.World.Count then             
-            
-            let result = 
-
-                let nodeNames = List.map fst (Map.toList state.World)
-                let nodeNumbers = List.map (fun (s:string) -> s.Remove(0,1) |> int ) nodeNames  
-                let myNumber = (state.Self.Name.Remove(0, OUR_TEAM.Length) |> int)
-                let nodeNumbersToFindHeuristicFor = List.filter (fun i -> i % NUMBER_OF_AGENTS = myNumber) nodeNumbers
-                let nodeNamesToFindHeuristicFor = List.map (fun i -> String.concat "v" [ i |> string]) nodeNumbersToFindHeuristicFor
-                let heuristics = List.map (fun s -> allDistancesMap state.World s) nodeNamesToFindHeuristicFor
-                let newHeuristicMap = addListOfMapsToMap state.HeuristicMap heuristics
-
-                let difHeus = List.filter 
-                                            (
-                                                fun (key,dist) -> match Map.tryFind key state.HeuristicMap with
-                                                                    | Some (oldDist) -> dist < oldDist
-                                                                    | _ -> true
-                                            ) 
-                                                <| Map.toList newHeuristicMap
-                
-                { state with //UpdateMap = true
-                        //HeuristicMap = allPairsDistances state.World
-                        HeuristicMap = newHeuristicMap
-                        
-                        NewKnowledge = List.append state.NewKnowledge (List.map (fun ((n1,n2),dist) -> HeuristicUpdate(n1,n2,dist)) difHeus)
-                }
-            
-            result
-        else
-            state
+//    let updateHeuristicsMap percepts oldState state =
+//        if state.World.Count > oldState.World.Count then             
+//            
+//            let result = 
+//                
+//
+//                let nodeNames = List.map fst (Map.toList state.World)
+//                let nodeNumbers = List.map (fun (s:string) -> s.Remove(0,1) |> int ) nodeNames  
+//                let myNumber = (state.Self.Name.Remove(0, OUR_TEAM.Length) |> int)
+//                let nodeNumbersToFindHeuristicFor = List.filter (fun i -> i % NUMBER_OF_AGENTS = myNumber) nodeNumbers
+//                let nodeNamesToFindHeuristicFor = List.map (fun i -> "v" + (string i)) nodeNumbersToFindHeuristicFor
+//                let heuristics = List.map (fun s -> allDistancesMap state.World s) nodeNamesToFindHeuristicFor
+//                let newHeuristicMap = addListOfMapsToMap state.HeuristicMap heuristics
+//
+//                let difHeus = List.filter 
+//                                            (
+//                                                fun (key,dist) -> match Map.tryFind key state.HeuristicMap with
+//                                                                    | Some (oldDist) -> dist < oldDist
+//                                                                    | _ -> true
+//                                            ) 
+//                                                <| Map.toList newHeuristicMap
+//                
+//                { state with //UpdateMap = true
+//                        //HeuristicMap = allPairsDistances state.World
+//                        HeuristicMap = newHeuristicMap
+//                        
+//                        //NewKnowledge = List.append state.NewKnowledge (List.map (fun ((n1,n2),dist) -> HeuristicUpdate(n1,n2,dist)) difHeus)
+//                }
+//            
+//            result
+//        else
+//            state
 
     let updateHeuristicsMapSingle percepts oldState state =
         if state.World.Count > oldState.World.Count then 
             
+            //let stopwatch = System.Diagnostics.Stopwatch.StartNew()
+
             let result = 
-                { state with //UpdateMap = true ;
-                             HeuristicMap = allDistancesMap state.World state.Self.Node
+                { state with GraphHeuristic = updateHeuristic state state.Self.Node
 
                 }
-            
+
+            //logCritical <| sprintf "millieseconds used on single heuristic calc: %A" stopwatch.ElapsedMilliseconds
+
             result
         else
             state
@@ -388,11 +398,10 @@ module HandlePercepts =
                                 |> selectSharedPercepts percepts state
                                 |> updateHeuristicsMapSingle percepts state
 
-        let fixState = { state with UpdateMap = false }
-
+        
         match percepts with
         | NewRoundPercept::_ -> newRoundPercepts clearedState
                                 
-        | _ -> handlePercepts fixState percepts
+        | _ -> handlePercepts state percepts
 
         
