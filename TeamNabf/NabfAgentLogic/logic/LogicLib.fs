@@ -7,7 +7,8 @@ module LogicLib =
     open Constants
     open FsPlanning.Search
     open FsPlanning.Search.Problem
-    open NabfAgentLogic.ActionSpecifications
+
+    let flip f x y = f y x
 
     let nodeListContains n (nl:string list) =
         (List.tryFind (fun s -> s = n) nl).IsSome
@@ -38,6 +39,9 @@ module LogicLib =
         
     let nearbyAllies state = 
         List.filter (fun a -> nodeListContains a.Node (neighbourNodes state state.Self)) state.FriendlyData 
+
+    let isUnexplored state vertex = 
+        not (List.exists (fun (value, _) -> Option.isSome value) <| Set.toList state.World.[vertex].Edges)
 
     let getJobsByType (jobtype:JobType) (list : Job list) : Job list = List.filter 
                                                                         (
@@ -188,3 +192,9 @@ module LogicLib =
     let myRankIsGreatest myName (other:Agent List) =
         let qq = List.filter (fun a -> a.Name > myName) other
         qq.IsEmpty
+
+
+    let nearestVertexSatisfying (state : State) (condition : (State -> VertexName -> bool)) =
+        List.map fst (Map.toList state.World)
+        |> List.filter (condition state)
+        |> List.minBy (flip distanceBetweenAgentAndNode <| state)

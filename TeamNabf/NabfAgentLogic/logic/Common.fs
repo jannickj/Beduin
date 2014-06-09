@@ -66,19 +66,20 @@ module Common =
     //Try to make it so the agent has explored one more node
     let exploreMap (inputState:State) = 
         let agentsOnMyNode = List.filter (fun a -> a.Node = inputState.Self.Node && not(a.Name = inputState.Self.Name)) inputState.FriendlyData
+
+        let nearestUnexplored = nearestVertexSatisfying inputState isUnexplored
+
         let goal = 
             if (agentsOnMyNode.IsEmpty) then
-                Explored None
-    //            findAndDo inputState.Self.Node nodeIsUnexplored CheckGoal "mark as explored" false inputState
+                Explored nearestUnexplored
             else
                 if (myRankIsGreatest inputState.Self.Name agentsOnMyNode) then
                     let nextBest = findNextBestUnexplored inputState
                     match nextBest with
-                    | Some vertex -> Explored <| Some vertex
-                    | None -> Explored None
-    //                findAndDo inputState.Self.Node nodeIsUnexplored CheckGoal "mark as explored" true inputState
+                    | Some vertex -> Explored vertex
+                    | None -> Explored nearestUnexplored
                 else
-                    Explored None
+                    Explored nearestUnexplored
 
         Some ( "explore one more node."
              , Activity

@@ -15,15 +15,8 @@ module GoalSpecifications =
         let enemy = List.find (fun (enemy : Agent) -> enemy.Name = agent) state.EnemyData
         enemy.Status = Disabled
 
-    let vertexProbed vertex state =
-        match vertex with
-        | Some vertex -> state.World.[vertex].Value.IsSome
-        | None -> state.LastAction = (Probe None)
-
-    let explored state = 
-        let node = state.Self.Node
-        let n = state.World.[node] 
-        Set.exists (fun (value : int option, _) -> value.IsSome) n.Edges
+    let vertexProbed vertex state = 
+        Option.isSome state.World.[vertex].Value
 
     let agentInspected agent state =
         let enemy = List.find (fun enemy -> enemy.Name = agent) state.EnemyData
@@ -50,10 +43,9 @@ module GoalSpecifications =
     let generateGoalCondition goal =
         match goal with
         | At vertex 
-        | Explored (Some vertex) -> fun state -> state.Self.Node = vertex
+        | Explored vertex -> fun state -> state.Self.Node = vertex
         | Attacked agent -> agentAttacked agent
         | Probed vertex -> vertexProbed vertex
-        | Explored None -> explored
         | Inspected agent -> agentInspected agent
         | Parried -> parried
         | Charged charge -> charged charge
@@ -66,8 +58,8 @@ module GoalSpecifications =
     let goalHeuristics goal =
         match goal with
         | At vertex 
-        | Explored (Some vertex)
-        | Probed (Some vertex) -> 
+        | Explored vertex
+        | Probed vertex -> 
             distanceHeuristics vertex
 
         | Attacked agent 
@@ -75,8 +67,6 @@ module GoalSpecifications =
         | Inspected agent -> 
             fun state -> distanceHeuristics (agentAt agent state) state
 
-        | Explored None 
-        | Probed None
         | Charged _
         | Occupied
         | Parried-> fun _ -> 0

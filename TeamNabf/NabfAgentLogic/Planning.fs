@@ -69,7 +69,9 @@ module Planning =
 
     let prunePlan plan goals = 
         match plan with
-        | Some {Cost = _; Path = path} -> Some <| prunePlanHelper (List.rev path) goals
+        | Some {Cost = _; Path = path} -> 
+            match path with
+            | _ -> Some <| prunePlanHelper (List.rev path) goals
         | None -> None
 
     let makePlan initstate objectives =
@@ -85,12 +87,20 @@ module Planning =
             let breakTest (stopwatch : Stopwatch) = stopwatch.ElapsedMilliseconds > Constants.MAX_PLANNING_TIME_MS
 
             let plan = solveSearchNodePath aStar (agentProblem state goals) (fun () -> breakTest stopwatch)
-            let prunedPlan = prunePlan plan goals
-            match prunedPlan with 
-            | Some path when not <| List.forall (fun node -> satisfiedGoalCount (goalList goalObjective node.State) node.State = 0) path -> 
+
+            let isSomePathValid path = 
+                not <| List.forall (fun node -> satisfiedGoalCount (goalList goalObjective node.State) node.State = 0) path
+
+            match plan with
+            | Some {Cost = _; Path = []} -> Some ([], objectives)
+            | Some {Cost = _; Path = path} when isSomePathValid path -> 
                 let actions = List.map (fun node -> node.Action.Value) path
                 logImportant (sprintf "Found plan: %A" <| List.map (fun action -> action.ActionType) actions)
                 Some (actions, objectives)
+            | Some {Cost = _; Path = path} ->
+                let actions = List.map (fun node -> node.Action.Value) path
+                logImportant <| sprintf " Discarded plan %A with objective %A" (List.map (fun action -> action.ActionType) actions) goalObjective
+                None
             | _ -> None
         | [] -> Some ([], objectives)
 
@@ -135,6 +145,32 @@ module Planning =
 
     let repairPlan state intent (plan : Plan) = 
         formulatePlan state intent
+//        let rechargedState (state : State) = {state with Self = {state.Self with Energy = state.Self.MaxEnergy}}
+//
+//        let rec workingPlan state plan =
+//            match plan with
+//            | (action :: tail, objectives) when isApplicable (rechargedState state) action ->
+//                Option.map (List.append [action]) <| workingPlan (action.Effect state) (tail, objectives)
+//            | (action :: tail, objectives) -> 
+//                Some []
+//            | ([], objective :: tail) when goalTest (goalList objective state) state ->
+//                None
+//
+//        let planToMinHeuristic state plan goal =
+//            let heuList = List.map (fun action -> (goalHeuristics goal) (action.Effect state)) plan
+//            let minHeuIdx = List.find ((=) (List.min heuList)) heuList
+//            let rec toNth ls nth count =
+//                if count = nth then
+//                    ls
+//                else 
+//                    toNth (List.tail ls) nth (count + 1)
+//            toNth plan minHeuIdx 0
+//
+//        match workingPlan state plan with
+//            | None -> plan
+//            | Some p -> List.fold (fun state action -> action.Effect state) state p
+                
+
 //        let rec helper state plan =
 //            match plan with
 //            | action :: tail when isApplicable state action ->
@@ -173,8 +209,16 @@ module Planning =
             | Some [] 
             | None -> true
             | _ -> false
-        | (_, [objective]) -> (wrappedGoalTest <| goalTest (goalList objective state)) state
-        | (_, []) -> true
+        | (_, [objective]) -> 
+            logImportant "before GoalTest"
+            if (wrappedGoalTest <| goalTest (goalList objective state)) state then
+                logImportant "solutionFinished"
+                true
+            else
+                let goals = goalList objective state
+                logImportant <| sprintf "goal length: %A, goals satisfied: %A" (List.length goals) (List.length <| List.filter (fun goal -> (generateGoalCondition goal) state) goals)
+                false
+        | (_, []) -> logImportant "solutionFinished"; true
         | _ -> false
     
     let rec nextAction state (intent : Intention) (plan : Plan) =
