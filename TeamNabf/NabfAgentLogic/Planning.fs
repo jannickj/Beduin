@@ -47,12 +47,17 @@ module Planning =
     let goalTest goals state = 
         List.forall (fun goal -> generateGoalCondition goal state) goals
 
+    let applicableActions goals state =
+        let actions = Set.ofList <| List.collect (availableActions state) goals
+        let appActs = Set.filter (isApplicable state) actions
+        Set.toList appActs
+
     let agentProblem (state : State) goals = 
         let headGoal = List.head goals
 
         { InitialState = state
         ; GoalTest     = wrappedGoalTest <| goalTest goals
-        ; Actions      = fun state -> List.filter (isApplicable state) (availableActions headGoal state)
+        ; Actions      = applicableActions goals
         ; Result       = fun state action -> action.Effect state
         ; StepCost     = fun state action -> action.Cost state
         ; Heuristic    = h goals
@@ -83,8 +88,11 @@ module Planning =
             | None -> None
         | goalObjective :: _ -> 
             let goals = goalList goalObjective state
+            logImportant <| sprintf "Goals %A" goals
             let stopwatch = System.Diagnostics.Stopwatch.StartNew()
-            let breakTest (stopwatch : Stopwatch) = stopwatch.ElapsedMilliseconds > Constants.MAX_PLANNING_TIME_MS
+            let breakTest (stopwatch : Stopwatch) = 
+                let broken = stopwatch.ElapsedMilliseconds > Constants.MAX_PLANNING_TIME_MS
+                broken
 
             let plan = solveSearchNodePath aStar (agentProblem state goals) (fun () -> breakTest stopwatch)
 
@@ -92,7 +100,9 @@ module Planning =
                 not <| List.forall (fun node -> satisfiedGoalCount (goalList goalObjective node.State) node.State = 0) path
 
             match plan with
-            | Some {Cost = _; Path = []} -> Some ([], objectives)
+            | Some {Cost = _; Path = []} -> 
+                logImportant <| sprintf "Found empty plan for goals %A" goals
+                Some ([], objectives)
             | Some {Cost = _; Path = path} when isSomePathValid path -> 
                 let actions = List.map (fun node -> node.Action.Value) path
                 logImportant (sprintf "Found plan: %A" <| List.map (fun action -> action.ActionType) actions)
@@ -101,7 +111,9 @@ module Planning =
                 let actions = List.map (fun node -> node.Action.Value) path
                 logImportant <| sprintf " Discarded plan %A with objective %A" (List.map (fun action -> action.ActionType) actions) goalObjective
                 None
-            | _ -> None
+            | _ -> 
+                logImportant "No plan found"                
+                None
         | [] -> Some ([], objectives)
 
        

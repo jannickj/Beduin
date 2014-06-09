@@ -196,9 +196,12 @@ module LogicLib =
 
 
     let nearestVertexSatisfying (state : State) (condition : (State -> VertexName -> bool)) =
-        List.map fst (Map.toList state.World)
-        |> List.filter (condition state)
-        |> List.minBy (flip distanceBetweenAgentAndNode <| state)
+        let satisfying = List.map fst (Map.toList state.World)
+                         |> List.filter (condition state)
+        if List.length satisfying > 0 then
+            Some (List.minBy (flip distanceBetweenAgentAndNode <| state) satisfying )
+        else
+            None
 
         
     let nodeHasNoOtherFriendlyAgentsOnIt (inputState:State) node : bool =

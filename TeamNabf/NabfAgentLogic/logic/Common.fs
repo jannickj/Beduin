@@ -67,25 +67,26 @@ module Common =
     let exploreMap (inputState:State) = 
         let otherAgentsOnMyNode = List.filter (fun a -> a.Node = inputState.Self.Node && not(a.Name = inputState.Self.Name)) inputState.FriendlyData
 
-        let nearestUnexplored = nearestVertexSatisfying inputState isUnexplored
-
-        let goal = 
-            if (nodeHasNoOtherFriendlyAgentsOnIt inputState inputState.Self.Node) then
-                Explored nearestUnexplored
-            else
-                if (myRankIsGreatest inputState.Self.Name otherAgentsOnMyNode) then
-                    let nextBest = findNextBestUnexplored inputState
-                    match nextBest with
-                    | Some vertex -> Explored vertex
-                    | None -> Explored nearestUnexplored
-                else
+        let tryNearestUnexplored = nearestVertexSatisfying inputState isUnexplored
+        match tryNearestUnexplored with
+        | Some nearestUnexplored ->
+            let goal = 
+                if (nodeHasNoOtherFriendlyAgentsOnIt inputState inputState.Self.Node) then
                     Explored nearestUnexplored
+                else
+                    if (myRankIsGreatest inputState.Self.Name otherAgentsOnMyNode) then
+                        let nextBest = findNextBestUnexplored inputState
+                        match nextBest with
+                        | Some vertex -> Explored vertex
+                        | None -> Explored nearestUnexplored
+                    else
+                        Explored nearestUnexplored
 
-        Some ( "explore one more node."
-             , Activity
-             , [Requirement goal]
-             )
-
+            Some ( "explore one more node."
+                 , Activity
+                 , [Requirement goal]
+                 )
+        | _ -> None
     //When disabled, post a repair job, then recharge while waiting for a repairer. Temporary version to be updated later.
     //Works by creating a plan to recharge one turn each turn.
     let getRepaired (inputState:State) = 
