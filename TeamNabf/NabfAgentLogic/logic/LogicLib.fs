@@ -7,7 +7,7 @@ module LogicLib =
     open Constants
     open FsPlanning.Search
     open FsPlanning.Search.Problem
-    
+    open NabfAgentLogic.ActionSpecifications
 
     let nodeListContains n (nl:string list) =
         (List.tryFind (fun s -> s = n) nl).IsSome
@@ -95,7 +95,9 @@ module LogicLib =
         let [nodeA;nodeB] = List.sort [node1; node2]
         match Map.tryFind (nodeA,nodeB) heuMap with
         | Some (cost,dist) ->
-            (state.Self.MaxEnergy.Value/2)*dist+cost
+            //let rechargesRequiredCost = (cost / (state.Self.MaxEnergy.Value/2)) * turnCost state
+            let minimumTraversalCost = dist * turnCost state
+            minimumTraversalCost + cost
         | None -> INFINITE_HEURISTIC
 
     let distanceBetweenAgentAndNode node state : int = distanceBetweenNodes state.Self.Node node state

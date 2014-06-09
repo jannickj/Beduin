@@ -31,11 +31,9 @@ module Planning =
                 false
 
     let distance (goals : Goal list) state cost =
-        let heuValue = List.max <| List.map (fun goal -> goalHeuristics goal <| state) goals 
-
-        let minimumTraversalCost = (heuValue / EDGE_COST_MAX) * turnCost state
-        let rechargesRequiredCost = (heuValue / state.Self.MaxEnergy.Value) * turnCost state
-        heuValue + minimumTraversalCost + rechargesRequiredCost
+        match goals with
+        | [] -> 0
+        | gl -> List.min <| List.map (fun goal -> goalHeuristics goal <| state) gl 
       
     let satisfiedGoalCount goals state =
         List.length <| List.filter ((flip generateGoalCondition) state) goals
