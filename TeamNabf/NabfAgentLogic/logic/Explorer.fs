@@ -241,4 +241,7 @@ module Explorer =
 
     let findNodeToProbe (inputState:State) =
         let nearestUnprobed = nearestVertexSatisfying inputState nodeIsUnprobed
+        //logImportant <| sprintf "Distance to 66 is: %A" (distanceBetweenNodes "v58" "v66" inputState)
+        //logImportant <| sprintf "Distance to 99 is: %A" (distanceBetweenNodes "v58" "v99" inputState)
+        //logImportant <| sprintf "Distance to 1 is: %A" (distanceBetweenNodes "v1" "v58" inputState)
         Some("probe one more node.", Activity, [Requirement (Probed nearestUnprobed)])
