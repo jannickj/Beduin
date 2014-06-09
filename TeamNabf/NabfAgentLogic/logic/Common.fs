@@ -115,14 +115,14 @@ module Common =
     let generateMinimumValue (inputState:State) = 
         Some ( "get minimum value"
              , Activity
-             , [ Requirement Occupied ]
+             , [ Requirement GenerateMinValue ]
              )
 
 //    let _oldKnowledge = ref (Set.empty<Percept>)
 //    let _redundant = ref 0
 //    let lockObject = new System.Object()
 
-    let shareKnowledge (s:State) : Option<Intention> =
+    let shareKnowledge (inputState:State) : Option<Intention> =
 //         lock lockObject (fun () -> let ss = !_oldKnowledge
 //                                    let ns = List.fold (fun ps p -> 
 //                                                

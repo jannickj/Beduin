@@ -33,9 +33,10 @@ module GoalSpecifications =
     let agentRepaired agent state =
         state.LastAction = Repair agent
 
-    let occupied state = 
+
+    let generateMinValue state = 
         let n = state.World.[state.Self.Node] 
-        if (n.Value.IsSome) then
+        if (n.Value.IsSome && nodeHasNoAlliedAgents state n) then
             n.Value.Value >= MINIMUM_VALUE_VALUE
         else
             false
@@ -49,7 +50,7 @@ module GoalSpecifications =
         | Inspected agent -> agentInspected agent
         | Parried -> parried
         | Charged charge -> charged charge
-        | Occupied -> occupied
+        | GenerateMinValue -> generateMinValue
         | Repaired agent -> agentRepaired agent
 
     let distanceHeuristics vertex =
@@ -68,5 +69,5 @@ module GoalSpecifications =
             fun state -> distanceHeuristics (agentAt agent state) state
 
         | Charged _
-        | Occupied
+        | GenerateMinValue
         | Parried-> fun _ -> 0

@@ -204,7 +204,7 @@ module HandlePercepts =
                
             | KnowledgeSent pl -> 
                     let updatedNK = List.filter (fun p -> not <| List.exists ((=) p) pl) state.NewKnowledge
-                    logCritical <| sprintf "Clearing knowledge sent. We sent %A knowledge" pl.Length
+                    logImportant <| sprintf "Clearing knowledge sent. We sent %A knowledge" pl.Length
                     { state with NewKnowledge = updatedNK }
 
             | HeuristicUpdate (n1,n2,dist) -> 

@@ -199,3 +199,8 @@ module LogicLib =
         List.map fst (Map.toList state.World)
         |> List.filter (condition state)
         |> List.minBy (flip distanceBetweenAgentAndNode <| state)
+
+        
+    let nodeHasNoAlliedAgents (inputState:State) (node:Vertex) : bool =
+        let friendliesOnNode = List.filter (fun a -> a.Node = node.Identifier) inputState.FriendlyData
+        friendliesOnNode.Length = 0
