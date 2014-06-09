@@ -208,7 +208,7 @@ module Explorer =
                                 
                                 let zone = zoneToExplore state (Set.empty,Set [origin])
                                 let probed vertexName state = isProbed vertexName state.World
-                                let probedWithHeuristics vertexName =  Probed <| Some vertexName
+                                let probedWithHeuristics vertexName =  Probed vertexName
 //                                    ((probed vertexName), Some(distanceBetweenAgentAndNode vertexName), ProbeGoal <| Some vertexName)
 
                                 List.map (probedWithHeuristics) <| Set.toList zone
@@ -240,5 +240,5 @@ module Explorer =
             None
 
     let findNodeToProbe (inputState:State) =
-
-        Some("probe one more node.", Activity, [Requirement (Probed None)])
+        let nearestUnprobed = nearestVertexSatisfying inputState nodeIsUnprobed
+        Some("probe one more node.", Activity, [Requirement (Probed nearestUnprobed)])

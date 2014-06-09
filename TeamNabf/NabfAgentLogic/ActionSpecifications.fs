@@ -297,9 +297,10 @@ module ActionSpecifications =
             []
 
     let probeActions vertex state = 
-        match vertex with
-        | Some vertex when state.Self.Node <> vertex -> []
-        | _ -> [probeAction None]
+        if state.Self.Node = vertex then
+            [probeAction None]
+        else 
+            []
 
     let inspectActions agent state = 
         let agentsHere = agentsAt state.Self.Node state.FriendlyData

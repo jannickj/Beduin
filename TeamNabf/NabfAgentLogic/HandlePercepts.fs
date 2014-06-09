@@ -60,6 +60,8 @@ module HandlePercepts =
                         { state with FriendlyData = updateAgentList enemy state.FriendlyData }
                     else
                         { state with EnemyData = updateAgentList enemy state.EnemyData }
+            
+            | EnemySeen _ -> state
                 
             | VertexSeen seenVertex -> 
                 { state with NewVertices = seenVertex::state.NewVertices} 

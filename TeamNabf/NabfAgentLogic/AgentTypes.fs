@@ -248,11 +248,11 @@ module AgentTypes =
 
     type Goal =
         | At        of VertexName
-        | Probed    of VertexName option
+        | Probed    of VertexName
         | Attacked  of AgentName 
         | Repaired  of AgentName
         | Inspected of AgentName
-        | Explored  of VertexName option
+        | Explored  of VertexName
         | Occupied
         | Parried
         | Charged   of int option
