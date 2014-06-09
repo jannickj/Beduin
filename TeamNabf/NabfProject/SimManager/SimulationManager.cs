@@ -333,12 +333,12 @@ namespace NabfProject.SimManager
                 Console.WriteLine("  ");
 
                 Console.WriteLine("--- status on all current knowledge on round " + _currentRoundNumber + " ---");
-                Console.WriteLine("Knowledge base size: "+km.KnowledgeBase.Length);
+                Console.WriteLine("Knowledge base size: " + km.KnowledgeBase.Length);
                 Console.WriteLine("Total knowledge sent: " + _sentKnowledgeCounter);
                 Console.WriteLine("Total redudant knowledge sent: " + (km._redudantEdgeKnowledgeCounter + km._redudantNodeKnowledgeCounter + km._redudantRoleKnowledgeCounter + km._redudantHeuristicKnowledgeCounter + km._redudantMessageKnowledgeCounter));
                 Console.WriteLine("Total useful knowledge sent: " + (km._edgeKnowledgeCounter + km._nodeKnowledgeCounter + km._roleKnowledgeCounter + km._heuristicKnowledgeCounter + km._messageKnowledgeCounter));
-                Console.WriteLine("Redudant knowledge sent. Edge: " + km._redudantEdgeKnowledgeCounter + ". Node " + km._redudantNodeKnowledgeCounter + ". Role " + km._redudantRoleKnowledgeCounter + ". Heuristic " + km._redudantHeuristicKnowledgeCounter + ". Message " + km._redudantMessageKnowledgeCounter);
-                Console.WriteLine("Useful knowledge sent. Edge:   " + km._edgeKnowledgeCounter + ". Node " + km._nodeKnowledgeCounter + ". Role " + km._roleKnowledgeCounter + ". Heuristic " + km._heuristicKnowledgeCounter + ". Message " + km._messageKnowledgeCounter);
+                Console.WriteLine("Redudant knowledge sent. Edge: " + km._redudantEdgeKnowledgeCounter + ". Node " + km._redudantNodeKnowledgeCounter + ". Role " + km._redudantRoleKnowledgeCounter + ". Message " + km._redudantMessageKnowledgeCounter + ". Heuristic " + km._redudantHeuristicKnowledgeCounter);
+                Console.WriteLine("Useful knowledge sent. Edge: " + km._edgeKnowledgeCounter + ". Node " + km._nodeKnowledgeCounter + ". Role " + km._roleKnowledgeCounter + ". Message " + km._messageKnowledgeCounter + ". Heuristic " + km._heuristicKnowledgeCounter);
                 
                 if (km.GetSubscribedAgentsCount() < 28)
                     Console.WriteLine("WARNING! there is only " + km.GetSubscribedAgentsCount() + " agents connected to Knowledge Manager");

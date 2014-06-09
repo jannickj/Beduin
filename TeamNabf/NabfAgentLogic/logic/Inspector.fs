@@ -63,7 +63,12 @@ module Inspector =
     let workOnDisruptJob (inputState:State) = None //advanced feature
     
     let findAgentToInspect (inputState:State) = 
-        let neighbours = List.filter ((<>) inputState.LastPosition) <| getNeighbourIds inputState.Self.Node inputState.World
+        let neighbourIds = (getNeighbourIds inputState.Self.Node inputState.World)           
+        let neighbours = 
+                            if (neighbourIds.Length = 1) then
+                                neighbourIds
+                            else
+                                List.filter ((<>) inputState.LastPosition) neighbourIds
         let rand = System.Random()
         let index = rand.Next(0, List.length neighbours)
         let target = List.nth neighbours index

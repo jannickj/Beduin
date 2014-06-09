@@ -7,6 +7,7 @@ module LogicLib =
     open Constants
     open FsPlanning.Search
     open FsPlanning.Search.Problem
+    open ActionSpecifications
 
     let flip f x y = f y x
 
