@@ -246,16 +246,16 @@ module AgentTypes =
         | Activity
         | Inherent
 
-    type GoalType =
-        | GotoGoal
-        | ProbeGoal   of VertexName option
-        | AttackGoal  of AgentName option
-        | RepairGoal  of AgentName option
-        | InspectGoal
-        | ParryGoal
-        | CheckGoal
-
-    type Goal = (State -> bool) * (State -> int) option * GoalType
+    type Goal =
+        | At        of VertexName
+        | Probed    of VertexName option
+        | Attacked  of AgentName 
+        | Repaired  of AgentName
+        | Inspected of AgentName
+        | Explored  of VertexName option
+        | Occupied
+        | Parried
+        | Charged   of int option
 
     type Objective = 
         | Plan of (State -> (AgentAction list) option)

@@ -38,7 +38,7 @@ module Explorer =
         let l = List.filter (fun ((_,OccupyJob(_,vertices)):Job) -> (List.exists (fun (vn:VertexName) -> s.Self.Node = vn ) vertices)) occupyJobs
         l <> []
 
-    let hasExploredPhase1 (s:State) = (float s.ProbedCount) > ( EXPLORE_FACTOR_LIGHT * (float s.TotalNodeCount) )
+    let inPhase1 (s:State) = (float s.ProbedCount) > ( EXPLORE_FACTOR_LIGHT * (float s.TotalNodeCount) )
 
     let onHighValueNode (s:State) = s.World.[s.Self.Node].Value.IsSome && s.World.[s.Self.Node].Value.Value >= ZONE_ORIGIN_VALUE
 
@@ -208,7 +208,8 @@ module Explorer =
                                 
                                 let zone = zoneToExplore state (Set.empty,Set [origin])
                                 let probed vertexName state = isProbed vertexName state.World
-                                let probedWithHeuristics vertexName = ((probed vertexName), Some(distanceBetweenAgentAndNode vertexName), ProbeGoal <| Some vertexName)
+                                let probedWithHeuristics vertexName =  Probed <| Some vertexName
+//                                    ((probed vertexName), Some(distanceBetweenAgentAndNode vertexName), ProbeGoal <| Some vertexName)
 
                                 List.map (probedWithHeuristics) <| Set.toList zone
                             ); 
@@ -238,13 +239,6 @@ module Explorer =
         else
             None
 
-    let findNodeToProbe (inputState:State) = 
-        findAndDo inputState.Self.Node nodeIsUnprobed (ProbeGoal None) "probe it" false inputState
+    let findNodeToProbe (inputState:State) =
 
-//        Some("probe one more node.",Activity,[Requirement(fun state ->  match state.LastAction with 
-//                                                                        | Probe _ -> true
-//                                                                        | _ -> false
-//                                                                        )])
-
-
-    let inPhase1 = hasExploredPhase1
+        Some("probe one more node.", Activity, [Requirement (Probed None)])

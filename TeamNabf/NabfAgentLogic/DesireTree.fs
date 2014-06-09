@@ -59,7 +59,7 @@ module DesireTree =
     //
                         getRoleDesires
     //
-                        Desire(exploreMap)
+                        Desire exploreMap
     //
                         Desire(generateMinimumValue)
                     ]
