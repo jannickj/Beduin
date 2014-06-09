@@ -17,7 +17,10 @@ namespace NabfProject.KnowledgeManagerModel
 
         //private Dictionary<Knowledge, bool> _knowledgeBase = new Dictionary<Knowledge, bool>();
 		private Dictionary<Knowledge,Knowledge> _knowledgeBase = new Dictionary<Knowledge,Knowledge>();
-        
+
+
+        private const bool verbose = true;
+        //status reporting for SimMan
         public int _redudantEdgeKnowledgeCounter = 0;
         public int _redudantNodeKnowledgeCounter = 0;
         public int _redudantRoleKnowledgeCounter = 0;
@@ -29,7 +32,6 @@ namespace NabfProject.KnowledgeManagerModel
         public int _heuristicKnowledgeCounter = 0;
         public int _messageKnowledgeCounter = 0;
         public int _callsToSendKnowledge = 0;
-        private const bool verbose = true;
 
 		public Knowledge[] KnowledgeBase
 		{
@@ -49,6 +51,11 @@ namespace NabfProject.KnowledgeManagerModel
         public bool Unsubscribe(NabfAgent agent)
         {
             return _sharingList.Remove(agent);
+        }
+
+        public int GetSubscribedAgentsCount()
+        {
+            return _sharingList.Count;
         }
 
         public void SendKnowledgeToManager(List<Knowledge> sentKnowledge, NabfAgent sender)
@@ -175,7 +182,7 @@ namespace NabfProject.KnowledgeManagerModel
             //SendKnowledgeToSubscribedAgents();   
             _callsToSendKnowledge++;
             if (_callsToSendKnowledge % 50 == 0)
-                Console.WriteLine("--------size of Knowledge Base is: " + _knowledgeBase.Keys.Count);
+                Console.WriteLine("size of Knowledge Base is: " + _knowledgeBase.Keys.Count);
         }
         
         public void SendOutAllKnowledgeToAgent(NabfAgent agent)
