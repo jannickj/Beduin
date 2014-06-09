@@ -146,8 +146,8 @@ namespace NabfProject.NoticeBoardModel
             if (!isUnique)
             {
                 _nonUniqueJobsAttemptedToBeAdded++;
-                if (verbose && _nonUniqueJobsAttemptedToBeAdded % 2 == 0)
-                    Console.WriteLine("Total number of received non-unique jobs: " + _nonUniqueJobsAttemptedToBeAdded);
+                //if (verbose && _nonUniqueJobsAttemptedToBeAdded % 2 == 0)
+                    //Console.WriteLine("Total number of received non-unique jobs: " + _nonUniqueJobsAttemptedToBeAdded);
                 return false;
             }
 
@@ -157,7 +157,8 @@ namespace NabfProject.NoticeBoardModel
             {
                 a.Raise(new NewNoticeEvent(n));
                 if (n is OccupyJob)
-                    _createdOccupyJob++;
+                    Console.WriteLine("WhichNode: " + ((OccupyJob)n).WhichNodes + ". ZoneNodes: " + ((OccupyJob)n).ZoneNodes);
+                    //_createdOccupyJob++;
                 if (n is RepairJob)
                     _createdRepairJob++;
                 if (n is DisruptJob)

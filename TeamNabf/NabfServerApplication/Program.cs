@@ -111,7 +111,7 @@ namespace NabfServerApplication
                 //agent.Register(new Trigger<ActionStartingEvent<AddKnowledgeAction>>(evt => ReceivedMessage(evt.Action)));
                 agent.Register(new Trigger<ActionStartingEvent<ApplyNoticeAction>>(evt => { if (evt.Action.NoticeId != -1) ReceivedMessage(evt.Action); }));
                 //agent.Register(new Trigger<ActionStartingEvent<ChangeNoticeAction>>(evt => ReceivedMessage(evt.Action)));
-                agent.Register(new Trigger<ActionStartingEvent<CreateNoticeAction>>(evt => Console.WriteLine("Agent "+agent.Name+" posted Job:\n" + evt.Action.JobType)));
+                agent.Register(new Trigger<ActionStartingEvent<CreateNoticeAction>>(evt => { }));//Console.WriteLine("Agent "+agent.Name+" posted Job:\n" + evt.Action.JobType)));
                 //agent.Register(new Trigger<ActionStartingEvent<DeleteNoticeAction>>(evt => ReceivedMessage(evt.Action)));
                 //agent.Register(new Trigger<ActionStartingEvent<NewRoundAction>>(evt => ReceivedMessage(evt.Action)));
                 //agent.Register(new Trigger<ActionStartingEvent<SubscribeSimulationAction>>(evt => ReceivedMessage(evt.Action)));

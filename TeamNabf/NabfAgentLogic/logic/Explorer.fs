@@ -48,8 +48,21 @@ module Explorer =
         Set.contains s.Self.Node occupyJobSet
 
     let nodeHostile (s:State) = false // Not implemented yet!
+//
+//    let zoneAlreadyExists (s:State) = 
+//        let occupyJobs = List.filter (fun ((_,_,t,_),_) -> match t with
+//                                                           | JobType.OccupyJob -> true
+//                                                           | _ -> false
+//                                                                ) 
+//                                                                 s.Jobs
+//
+//        let listOfZoneList = List.map (fun (_,OccupyJob(_,zoneList)) -> zoneList) occupyJobs
+//
+//        
+//
+//        true
 
-    let newZoneFound (s:State) = (onHighValueNode s) && not (nodePartOfZone s) && not (nodeHostile s)
+    let newZoneFound (s:State) = (onHighValueNode s) && not (nodePartOfZone s) && not (nodeHostile s) //&& not (zoneAlreadyExists s)
 
     let hasValueHigherThan node value (s:State) = s.World.[node].Value.IsSome && s.World.[node].Value.Value >= value
     

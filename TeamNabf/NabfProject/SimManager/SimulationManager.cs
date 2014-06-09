@@ -161,8 +161,8 @@ namespace NabfProject.SimManager
             _sentJobCounter++;
             if (verbose)
             {
-                if (_sentJobCounter % 10 == 0)
-                    Console.WriteLine("Total numbers of created jobs is: " + _sentJobCounter);
+                //if (_sentJobCounter % 10 == 0)
+                    //Console.WriteLine("Total numbers of created jobs is: " + _sentJobCounter);
             }
 
             #region status report data gathering
@@ -189,8 +189,8 @@ namespace NabfProject.SimManager
             _noticesRemovedCounter++;
             if (verbose)
             {
-                if (_noticesRemovedCounter % 10 == 0)
-                    Console.WriteLine("Total numbers of jobs removed is: " + _noticesRemovedCounter);
+                //if (_noticesRemovedCounter % 10 == 0)
+                    //Console.WriteLine("Total numbers of jobs removed is: " + _noticesRemovedCounter);
             }
 
             return nb.RemoveNotice(noticeId);
@@ -206,8 +206,8 @@ namespace NabfProject.SimManager
             _updatedJobCounter++;
             if (verbose)
             {
-                if (_updatedJobCounter % 10 == 0)
-                    Console.WriteLine("Total numbers of updated jobs is: " + _updatedJobCounter);
+                //if (_updatedJobCounter % 10 == 0)
+                    //Console.WriteLine("Total numbers of updated jobs is: " + _updatedJobCounter);
             }
 
             return nb.UpdateNotice(noticeID, whichNodes, zoneNodes, agentsNeeded, value, agentToRepair);               
@@ -250,8 +250,8 @@ namespace NabfProject.SimManager
             _applicationsReceivedCounter++;
             if (verbose)
             {
-                if (_applicationsReceivedCounter % 100 == 0)
-                    Console.WriteLine("Total numbers of job applications received is: " + _applicationsReceivedCounter);
+                //if (_applicationsReceivedCounter % 100 == 0)
+                    //Console.WriteLine("Total numbers of job applications received is: " + _applicationsReceivedCounter);
             }
         }
         public void UnApplyToNotice(int simID, Int64 noticeId, NabfAgent a)
