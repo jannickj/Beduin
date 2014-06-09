@@ -201,6 +201,9 @@ module LogicLib =
         |> List.minBy (flip distanceBetweenAgentAndNode <| state)
 
         
-    let nodeHasNoAlliedAgents (inputState:State) (node:Vertex) : bool =
-        let friendliesOnNode = List.filter (fun a -> a.Node = node.Identifier) inputState.FriendlyData
-        friendliesOnNode.Length = 0
+    let nodeHasNoOtherFriendlyAgentsOnIt (inputState:State) node : bool =
+        let friendliesOnNode = List.filter (fun a -> a.Node = node) inputState.FriendlyData
+        if (friendliesOnNode.Length = 1) then
+            friendliesOnNode.Head.Name = inputState.Self.Name
+        else
+            false

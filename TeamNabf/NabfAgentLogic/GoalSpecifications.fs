@@ -36,7 +36,7 @@ module GoalSpecifications =
 
     let generateMinValue state = 
         let n = state.World.[state.Self.Node] 
-        if (n.Value.IsSome && nodeHasNoAlliedAgents state n) then
+        if (n.Value.IsSome && nodeHasNoOtherFriendlyAgentsOnIt state n.Identifier) then
             n.Value.Value >= MINIMUM_VALUE_VALUE
         else
             false
