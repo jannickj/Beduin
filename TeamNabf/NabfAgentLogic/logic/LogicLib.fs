@@ -206,7 +206,7 @@ module LogicLib =
         
     let nodeHasNoOtherFriendlyAgentsOnIt (inputState:State) node : bool =
         let friendliesOnNode = List.filter (fun a -> a.Node = node) inputState.FriendlyData
-        if (friendliesOnNode.Length = 1) then
+        if (friendliesOnNode.Length <= 1) then
             friendliesOnNode.Head.Name = inputState.Self.Name
         else
             false
