@@ -270,7 +270,7 @@ namespace NabfProject.SimManager
             if (verbose)
             {
                 if (_unappliesReceivedCounter % 100 == 0)
-                    Console.WriteLine("Total numbers of job applications received is: " + _unappliesReceivedCounter);
+                    Console.WriteLine("Total numbers of job un-applications received is: " + _unappliesReceivedCounter);
             }
 
             nb.UnApplyToNotice(notice, a, true);
@@ -316,10 +316,10 @@ namespace NabfProject.SimManager
                 Console.WriteLine("  ");
                 Console.WriteLine("--- status on all current jobs on round " + _currentRoundNumber + " ---");
                 Console.WriteLine("Total number of sent jobs: " + _sentJobCounter);
-                Console.WriteLine("      Total sent occupy jobs: " + _sentOccupyJobCounter + "Occupy jobs currently available: " + nb.GetNotices(NoticeBoard.JobType.Occupy).Count + ". " + ". Occupy jobs currently in use: " + nb.GetUnavailableNotices(NoticeBoard.JobType.Occupy).Count());
-                Console.WriteLine("      Total sent repair jobs: " + _sentRepairJobCounter + "Repair jobs currently available: " + nb.GetNotices(NoticeBoard.JobType.Repair).Count + ". " + ". Repair jobs currently in use: " + nb.GetUnavailableNotices(NoticeBoard.JobType.Repair).Count());
-                Console.WriteLine("      Total sent attack jobs: " + _sentAttackJobCounter + "Attack jobs currently available: " + nb.GetNotices(NoticeBoard.JobType.Attack).Count + ". " + ". Attack jobs currently in use: " + nb.GetUnavailableNotices(NoticeBoard.JobType.Attack).Count());
-                Console.WriteLine("      Total sent disrupt jobs: " + _sentDisruptJobCounter + "Disrupt jobs currently available: " + nb.GetNotices(NoticeBoard.JobType.Disrupt).Count + ". " + ". Disrupt jobs currently in use: " + nb.GetUnavailableNotices(NoticeBoard.JobType.Disrupt).Count());
+                Console.WriteLine("      Total sent occupy jobs: " + _sentOccupyJobCounter + ". Occupy jobs currently available: " + nb.GetNotices(NoticeBoard.JobType.Occupy).Count() + ". Occupy jobs currently in use: " + nb.GetUnavailableNotices(NoticeBoard.JobType.Occupy).Count());
+                Console.WriteLine("      Total sent repair jobs: " + _sentRepairJobCounter + ". Repair jobs currently available: " + nb.GetNotices(NoticeBoard.JobType.Repair).Count() + ". Repair jobs currently in use: " + nb.GetUnavailableNotices(NoticeBoard.JobType.Repair).Count());
+                Console.WriteLine("      Total sent attack jobs: " + _sentAttackJobCounter + ". Attack jobs currently available: " + nb.GetNotices(NoticeBoard.JobType.Attack).Count() + ". Attack jobs currently in use: " + nb.GetUnavailableNotices(NoticeBoard.JobType.Attack).Count());
+                Console.WriteLine("      Total sent disrupt jobs: " + _sentDisruptJobCounter + ". Disrupt jobs currently available: " + nb.GetNotices(NoticeBoard.JobType.Disrupt).Count() + ". Disrupt jobs currently in use: " + nb.GetUnavailableNotices(NoticeBoard.JobType.Disrupt).Count());
                 Console.WriteLine("Total number of sent job updates: " + _updatedJobCounter);
                 Console.WriteLine("Total number of sent applications: " + _applicationsReceivedCounter);
                 Console.WriteLine("Total number of sent un-applications: " + _unappliesReceivedCounter);

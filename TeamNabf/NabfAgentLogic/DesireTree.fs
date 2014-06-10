@@ -61,6 +61,9 @@ module DesireTree =
     //
                         Desire exploreMap
     //
+                        Desire(generateSomeValue)
+                        Desire(generateLittleValue)
+                        Desire(generateLeastValue)
                         Desire(generateMinimumValue)
                     ]
                 )

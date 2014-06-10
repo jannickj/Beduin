@@ -50,7 +50,10 @@
         let UNKNOWN_EDGE_COST = 5
         let ZONE_ORIGIN_VALUE = 9
         let ZONE_BORDER_VALUE = 8
-        let MINIMUM_VALUE_VALUE = 8
+        let SOME_VALUE_VALUE = 8
+        let LITTLE_VALUE_VALUE = 6
+        let LEAST_VALUE_VALUE = 4
+        let MINIMUM_VALUE_VALUE = 2
 
         let SIMULATED_EDGE_COST = 1
 
@@ -65,7 +68,7 @@
        
         let OUR_TEAM = "Nabf"
         let EXPLORE_FACTOR_LIGHT = 0.7
-        let MAX_PLANNING_TIME_MS = 100L
+        let MAX_PLANNING_TIME_MS = 1000L
 
         let NUMBER_OF_AGENTS = 28
         let INFINITE_HEURISTIC = 10000
