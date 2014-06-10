@@ -253,6 +253,9 @@ module AgentTypes =
         | Repaired  of AgentName
         | Inspected of AgentName
         | Explored  of VertexName
+        | GenerateSomeValue
+        | GenerateLittleValue
+        | GenerateLeastValue
         | GenerateMinValue
         | Parried
         | Charged   of int option

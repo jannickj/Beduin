@@ -34,9 +34,30 @@ module GoalSpecifications =
         state.LastAction = Repair agent
 
 
+    let generateSomeValue state = 
+        let n = state.World.[state.Self.Node] 
+        if (n.Value.IsSome ) then//&& nodeHasNoOtherFriendlyAgentsOnIt state n.Identifier
+            n.Value.Value >= SOME_VALUE_VALUE
+        else
+            false
+
+    let generateLittleValue state = 
+        let n = state.World.[state.Self.Node] 
+        if (n.Value.IsSome ) then//&& nodeHasNoOtherFriendlyAgentsOnIt state n.Identifier
+            n.Value.Value >= LITTLE_VALUE_VALUE
+        else
+            false
+
+    let generateLeastValue state = 
+        let n = state.World.[state.Self.Node] 
+        if (n.Value.IsSome ) then//&& nodeHasNoOtherFriendlyAgentsOnIt state n.Identifier
+            n.Value.Value >= LEAST_VALUE_VALUE
+        else
+            false
+
     let generateMinValue state = 
         let n = state.World.[state.Self.Node] 
-        if (n.Value.IsSome && nodeHasNoOtherFriendlyAgentsOnIt state n.Identifier) then
+        if (n.Value.IsSome ) then//&& nodeHasNoOtherFriendlyAgentsOnIt state n.Identifier
             n.Value.Value >= MINIMUM_VALUE_VALUE
         else
             false
@@ -50,6 +71,9 @@ module GoalSpecifications =
         | Inspected agent -> agentInspected agent
         | Parried -> parried
         | Charged charge -> charged charge
+        | GenerateSomeValue -> generateSomeValue
+        | GenerateLittleValue -> generateLittleValue
+        | GenerateLeastValue -> generateLeastValue
         | GenerateMinValue -> generateMinValue
         | Repaired agent -> agentRepaired agent
 
@@ -69,5 +93,8 @@ module GoalSpecifications =
             fun state -> distanceHeuristics (agentAt agent state) state
 
         | Charged _
+        | GenerateSomeValue
+        | GenerateLittleValue
+        | GenerateLeastValue
         | GenerateMinValue
         | Parried-> fun _ -> 0
