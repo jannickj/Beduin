@@ -443,5 +443,5 @@ namespace NabfAgentLogic.IiLang
                 let iilfuncs = List.collect (fun percept -> buildPerceptAsIilFunction percept) perceptlist
                 Action ("addKnowledgeAction",[Numeral (float simid); Function ("knowledges",iilfuncs)])
             | UnapplyJob jobid ->
-                Action ("unapplyJob", [Numeral (float simid); Numeral (float jobid)])
+                Action ("unapplyNoticeAction", [Numeral (float simid); Numeral (float jobid)])
                 

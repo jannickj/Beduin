@@ -146,8 +146,8 @@ namespace NabfProject.NoticeBoardModel
             if (!isUnique)
             {
                 _nonUniqueJobsAttemptedToBeAdded++;
-                //if (verbose && _nonUniqueJobsAttemptedToBeAdded % 2 == 0)
-                    //Console.WriteLine("Total number of received non-unique jobs: " + _nonUniqueJobsAttemptedToBeAdded);
+                if (verbose && _nonUniqueJobsAttemptedToBeAdded % 2 == 0)
+                    Console.WriteLine("Total number of received non-unique jobs: " + _nonUniqueJobsAttemptedToBeAdded);
                 return false;
             }
 
@@ -273,6 +273,11 @@ namespace NabfProject.NoticeBoardModel
                 result.AddRange(_availableJobs.Get(jb));
             }
             return result;
+        }
+
+        public ICollection<Notice> GetNotices(JobType type)
+        {
+            return GetNotices(new List<JobType> { type });
         }
 
         public ICollection<Notice> GetNotices()
