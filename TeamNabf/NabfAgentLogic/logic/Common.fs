@@ -116,7 +116,7 @@ module Common =
     let generateSomeValue (inputState:State) = 
         Some ( "get minimum value"
              , Activity
-             , [ Requirement GenerateSomeValue 
+             , [ Requirement <| AtMinValueNode SOME_VALUE_VALUE
                ; Plan <| fun _ -> Some ([Perform Recharge]) 
                ]
              )
@@ -125,7 +125,7 @@ module Common =
     let generateLittleValue (inputState:State) = 
         Some ( "get minimum value"
              , Activity
-             , [ Requirement GenerateLittleValue 
+             , [ Requirement <| AtMinValueNode LITTLE_VALUE_VALUE
                ; Plan <| fun _ -> Some ([Perform Recharge]) 
                ]
              )
@@ -134,7 +134,7 @@ module Common =
     let generateLeastValue (inputState:State) = 
         Some ( "get minimum value"
              , Activity
-             , [ Requirement GenerateLeastValue 
+             , [ Requirement <| AtMinValueNode LEAST_VALUE_VALUE
                ; Plan <| fun _ -> Some ([Perform Recharge]) 
                ]
              )
@@ -143,7 +143,7 @@ module Common =
     let generateMinimumValue (inputState:State) = 
         Some ( "get minimum value"
              , Activity
-             , [ Requirement GenerateMinValue 
+             , [ Requirement <| AtMinValueNode MINIMUM_VALUE_VALUE
                ; Plan <| fun _ -> Some ([Perform Recharge]) 
                ]
              )
