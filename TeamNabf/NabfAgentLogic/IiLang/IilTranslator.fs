@@ -372,7 +372,7 @@ namespace NabfAgentLogic.IiLang
                 | "firedFromJob" ->
                     let [Percept ("noticeId", [Numeral jobId])] = tail
                     AgentServerMessage <| (JobMessage <| (FiredFrom (int jobId)))
-                | _ ->  raise <| InvalidIilException ("iilServerMessage", data)
+                | unknown ->  raise <| InvalidIilException ("iilServerMessage: "+unknown, data)
             | _ -> failwith "nonono"
         
         let buildIilActionContainer action id =

@@ -33,32 +33,10 @@ module GoalSpecifications =
     let agentRepaired agent state =
         state.LastAction = Repair agent
 
-
-    let generateSomeValue state = 
+    let atMinValueNode value state = 
         let n = state.World.[state.Self.Node] 
         if (n.Value.IsSome ) then//&& nodeHasNoOtherFriendlyAgentsOnIt state n.Identifier
-            n.Value.Value >= SOME_VALUE_VALUE
-        else
-            false
-
-    let generateLittleValue state = 
-        let n = state.World.[state.Self.Node] 
-        if (n.Value.IsSome ) then//&& nodeHasNoOtherFriendlyAgentsOnIt state n.Identifier
-            n.Value.Value >= LITTLE_VALUE_VALUE
-        else
-            false
-
-    let generateLeastValue state = 
-        let n = state.World.[state.Self.Node] 
-        if (n.Value.IsSome ) then//&& nodeHasNoOtherFriendlyAgentsOnIt state n.Identifier
-            n.Value.Value >= LEAST_VALUE_VALUE
-        else
-            false
-
-    let generateMinValue state = 
-        let n = state.World.[state.Self.Node] 
-        if (n.Value.IsSome ) then//&& nodeHasNoOtherFriendlyAgentsOnIt state n.Identifier
-            n.Value.Value >= MINIMUM_VALUE_VALUE
+            n.Value.Value >= value
         else
             false
 
@@ -71,10 +49,7 @@ module GoalSpecifications =
         | Inspected agent -> agentInspected agent
         | Parried -> parried
         | Charged charge -> charged charge
-        | GenerateSomeValue -> generateSomeValue
-        | GenerateLittleValue -> generateLittleValue
-        | GenerateLeastValue -> generateLeastValue
-        | GenerateMinValue -> generateMinValue
+        | AtMinValueNode value -> atMinValueNode value
         | Repaired agent -> agentRepaired agent
 
     let distanceHeuristics vertex =
@@ -93,8 +68,5 @@ module GoalSpecifications =
             fun state -> distanceHeuristics (agentAt agent state) state
 
         | Charged _
-        | GenerateSomeValue
-        | GenerateLittleValue
-        | GenerateLeastValue
-        | GenerateMinValue
+        | AtMinValueNode _
         | Parried-> fun _ -> 0
