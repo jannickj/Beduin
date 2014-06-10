@@ -47,7 +47,8 @@
         /// Other constants
         ///////////////////////////////
         let MINIMUM_EDGE_COST = 1
-        let UNKNOWN_EDGE_COST = 5
+        let MAXIMUM_EDGE_COST = 9
+
         let ZONE_ORIGIN_VALUE = 9
         let ZONE_BORDER_VALUE = 8
         let SOME_VALUE_VALUE = 8
@@ -58,8 +59,6 @@
         let SIMULATED_EDGE_COST = 1
 
         let RECHARGE_FACTOR = 0.5
-
-        let EDGE_COST_MAX = 9
 
         let ACTION_COST_MAX = 9
         let ACTION_COST_CHEAP = 1

@@ -1,4 +1,4 @@
-﻿namespace NabfAgentLogic
+namespace NabfAgentLogic
 module HandlePercepts =
     open FsPlanning.Agent
     open FsPlanning.Agent.Planning
@@ -373,7 +373,7 @@ module HandlePercepts =
 //            state
 
     let updateHeuristicsMapSingle percepts oldState state =
-        { state with GraphHeuristic = updateHeuristic state state.Self.Node}
+        updateHeuristic state state.Self.Node
     
     (* let updateState : State -> Percept list -> State *)
     let updateState state percepts = 
