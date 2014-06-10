@@ -114,36 +114,36 @@ module Common =
             
     //Find a node of at leas value 8 to stand on.
     let generateSomeValue (inputState:State) = 
-        Some ( "get minimum value"
+        Some ( "get some(8) value"
              , Activity
-             , [ Requirement GenerateSomeValue 
+             , [ Requirement <| AtMinValueNode SOME_VALUE_VALUE
                ; Plan <| fun _ -> Some ([Perform Recharge]) 
                ]
              )
 
     //Find a node of at leas value 6 to stand on.
     let generateLittleValue (inputState:State) = 
-        Some ( "get minimum value"
+        Some ( "get little(6) value"
              , Activity
-             , [ Requirement GenerateLittleValue 
+             , [ Requirement <| AtMinValueNode LITTLE_VALUE_VALUE
                ; Plan <| fun _ -> Some ([Perform Recharge]) 
                ]
              )
 
     //Find a node of at leas value 4 to stand on.
     let generateLeastValue (inputState:State) = 
-        Some ( "get minimum value"
+        Some ( "get least(4) value"
              , Activity
-             , [ Requirement GenerateLeastValue 
+             , [ Requirement <| AtMinValueNode LEAST_VALUE_VALUE
                ; Plan <| fun _ -> Some ([Perform Recharge]) 
                ]
              )
 
     //Find a node of at leas value 2 to stand on.
     let generateMinimumValue (inputState:State) = 
-        Some ( "get minimum value"
+        Some ( "get minimum(2) value"
              , Activity
-             , [ Requirement GenerateMinValue 
+             , [ Requirement <| AtMinValueNode MINIMUM_VALUE_VALUE
                ; Plan <| fun _ -> Some ([Perform Recharge]) 
                ]
              )
