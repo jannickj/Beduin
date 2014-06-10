@@ -220,3 +220,24 @@ module ZoneTest =
                 let plan = makePlan state goals
                 Assert.IsTrue (plan.IsSome)
                 ()
+
+            [<Test>]
+            member this.MergeZoneTest_TwoZones_OneMergedZone() =
+                let initialGraph =  [ ("a", { Identifier = "a"; Value = Some 10; Edges = [(Some 1, "b");(Some 1, "c")] |> Set.ofList }) 
+                                    ; ("b", { Identifier = "b"; Value = Some 8; Edges = [(Some 1, "a");(Some 1, "c")] |> Set.ofList })
+                                    ; ("c", { Identifier = "c"; Value = Some 8; Edges = [(Some 1, "b");(Some 1, "a");(Some 1, "d")] |> Set.ofList })
+                                    ; ("d", { Identifier = "d"; Value = Some 10; Edges = [(Some 1, "c")] |> Set.ofList })
+                                    ] |> Map.ofList
+                let state = buildState "a" Explorer initialGraph
+                
+                let zone1 = ["a";"b";"c"]
+                let zone2 = ["d";"c";"b"]
+                
+                let overlap = getOverlappingVertices zone1 zone2
+                Assert.IsTrue(overlap.Length = 2)
+
+                let overlapJob = ((Some 1,8,JobType.OccupyJob,2),OccupyJob(["a";"b"],["a";"b";"c"]))
+
+                let merged = removeDuplicates <| mergeZones zone2 [overlapJob]
+                Assert.IsTrue (merged.Length = 4)
+                ()
