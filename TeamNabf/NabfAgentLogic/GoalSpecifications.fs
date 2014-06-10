@@ -71,3 +71,17 @@ module GoalSpecifications =
         | Charged _
         | GenerateMinValue
         | Parried-> fun _ -> 0
+
+    let goalVertex goal state =
+        match goal with
+        | At vertex 
+        | Explored vertex
+        | Probed vertex ->
+            Some <| vertex
+        
+        | Attacked agent 
+        | Repaired agent
+        | Inspected agent -> 
+            Some <| agentAt agent state
+
+        | _ -> None

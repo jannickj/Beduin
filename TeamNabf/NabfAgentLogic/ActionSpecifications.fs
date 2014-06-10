@@ -53,10 +53,15 @@ module ActionSpecifications =
     let deductEnergy cost state =
         { state.Self with Energy = Some <| state.Self.Energy.Value - cost }
 
-    let definiteCost cost = 
+    let definiteOptimisticCost cost = 
         match cost with 
         | Some c -> c
-        | None -> Constants.UNKNOWN_EDGE_COST
+        | None -> Constants.MINIMUM_EDGE_COST
+    
+    let definitePessimisticCost cost =
+        match cost with
+        | Some c -> c
+        | None -> Constants.MAXIMUM_EDGE_COST
 
     let decide defaultValue opt =
         match opt with
@@ -108,21 +113,24 @@ module ActionSpecifications =
         let cost state = decide Constants.ACTION_COST_CHEAP (edgeCost state).Value
 
         let updateState state = 
-//            logImportant "updating state moveAction"
             let self = { state.Self with Node = destination }
             let newSelf = deductEnergy (cost state) { state with Self = self}
-            let edge = (Some (SIMULATED_EDGE_COST), state.Self.Node, destination)
+            let edge = 
+                match List.find (snd >> ((=) destination)) <| Set.toList state.World.[state.Self.Node].Edges with
+                | (Some cost, vn) -> (Some cost, state.Self.Node, vn)
+                | (None, vn) -> (Some (MINIMUM_EDGE_COST), state.Self.Node, vn)
+
             { state with 
-                            Self = newSelf; 
-                            LastAction = Action.Goto destination;
-                            World = addEdge edge state.World
+                Self = newSelf; 
+                LastAction = Action.Goto destination;
+                World = addEdge edge state.World
             }
 
 
         let canMoveTo state = 
             match edgeCost state with
             | Some cost ->
-                if (state.Self.Energy.Value - definiteCost cost) >= 0 then
+                if (state.Self.Energy.Value - definitePessimisticCost cost) >= 0 then
                     Success
                 else 
                     Failure "Not enough energy"

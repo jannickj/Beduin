@@ -10,6 +10,7 @@ module Planning =
     open Constants
     open GoalSpecifications
     open System.Diagnostics
+    open NabfAgentLogic.Search.HeuristicDijkstra
 
     type Plan = (ActionSpecification list) * (Objective list)
     let test = 1
@@ -111,11 +112,15 @@ module Planning =
             | _ ->
                 logImportant <| sprintf "No plan found for intention %A" goalObjective
                 None
-        | [] -> Some ([], objectives)
+        | [] -> Some ([], [])
 
     let repairPlan (state : State) intent (originalPlan : Plan) = 
-        logImportant <| sprintf "Node: %A (%A)" state.Self.Node state.LastPosition
-        logImportant <| sprintf "last action: %A (%A)" state.LastAction state.LastActionResult
+//        logImportant <| sprintf "Node: %A (%A)" state.Self.Node state.LastPosition
+//        logImportant <| sprintf "last action: %A (%A)" state.LastAction state.LastActionResult
+        match state.LastActionResult with
+        | Successful | FailedRandom -> ()
+        | err -> logError <| "Last action result was %A, trying to repair plan anyway" err
+
         let plan' = 
             match originalPlan with
             | (action :: tail, objectives) when state.LastActionResult <> FailedRandom || action = skipAction -> 
@@ -127,6 +132,7 @@ module Planning =
         let plan = 
             match plan' with
             | (action :: rest, _) when isApplicable state action ->
+//                logImportant <| sprintf "applicable: (action, cost, energy) (%A, %A, %A)" action.ActionType (action.Cost state) state.Self.Energy
                 plan'
             | (action :: rest, objectives) when isApplicable (rechargeAction.Effect state) action ->
                 (rechargeAction :: action :: rest, objectives)
@@ -201,40 +207,45 @@ module Planning =
 
     let solutionFinished state intent solution = 
         match solution with
-        | (_, [Plan plan]) -> 
-            match plan state with
-            | Some [] 
-            | None -> true
-            | _ -> false
-        | (_, [objective]) ->  (wrappedGoalTest <| goalTest (goalList objective state)) state
+        | ([], [Plan _]) -> true
+        | (_, [Plan _]) -> false
+        | (_, [objective]) ->  
+            (wrappedGoalTest <| goalTest (goalList objective state)) state
         | (_, []) -> true
         | _ -> false
     
     let rec nextAction state (intent : Intention) (plan : Plan) =
         match plan with
-        | (action :: rest, goals) -> Some (action.ActionType, (action :: rest, goals))
-        | ([], (Requirement goal) :: t) when generateGoalCondition goal state -> 
-            match makePlan state t with
+        | (action :: rest, (Plan p) :: restObjectives) -> 
+            Some (action.ActionType, (rest, (Plan p) :: restObjectives))
+        | (action :: rest, goals) -> 
+            Some (action.ActionType, (action :: rest, goals))
+        | ([], objectives) ->
+            let newObjectives = 
+                match objectives with
+                | (Plan p) :: tail -> 
+                    tail
+                | objective :: tail when wrappedGoalTest (goalTest (goalFunc objective state)) state ->
+                    tail
+                | objectives ->
+                    objectives
+
+            match makePlan state newObjectives with
             | Some newPlan -> nextAction state intent newPlan
             | None -> None
-        | ([], (Requirement goal) :: t) when not <| generateGoalCondition goal state ->
-            let (_,goals) = plan
-            match makePlan state goals with
-            | Some newPlan -> nextAction state intent newPlan
-            | None -> None
-        | ([], (MultiGoal goalFun) :: t) when goalTest (goalFun state) state -> 
-            match makePlan state t with
-            | Some newPlan -> nextAction state intent newPlan
-            | None -> None
-        | ([], (MultiGoal goals) :: t) -> 
-            match makePlan state (snd plan) with
-            | Some newPlan -> nextAction state intent newPlan
-            | None -> None
-        | ([], (Plan p) :: t) ->
-            match makePlan state t with
-            | Some newPlan -> nextAction state intent newPlan
-            | None -> None
-        | _ -> None
+
+    let updateStateBeforePlanning state intention = 
+        match intention with
+        | (_, Activity, objective :: _) ->
+            match objective with
+            | Requirement goal ->
+                match goalVertex goal state with
+                | Some vertex -> updateHeuristic state vertex
+                | None -> state
+            | _ -> state
+        | _ -> state
+
+    let updateStateOnSolutionFinished state intention solution = state
 
     type AgentPlanner() =
         class
@@ -248,11 +259,11 @@ module Planning =
                 member self.SolutionFinished (state, intent, solution) = 
                     solutionFinished state intent solution
                 member self.NextAction (state, intent, solution) = 
-                    let nextAction' = nextAction state intent solution
-//                    logImportant <| sprintf "next action: %A" nextAction'
-                    nextAction'
-                member self.UpdateStateBeforePlanning (state, intent) = state
+                    nextAction state intent solution
+                member self.UpdateStateBeforePlanning (state, intent) = 
+                    updateStateBeforePlanning state intent
                 
-                member self.UpdateStateOnSolutionFinished (state, intent, solution) = state
+                member self.UpdateStateOnSolutionFinished (state, intent, solution) = 
+                    updateStateOnSolutionFinished state intent solution
         end
  
