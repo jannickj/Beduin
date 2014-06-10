@@ -42,7 +42,7 @@ module LogicLib =
         List.filter (fun a -> nodeListContains a.Node (neighbourNodes state state.Self)) state.FriendlyData 
 
     let isUnexplored state vertex = 
-        not (List.exists (fun (value, _) -> Option.isSome value) <| Set.toList state.World.[vertex].Edges)
+        (not (List.exists (fun (value, _) -> Option.isSome value) <| Set.toList state.World.[vertex].Edges)) && vertex <> state.Self.Node
 
     let getJobsByType (jobtype:JobType) (list : Job list) : Job list = List.filter 
                                                                         (
