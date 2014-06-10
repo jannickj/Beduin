@@ -113,10 +113,39 @@ module Common =
             None
             
     //Find a node of at leas value 8 to stand on.
-    let generateMinimumValue (inputState:State) = 
-        Some ( "get minimum value"
+    let generateSomeValue (inputState:State) = 
+        Some ( "get some(8) value"
              , Activity
-             , [ Requirement GenerateMinValue ]
+             , [ Requirement <| AtMinValueNode SOME_VALUE_VALUE
+               ; Plan <| fun _ -> Some ([Perform Recharge]) 
+               ]
+             )
+
+    //Find a node of at leas value 6 to stand on.
+    let generateLittleValue (inputState:State) = 
+        Some ( "get little(6) value"
+             , Activity
+             , [ Requirement <| AtMinValueNode LITTLE_VALUE_VALUE
+               ; Plan <| fun _ -> Some ([Perform Recharge]) 
+               ]
+             )
+
+    //Find a node of at leas value 4 to stand on.
+    let generateLeastValue (inputState:State) = 
+        Some ( "get least(4) value"
+             , Activity
+             , [ Requirement <| AtMinValueNode LEAST_VALUE_VALUE
+               ; Plan <| fun _ -> Some ([Perform Recharge]) 
+               ]
+             )
+
+    //Find a node of at leas value 2 to stand on.
+    let generateMinimumValue (inputState:State) = 
+        Some ( "get minimum(2) value"
+             , Activity
+             , [ Requirement <| AtMinValueNode MINIMUM_VALUE_VALUE
+               ; Plan <| fun _ -> Some ([Perform Recharge]) 
+               ]
              )
 
 //    let _oldKnowledge = ref (Set.empty<Percept>)

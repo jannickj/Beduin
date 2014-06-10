@@ -1,4 +1,4 @@
-﻿namespace NabfAgentLogic
+namespace NabfAgentLogic
 module GoalSpecifications =
 
     open AgentTypes
@@ -33,11 +33,10 @@ module GoalSpecifications =
     let agentRepaired agent state =
         state.LastAction = Repair agent
 
-
-    let generateMinValue state = 
+    let atMinValueNode value state = 
         let n = state.World.[state.Self.Node] 
-        if (n.Value.IsSome && nodeHasNoOtherFriendlyAgentsOnIt state n.Identifier) then
-            n.Value.Value >= MINIMUM_VALUE_VALUE
+        if (n.Value.IsSome ) then//&& nodeHasNoOtherFriendlyAgentsOnIt state n.Identifier
+            n.Value.Value >= value
         else
             false
 
@@ -50,7 +49,7 @@ module GoalSpecifications =
         | Inspected agent -> agentInspected agent
         | Parried -> parried
         | Charged charge -> charged charge
-        | GenerateMinValue -> generateMinValue
+        | AtMinValueNode value -> atMinValueNode value
         | Repaired agent -> agentRepaired agent
 
     let distanceHeuristics vertex =
@@ -69,7 +68,7 @@ module GoalSpecifications =
             fun state -> distanceHeuristics (agentAt agent state) state
 
         | Charged _
-        | GenerateMinValue
+        | AtMinValueNode _
         | Parried-> fun _ -> 0
 
     let goalVertex goal state =

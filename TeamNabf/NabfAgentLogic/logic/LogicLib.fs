@@ -206,7 +206,9 @@ module LogicLib =
         
     let nodeHasNoOtherFriendlyAgentsOnIt (inputState:State) node : bool =
         let friendliesOnNode = List.filter (fun a -> a.Node = node) inputState.FriendlyData
-        if (friendliesOnNode.Length = 1) then
+        if (friendliesOnNode.Length = 1) then //is it me standing on the node?
             friendliesOnNode.Head.Name = inputState.Self.Name
-        else
+        elif (friendliesOnNode.Length = 0) then //no one is standing on the
+            true
+        else //more than 1 is standing on the node, including myself, so don't want
             false

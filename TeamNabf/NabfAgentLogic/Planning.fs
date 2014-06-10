@@ -119,7 +119,7 @@ module Planning =
 //        logImportant <| sprintf "last action: %A (%A)" state.LastAction state.LastActionResult
         match state.LastActionResult with
         | Successful | FailedRandom -> ()
-        | err -> logError <| "Last action result was %A, trying to repair plan anyway" err
+        | err -> logError <| sprintf "Last action result was %A, trying to repair plan anyway" err
 
         let plan' = 
             match originalPlan with
@@ -182,12 +182,12 @@ module Planning =
 
             match makePlan fromState (snd plan) with
             | Some (path, objectives) ->
-                logImportant <| sprintf "repaired plan: %A" (List.map (fun action -> action.ActionType) path)
+//                logImportant <| sprintf "repaired plan: %A" (List.map (fun action -> action.ActionType) path)
                 Some (prunedPlan @ path, objectives)
             | None -> None
 
         | None -> 
-            logImportant <| sprintf "kept plan: %A" (List.map (fun action -> action.ActionType) (fst plan))
+//            logImportant <| sprintf "kept plan: %A" (List.map (fun action -> action.ActionType) (fst plan))
             Some plan
 
     let formulatePlan (state : State) intent = 
