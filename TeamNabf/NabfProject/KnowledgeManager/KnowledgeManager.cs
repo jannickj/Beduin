@@ -19,7 +19,7 @@ namespace NabfProject.KnowledgeManagerModel
 		private Dictionary<Knowledge,Knowledge> _knowledgeBase = new Dictionary<Knowledge,Knowledge>();
 
 
-        private const bool verbose = true;
+        private const bool verbose = false;
         //status reporting for SimMan
         public int _redudantEdgeKnowledgeCounter = 0;
         public int _redudantNodeKnowledgeCounter = 0;
@@ -181,7 +181,7 @@ namespace NabfProject.KnowledgeManagerModel
             }
             //SendKnowledgeToSubscribedAgents();   
             _callsToSendKnowledge++;
-            if (_callsToSendKnowledge % 50 == 0)
+            if (verbose && _callsToSendKnowledge % 50 == 0)
                 Console.WriteLine("Size of Knowledge Base is: " + _knowledgeBase.Keys.Count);
         }
         

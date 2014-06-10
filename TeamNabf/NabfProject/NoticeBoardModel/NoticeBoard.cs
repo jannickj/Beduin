@@ -22,7 +22,7 @@ namespace NabfProject.NoticeBoardModel
         public enum JobType { Empty = 0, Occupy = 1, Repair = 2, Disrupt = 3, Attack = 4 }
         public enum Status { available, unavailable}
 
-        private const bool verbose = true;
+        private const bool verbose = false;
         //status reporting for SimMan
         public int _agentsFiredCounter = 0;
         public int _nonUniqueJobsAttemptedToBeAdded = 0;
@@ -424,6 +424,11 @@ namespace NabfProject.NoticeBoardModel
                     notice.Status = Status.unavailable;
                 }
             }
+            
+            foreach (Notice n in _availableJobs[JobType.Occupy])
+                foreach (NabfAgent a in n.GetTopDesireAgents())
+                    Console.WriteLine("" + a.Name + " has job: " + n.ToString());
+
 //            Notice n;
 //            foreach (NabfAgent agent in _sharingList.Except(agentsWhoReceivedJob))
 //            {
@@ -473,6 +478,7 @@ namespace NabfProject.NoticeBoardModel
                 {
 					n.HighestAverageDesirabilityForNotice = avg;
                     dl.Add(n.HighestAverageDesirabilityForNotice, n);
+                    n.ClearTopDesireAgents();
                     n.AddRangeToTopDesireAgents(agents);
                 }
             }
@@ -499,7 +505,8 @@ namespace NabfProject.NoticeBoardModel
                 {
                     if (no.ContentIsEqualTo(n))
                         continue;
-                    Console.WriteLine("Agent " + a.Name + " unapplied from " + no.ToString() + " in favor of " + n.ToString());
+                    if (verbose)
+                        Console.WriteLine("Agent " + a.Name + " unapplied from " + no.ToString() + " in favor of " + n.ToString());
                     UnApplyToNotice(no, a, fireOtherAtEnd);
                 }
             }
