@@ -94,7 +94,7 @@ module ActionSpecifications =
 
     let moveAction (destination : VertexName) = 
         let edgeCost state = 
-            //logInfo <| sprintf "At: %A, neighbours: %A, destination: %A" state.Self.Node state.World.[state.Self.Node].Edges destination
+//            logImportant <| sprintf "At: %A, neighbours: %A, destination: %A" state.Self.Node state.World.[state.Self.Node].Edges destination
             let neighbour = 
                 state.World.[state.Self.Node].Edges 
                 |> Set.toList 
@@ -108,9 +108,9 @@ module ActionSpecifications =
         let cost state = decide Constants.ACTION_COST_CHEAP (edgeCost state).Value
 
         let updateState state = 
+//            logImportant "updating state moveAction"
             let self = { state.Self with Node = destination }
             let newSelf = deductEnergy (cost state) { state with Self = self}
-            //logImportant (sprintf "%A" (Set.filter (fun (o,_) -> Option.isSome o) state.World.[destination].Edges))
             let edge = (Some (SIMULATED_EDGE_COST), state.Self.Node, destination)
             { state with 
                             Self = newSelf; 
@@ -153,6 +153,7 @@ module ActionSpecifications =
 
     let rechargeAction =
         let updateState state = 
+//            logImportant "updating state rechargeAction"
             let newEnergy = state.Self.Energy.Value + (int ((float state.Self.MaxEnergy.Value) * RECHARGE_FACTOR)) 
             { state with Self = { state.Self with Energy = Some newEnergy}; LastAction = Recharge }
         { ActionType    = Perform <| Recharge
@@ -196,14 +197,15 @@ module ActionSpecifications =
             | Some _ -> Failure <| sprintf "Vertex %A is already probed" (realVertex state)
 
         let updateState state = 
-                                let vertex = (realVertex state)
-                                let newWorld = addVertexValue vertex 0 state.World
-                                { state with 
-                                        World = newWorld
-                                        Self = deductEnergy Constants.ACTION_COST_CHEAP state
-                                        PlannerProbed = Set.add vertex state.PlannerProbed
-                                        LastAction = Action.Probe vertexOption
-                                }
+//            logImportant "updating state probeAction"
+            let vertex = (realVertex state)
+            let newWorld = addVertexValue vertex 0 state.World
+            { state with 
+                    World = newWorld
+                    Self = deductEnergy Constants.ACTION_COST_CHEAP state
+                    PlannerProbed = Set.add vertex state.PlannerProbed
+                    LastAction = Action.Probe vertexOption
+            }
 
         { ActionType    = Perform <| Probe vertexOption
         ; Preconditions = [ vertexUnProbed; enoughEnergy Constants.ACTION_COST_CHEAP; isNotDisabled ]
@@ -252,6 +254,13 @@ module ActionSpecifications =
         ; Preconditions = [ saboteurPresent; enoughEnergy Constants.ACTION_COST_EXPENSIVE; isNotDisabled ]
         ; Effect        = updateState
         ; Cost          = fun state -> turnCost state + Constants.ACTION_COST_EXPENSIVE
+        }
+
+    let skipAction =
+        { ActionType    = Perform Skip
+        ; Preconditions = []
+        ; Effect        = fun state -> state
+        ; Cost          = fun _ -> 0
         }
 
     let unSatisfiedPreconditions state actionSpec =
