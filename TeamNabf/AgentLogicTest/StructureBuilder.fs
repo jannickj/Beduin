@@ -14,6 +14,7 @@ module StructureBuilder =
                         ;   Name = "gunner"
                         ;   Node = node
                         ;   Role = Some role
+                        ;   RoleCertainty = 100
                         ;   Strength = Some 0
                         ;   Team = "Team Love Unit testing"
                         ;   Status = Normal

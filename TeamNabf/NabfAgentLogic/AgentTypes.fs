@@ -44,6 +44,7 @@ module AgentTypes =
         ; Name        : string
         ; Node        : string
         ; Role        : Option<AgentRole>
+        ; RoleCertainty : int //Percent chance that this is the role we think
         ; Strength    : Option<int>
         ; Team        : string
         ; VisionRange : Option<int>

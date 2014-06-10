@@ -57,6 +57,7 @@ namespace NabfAgentLogic.IiLang
                    ; Name        = name
                    ; Node        = node
                    ; Role        = parseIilRole role
+                   ; RoleCertainty = 100
                    ; Strength    = Some (int strength)
                    ; Team        = team
                    ; VisionRange = Some (int visionRange)
@@ -152,6 +153,7 @@ namespace NabfAgentLogic.IiLang
                           ; Name = ""
                           ; Node = node
                           ; Role = None
+                          ; RoleCertainty = 100
                           ; Strength = Some (int strength)
                           ; Team = ""
                           ; VisionRange = Some (int visRange)
@@ -247,6 +249,7 @@ namespace NabfAgentLogic.IiLang
                               ; Name = name
                               ; Node = node
                               ; Role = None
+                              ; RoleCertainty = 0
                               ; Strength = None
                               ; Team = team
                               ; VisionRange = None

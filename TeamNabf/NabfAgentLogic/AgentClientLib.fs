@@ -28,6 +28,7 @@ module AgentClientLib =
                         ;   Name = name
                         ;   Node = ""
                         ;   Role = Some (simData.SimRole)
+                        ;   RoleCertainty = 100
                         ;   Strength = Some 0
                         ;   Team = OUR_TEAM
                         ;   Status = Normal
