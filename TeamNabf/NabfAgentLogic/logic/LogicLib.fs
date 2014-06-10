@@ -134,7 +134,7 @@ module LogicLib =
         let definiteCost cost = 
             match cost with 
             | Some c -> c
-            | None -> Constants.UNKNOWN_EDGE_COST
+            | None -> Constants.MINIMUM_EDGE_COST
 
         let goalTest statePair = 
             match statePair with

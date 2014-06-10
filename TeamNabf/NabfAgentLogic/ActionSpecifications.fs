@@ -53,10 +53,15 @@ module ActionSpecifications =
     let deductEnergy cost state =
         { state.Self with Energy = Some <| state.Self.Energy.Value - cost }
 
-    let definiteCost cost = 
+    let definiteOptimisticCost cost = 
         match cost with 
         | Some c -> c
-        | None -> Constants.UNKNOWN_EDGE_COST
+        | None -> Constants.MINIMUM_EDGE_COST
+    
+    let definitePessimisticCost cost =
+        match cost with
+        | Some c -> c
+        | None -> Constants.MAXIMUM_EDGE_COST
 
     let decide defaultValue opt =
         match opt with
@@ -94,7 +99,7 @@ module ActionSpecifications =
 
     let moveAction (destination : VertexName) = 
         let edgeCost state = 
-            //logInfo <| sprintf "At: %A, neighbours: %A, destination: %A" state.Self.Node state.World.[state.Self.Node].Edges destination
+//            logImportant <| sprintf "At: %A, neighbours: %A, destination: %A" state.Self.Node state.World.[state.Self.Node].Edges destination
             let neighbour = 
                 state.World.[state.Self.Node].Edges 
                 |> Set.toList 
@@ -110,19 +115,22 @@ module ActionSpecifications =
         let updateState state = 
             let self = { state.Self with Node = destination }
             let newSelf = deductEnergy (cost state) { state with Self = self}
-            //logImportant (sprintf "%A" (Set.filter (fun (o,_) -> Option.isSome o) state.World.[destination].Edges))
-            let edge = (Some (SIMULATED_EDGE_COST), state.Self.Node, destination)
+            let edge = 
+                match List.find (snd >> ((=) destination)) <| Set.toList state.World.[state.Self.Node].Edges with
+                | (Some cost, vn) -> (Some cost, state.Self.Node, vn)
+                | (None, vn) -> (Some (MINIMUM_EDGE_COST), state.Self.Node, vn)
+
             { state with 
-                            Self = newSelf; 
-                            LastAction = Action.Goto destination;
-                            World = addEdge edge state.World
+                Self = newSelf; 
+                LastAction = Action.Goto destination;
+                World = addEdge edge state.World
             }
 
 
         let canMoveTo state = 
             match edgeCost state with
             | Some cost ->
-                if (state.Self.Energy.Value - definiteCost cost) >= 0 then
+                if (state.Self.Energy.Value - definitePessimisticCost cost) >= 0 then
                     Success
                 else 
                     Failure "Not enough energy"
@@ -153,6 +161,7 @@ module ActionSpecifications =
 
     let rechargeAction =
         let updateState state = 
+//            logImportant "updating state rechargeAction"
             let newEnergy = state.Self.Energy.Value + (int ((float state.Self.MaxEnergy.Value) * RECHARGE_FACTOR)) 
             { state with Self = { state.Self with Energy = Some newEnergy}; LastAction = Recharge }
         { ActionType    = Perform <| Recharge
@@ -196,14 +205,15 @@ module ActionSpecifications =
             | Some _ -> Failure <| sprintf "Vertex %A is already probed" (realVertex state)
 
         let updateState state = 
-                                let vertex = (realVertex state)
-                                let newWorld = addVertexValue vertex 0 state.World
-                                { state with 
-                                        World = newWorld
-                                        Self = deductEnergy Constants.ACTION_COST_CHEAP state
-                                        PlannerProbed = Set.add vertex state.PlannerProbed
-                                        LastAction = Action.Probe vertexOption
-                                }
+//            logImportant "updating state probeAction"
+            let vertex = (realVertex state)
+            let newWorld = addVertexValue vertex 0 state.World
+            { state with 
+                    World = newWorld
+                    Self = deductEnergy Constants.ACTION_COST_CHEAP state
+                    PlannerProbed = Set.add vertex state.PlannerProbed
+                    LastAction = Action.Probe vertexOption
+            }
 
         { ActionType    = Perform <| Probe vertexOption
         ; Preconditions = [ vertexUnProbed; enoughEnergy Constants.ACTION_COST_CHEAP; isNotDisabled ]
@@ -252,6 +262,13 @@ module ActionSpecifications =
         ; Preconditions = [ saboteurPresent; enoughEnergy Constants.ACTION_COST_EXPENSIVE; isNotDisabled ]
         ; Effect        = updateState
         ; Cost          = fun state -> turnCost state + Constants.ACTION_COST_EXPENSIVE
+        }
+
+    let skipAction =
+        { ActionType    = Perform Skip
+        ; Preconditions = []
+        ; Effect        = fun state -> state
+        ; Cost          = fun _ -> 0
         }
 
     let unSatisfiedPreconditions state actionSpec =
