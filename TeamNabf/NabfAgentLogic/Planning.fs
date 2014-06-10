@@ -155,8 +155,12 @@ module Planning =
 //                None
 //        | _ -> Some plan
 
-    let repairPlan state intent (plan : Plan) = 
-        formulatePlan state intent
+    let repairPlan state intent (plan : Plan) =
+        match plan with
+        | (_,((Plan p)::_)) ->
+            Some plan
+        | _ ->
+            formulatePlan state intent
 //        let rechargedState (state : State) = {state with Self = {state.Self with Energy = state.Self.MaxEnergy}}
 //
 //        let rec workingPlan state plan =
