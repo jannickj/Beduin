@@ -40,7 +40,7 @@ module Explorer =
         let l = List.filter (fun ((_,OccupyJob(_,vertices)):Job) -> (List.exists (fun (vn:VertexName) -> s.Self.Node = vn ) vertices)) occupyJobs
         l <> []
 
-    let inPhase1 (s:State) = (float s.ProbedCount) > ( EXPLORE_FACTOR_LIGHT * (float s.TotalNodeCount) )
+    let lightExplorationDone (s:State) = (float s.ProbedCount) > ( EXPLORE_FACTOR_LIGHT * (float s.TotalNodeCount) )
 
     let onHighValueNode (s:State) = s.World.[s.Self.Node].Value.IsSome && s.World.[s.Self.Node].Value.Value >= ZONE_ORIGIN_VALUE
 
