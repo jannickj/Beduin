@@ -111,7 +111,7 @@ namespace NabfServerApplication
                 //agent.Register(new Trigger<ActionStartingEvent<AddKnowledgeAction>>(evt => ReceivedMessage(evt.Action)));
                 agent.Register(new Trigger<ActionStartingEvent<ApplyNoticeAction>>(evt => { if (evt.Action.NoticeId != -1) ReceivedMessage(evt.Action); }));
                 //agent.Register(new Trigger<ActionStartingEvent<ChangeNoticeAction>>(evt => ReceivedMessage(evt.Action)));
-                agent.Register(new Trigger<ActionStartingEvent<CreateNoticeAction>>(evt => { }));//Console.WriteLine("Agent "+agent.Name+" posted Job:\n" + evt.Action.JobType)));
+                agent.Register(new Trigger<ActionStartingEvent<CreateNoticeAction>>(evt => Console.WriteLine("Agent "+agent.Name+" posted Job:\n" + evt.Action.JobType)));
                 //agent.Register(new Trigger<ActionStartingEvent<DeleteNoticeAction>>(evt => ReceivedMessage(evt.Action)));
                 //agent.Register(new Trigger<ActionStartingEvent<NewRoundAction>>(evt => ReceivedMessage(evt.Action)));
                 //agent.Register(new Trigger<ActionStartingEvent<SubscribeSimulationAction>>(evt => ReceivedMessage(evt.Action)));
@@ -120,6 +120,13 @@ namespace NabfServerApplication
                         var message = "Agent "+evt.Action.Source.Name+" disconnected: \n  "+evt.Action.Exception.Message + " \n Stack trace:\n"+evt.Action.Exception.StackTrace;
                         //Console.SetCursorPosition(15, consolepos[agent] * 2 + agentoffset);
                         Console.WriteLine(message);
+
+                        var meh = evt.Action.Exception.InnerException;
+                        while (meh != null)
+                        {
+                            Console.WriteLine("Message of inner exception: "+meh.Message+". Stack trace: "+meh.StackTrace);
+                            meh = meh.InnerException;
+                        }
 
                     }));
                 
