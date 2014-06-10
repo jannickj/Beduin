@@ -1,4 +1,4 @@
-﻿namespace NabfAgentLogic
+namespace NabfAgentLogic
 module GoalSpecifications =
 
     open AgentTypes
@@ -70,3 +70,17 @@ module GoalSpecifications =
         | Charged _
         | AtMinValueNode _
         | Parried-> fun _ -> 0
+
+    let goalVertex goal state =
+        match goal with
+        | At vertex 
+        | Explored vertex
+        | Probed vertex ->
+            Some <| vertex
+        
+        | Attacked agent 
+        | Repaired agent
+        | Inspected agent -> 
+            Some <| agentAt agent state
+
+        | _ -> None
