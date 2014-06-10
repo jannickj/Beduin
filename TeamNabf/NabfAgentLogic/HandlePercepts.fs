@@ -1,4 +1,4 @@
-﻿namespace NabfAgentLogic
+namespace NabfAgentLogic
 module HandlePercepts =
     open FsPlanning.Agent
     open FsPlanning.Agent.Planning
@@ -204,7 +204,7 @@ module HandlePercepts =
                
             | KnowledgeSent pl -> 
                     let updatedNK = List.filter (fun p -> not <| List.exists ((=) p) pl) state.NewKnowledge
-                    logCritical <| sprintf "Clearing knowledge sent. We sent %A knowledge" pl.Length
+                    logImportant <| sprintf "Clearing knowledge sent. We sent %A knowledge" pl.Length
                     { state with NewKnowledge = updatedNK }
 
             | HeuristicUpdate (n1,n2,dist) -> 
@@ -373,20 +373,7 @@ module HandlePercepts =
 //            state
 
     let updateHeuristicsMapSingle percepts oldState state =
-        if state.World.Count > oldState.World.Count then 
-            
-            //let stopwatch = System.Diagnostics.Stopwatch.StartNew()
-
-            let result = 
-                { state with GraphHeuristic = updateHeuristic state state.Self.Node
-
-                }
-
-            //logCritical <| sprintf "millieseconds used on single heuristic calc: %A" stopwatch.ElapsedMilliseconds
-
-            result
-        else
-            state
+        { state with GraphHeuristic = updateHeuristic state state.Self.Node}
     
     (* let updateState : State -> Percept list -> State *)
     let updateState state percepts = 

@@ -331,10 +331,10 @@ module ActionSpecifications =
 //        | Some Sentinel  -> parryActions state   @ commonActions state 
 //        | None -> failwith "agent role is unknown"
 
-    let availableActions goal state =
+    let availableActions state  goal  =
         let actions = 
             match goal with
-            | At _ | Explored _ | Occupied -> 
+            | At _ | Explored _ | GenerateMinValue -> 
                 gotoActions state
             | Attacked agent -> 
                 gotoActions state @ attackActions agent state

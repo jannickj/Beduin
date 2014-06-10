@@ -21,6 +21,15 @@ namespace NabfProject.NoticeBoardModel
 
         public enum JobType { Empty = 0, Occupy = 1, Repair = 2, Disrupt = 3, Attack = 4 }
         public enum Status { available, unavailable}
+
+        private const bool verbose = true;
+        //status reporting for SimMan
+        public int _agentsFiredCounter = 0;
+        public int _nonUniqueJobsAttemptedToBeAdded = 0;
+        public int _createdOccupyJob = 0;
+        public int _createdAttackJob = 0;
+        public int _createdRepairJob = 0;
+        public int _createdDisruptJob = 0;
         
         public NoticeBoard()
         {
@@ -134,13 +143,41 @@ namespace NabfProject.NoticeBoardModel
 
 			notice = n;
 
-			if (!isUnique)
-				return false;
+            if (!isUnique)
+            {
+                _nonUniqueJobsAttemptedToBeAdded++;
+                //if (verbose && _nonUniqueJobsAttemptedToBeAdded % 2 == 0)
+                    //Console.WriteLine("Total number of received non-unique jobs: " + _nonUniqueJobsAttemptedToBeAdded);
+                return false;
+            }
 
             bool b = AddNotice(n);
 
             foreach (NabfAgent a in _sharingList)
-                a.Raise(new NewNoticeEvent(n));
+            {
+                a.Raise(new NewNoticeEvent(n));                
+            }
+            if (n is OccupyJob)
+            {
+                //Console.WriteLine("WhichNodes:");
+                //foreach (NodeKnowledge nk in ((OccupyJob)n).WhichNodes)
+                //{
+                //    Console.WriteLine("" + nk.ToString());
+                //}
+                //Console.WriteLine("ZoneNodes:");
+                //foreach (NodeKnowledge nk in ((OccupyJob)n).ZoneNodes)
+                //{
+                //    Console.WriteLine("" + nk.ToString());
+                //}
+                //Console.WriteLine("WhichNode: " + ((OccupyJob)n).WhichNodes + ". ZoneNodes: " + ((OccupyJob)n).ZoneNodes);
+                _createdOccupyJob++;
+            }
+            if (n is RepairJob)
+                _createdRepairJob++;
+            if (n is DisruptJob)
+                _createdDisruptJob++;
+            if (n is AttackJob)
+                _createdAttackJob++;
 
             return b;
         }
@@ -254,6 +291,18 @@ namespace NabfProject.NoticeBoardModel
             throw new NotImplementedException();
         }
 
+        public ICollection<Notice> GetUnavailableNotices(JobType type)
+        {
+            List<Notice> result = new List<Notice>();
+            ICollection<Notice> noticesOfType = GetNotices(new List<NoticeBoard.JobType>() { type });
+            foreach (Notice n in noticesOfType)
+            {
+                if (n.Status == Status.unavailable)
+                    result.Add(n);
+            }
+            return result;
+        }
+
         public void ApplyToNotice(Notice notice, int desirability, NabfAgent a)
         {
             foreach (Notice n in _availableJobs.Get(NoticeToJobType(notice)))
@@ -282,6 +331,12 @@ namespace NabfProject.NoticeBoardModel
                         {
                             UnApplyToNotice(n, agent, false);
                             RaiseFiredEventForNotice(n, agent);
+                            _agentsFiredCounter++;
+                            if (verbose)
+                            {
+                                if (_agentsFiredCounter % 50 == 0)
+                                    Console.WriteLine("Total number of fired agents: " + _agentsFiredCounter);
+                            }
                         }
                     }
 
@@ -439,7 +494,7 @@ namespace NabfProject.NoticeBoardModel
                 {
                     if (no.ContentIsEqualTo(n))
                         continue;
-					Console.WriteLine ("Agent {0} unapplied from {1} in favor of {2}", a, no, n);
+                    Console.WriteLine("Agent " + a.Name + " unapplied from " + no.ToString() + " in favor of " + n.ToString());
                     UnApplyToNotice(no, a, fireOtherAtEnd);
                 }
             }

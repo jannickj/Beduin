@@ -200,7 +200,7 @@ namespace NabfProject.NoticeBoardModel
 
     public class OccupyJob : Notice
     {
-        public List<NodeKnowledge> ZoneNodes { get; set; }
+        public List<NodeKnowledge> ZoneNodes { get; set; } //the nodes which is part of the zone (not the nodes to stand on)
 
         public OccupyJob(int agentsNeeded, List<NodeKnowledge> whichNodes, List<NodeKnowledge> zoneNodes, int value, Int64 id)
             : base(id)

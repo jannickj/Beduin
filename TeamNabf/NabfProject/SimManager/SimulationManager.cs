@@ -28,6 +28,7 @@ namespace NabfProject.SimManager
         private int _numberOfAgentsFinishedApplying = 0;
 
         private const bool verbose = true;
+        //Status reporting
         private int _callsToSendKnowledge = 0;
         private int _sentJobCounter = 0;
         private int _updatedJobCounter = 0;
@@ -36,6 +37,10 @@ namespace NabfProject.SimManager
         private int _noticesRemovedCounter = 0;
         private int _sentKnowledgeCounter = 0;
         private bool _notPrintedSentKnowledgeCounterThisRound = true;
+        private int _sentOccupyJobCounter = 0;
+        private int _sentRepairJobCounter = 0;
+        private int _sentDisruptJobCounter = 0;
+        private int _sentAttackJobCounter = 0;
 
         public SimulationManager(SimulationFactory sf, int timeBeforeApplyCloses = _standardTimeBeforeApplyCloses)
         {
@@ -133,12 +138,12 @@ namespace NabfProject.SimManager
 
             km.SendKnowledgeToManager(sentKnowledge, sender);
 
+            _sentKnowledgeCounter += sentKnowledge.Count;
             if (verbose)
             {
-                _sentKnowledgeCounter += sentKnowledge.Count;
                 if (_currentRoundNumber % 20 == 0 && _notPrintedSentKnowledgeCounterThisRound)
                 {
-                    Console.WriteLine("--------total numbers of sent knowledge is: " + _sentKnowledgeCounter);
+                    Console.WriteLine("Total numbers of sent knowledge is: " + _sentKnowledgeCounter);
                     _notPrintedSentKnowledgeCounterThisRound = false;
                 }
                 else if (_currentRoundNumber % 9 == 0)
@@ -153,12 +158,23 @@ namespace NabfProject.SimManager
 
             bool ret = nb.CreateAndAddNotice(type, agentsNeeded, whichNodes, zoneNodes, agentToRepair, value, out notice);
 
+            _sentJobCounter++;
             if (verbose)
             {
-                _sentJobCounter++;
-                if (_sentJobCounter % 10 == 0)
-                    Console.WriteLine("total numbers of created jobs is: " + _sentJobCounter);
+                //if (_sentJobCounter % 10 == 0)
+                    //Console.WriteLine("Total numbers of created jobs is: " + _sentJobCounter);
             }
+
+            #region status report data gathering
+            if (type == NoticeBoard.JobType.Attack)
+                _sentAttackJobCounter++;
+            if (type == NoticeBoard.JobType.Repair)
+                _sentRepairJobCounter++;
+            if (type == NoticeBoard.JobType.Occupy)
+                _sentOccupyJobCounter++;
+            if (type == NoticeBoard.JobType.Disrupt)
+                _sentDisruptJobCounter++;
+            #endregion
 
             return ret;
         }
@@ -170,11 +186,11 @@ namespace NabfProject.SimManager
             NoticeBoard nb;
             TryGetNoticeBoard(simID, out nb);
 
+            _noticesRemovedCounter++;
             if (verbose)
             {
-                _noticesRemovedCounter++;
-                if (_noticesRemovedCounter % 10 == 0)
-                    Console.WriteLine("total numbers of jobs removed is: " + _noticesRemovedCounter);
+                //if (_noticesRemovedCounter % 10 == 0)
+                    //Console.WriteLine("Total numbers of jobs removed is: " + _noticesRemovedCounter);
             }
 
             return nb.RemoveNotice(noticeId);
@@ -187,11 +203,11 @@ namespace NabfProject.SimManager
             NoticeBoard nb;
             TryGetNoticeBoard(simID, out nb);
 
+            _updatedJobCounter++;
             if (verbose)
             {
-                _updatedJobCounter++;
-                if (_updatedJobCounter % 10 == 0)
-                    Console.WriteLine("total numbers of updated jobs is: " + _updatedJobCounter);
+                //if (_updatedJobCounter % 10 == 0)
+                    //Console.WriteLine("Total numbers of updated jobs is: " + _updatedJobCounter);
             }
 
             return nb.UpdateNotice(noticeID, whichNodes, zoneNodes, agentsNeeded, value, agentToRepair);               
@@ -231,11 +247,11 @@ namespace NabfProject.SimManager
             if (numberOfAgents <= _numberOfAgentsFinishedApplying)
                 FindJobs(simID);
 
+            _applicationsReceivedCounter++;
             if (verbose)
             {
-                _applicationsReceivedCounter++;
-                if (_applicationsReceivedCounter % 100 == 0)
-                    Console.WriteLine("total numbers of job applications received is: " + _applicationsReceivedCounter);
+                //if (_applicationsReceivedCounter % 100 == 0)
+                    //Console.WriteLine("Total numbers of job applications received is: " + _applicationsReceivedCounter);
             }
         }
         public void UnApplyToNotice(int simID, Int64 noticeId, NabfAgent a)
@@ -250,11 +266,11 @@ namespace NabfProject.SimManager
             if (b == false)
                 return;
 
+            _unappliesReceivedCounter++;
             if (verbose)
             {
-                _unappliesReceivedCounter++;
                 if (_unappliesReceivedCounter % 100 == 0)
-                    Console.WriteLine("total numbers of job applications received is: " + _unappliesReceivedCounter);
+                    Console.WriteLine("Total numbers of job applications received is: " + _unappliesReceivedCounter);
             }
 
             nb.UnApplyToNotice(notice, a, true);
@@ -279,7 +295,7 @@ namespace NabfProject.SimManager
             NoticeBoard nb;
             TryGetNoticeBoard(simID, out nb);
 
-            //agents no longer unapplies from all jobs when starting a new round
+            //by un-commenting this code, agents no longer unapplies from all jobs when starting a new round
             //foreach(NabfAgent a in nb.GetSubscribedAgents())
             //    nb.UnApplyFromAll(a);
 
@@ -289,30 +305,46 @@ namespace NabfProject.SimManager
             _jobsFoundForThisRound = false;
             _numberOfAgentsFinishedApplying = 0;
 
-            if (_currentRoundNumber % 100 == 0)
+            if (_currentRoundNumber % 5 == 0 || _currentRoundNumber < 10)
+                Console.WriteLine("-------- Simulation " + simID + ", Round: " + _currentRoundNumber + " --------");
+
+            #region status reports
+            if (_currentRoundNumber % 100 == 0 && _currentRoundNumber > 1)
             {
                 KnowledgeManager km;
                 TryGetKnowledgeManager(simID, out km); 
                 Console.WriteLine("  ");
                 Console.WriteLine("--- status on all current jobs on round " + _currentRoundNumber + " ---");
                 Console.WriteLine("Total number of sent jobs: " + _sentJobCounter);
+                Console.WriteLine("      Total sent occupy jobs: " + _sentOccupyJobCounter + ". Occupy jobs taken: " + nb.GetUnavailableNotices(NoticeBoard.JobType.Occupy).Count());
+                Console.WriteLine("      Total sent repair jobs: " + _sentRepairJobCounter + ". Repair jobs taken: " + nb.GetUnavailableNotices(NoticeBoard.JobType.Repair).Count());
+                Console.WriteLine("      Total sent attack jobs: " + _sentAttackJobCounter + ". Attack jobs taken: " + nb.GetUnavailableNotices(NoticeBoard.JobType.Attack).Count());
+                Console.WriteLine("      Total sent disrupt jobs: " + _sentDisruptJobCounter + ". Disrupt jobs taken: " + nb.GetUnavailableNotices(NoticeBoard.JobType.Disrupt).Count());
                 Console.WriteLine("Total number of sent job updates: " + _updatedJobCounter);
                 Console.WriteLine("Total number of sent applications: " + _applicationsReceivedCounter);
                 Console.WriteLine("Total number of sent un-applications: " + _unappliesReceivedCounter);
+                Console.WriteLine("Total number of agents fired: " + nb._agentsFiredCounter);
                 Console.WriteLine("Total number of sent job removals: " + _noticesRemovedCounter);
+                Console.WriteLine("Total number of received non-unique jobs: " + nb._nonUniqueJobsAttemptedToBeAdded);
+                
+                if (nb.GetSubscribedAgentsCount() < 28)
+                    Console.WriteLine("WARNING! there is only " + nb.GetSubscribedAgentsCount() + " agents connected to Notice Board");
                 
                 Console.WriteLine("  ");
 
                 Console.WriteLine("--- status on all current knowledge on round " + _currentRoundNumber + " ---");
-                Console.WriteLine("Knowledge base size: "+km.KnowledgeBase.Length);
+                Console.WriteLine("Knowledge base size: " + km.KnowledgeBase.Length);
                 Console.WriteLine("Total knowledge sent: " + _sentKnowledgeCounter);
                 Console.WriteLine("Total redudant knowledge sent: " + (km._redudantEdgeKnowledgeCounter + km._redudantNodeKnowledgeCounter + km._redudantRoleKnowledgeCounter + km._redudantHeuristicKnowledgeCounter + km._redudantMessageKnowledgeCounter));
                 Console.WriteLine("Total useful knowledge sent: " + (km._edgeKnowledgeCounter + km._nodeKnowledgeCounter + km._roleKnowledgeCounter + km._heuristicKnowledgeCounter + km._messageKnowledgeCounter));
-                Console.WriteLine("Redudant knowledge sent. Edge: " + km._redudantEdgeKnowledgeCounter + ". Node " + km._redudantNodeKnowledgeCounter + ". Role " + km._redudantRoleKnowledgeCounter + ". Heuristic " + km._redudantHeuristicKnowledgeCounter + ". Message " + km._redudantMessageKnowledgeCounter);
-                Console.WriteLine("Useful knowledge sent. Edge:   " + km._edgeKnowledgeCounter + ". Node " + km._nodeKnowledgeCounter + ". Role " + km._roleKnowledgeCounter + ". Heuristic " + km._heuristicKnowledgeCounter + ". Message " + km._messageKnowledgeCounter);
+                Console.WriteLine("Redudant knowledge sent. Edge: " + km._redudantEdgeKnowledgeCounter + ". Node " + km._redudantNodeKnowledgeCounter + ". Role " + km._redudantRoleKnowledgeCounter + ". Message " + km._redudantMessageKnowledgeCounter + ". Heuristic " + km._redudantHeuristicKnowledgeCounter);
+                Console.WriteLine("Useful knowledge sent. Edge: " + km._edgeKnowledgeCounter + ". Node " + km._nodeKnowledgeCounter + ". Role " + km._roleKnowledgeCounter + ". Message " + km._messageKnowledgeCounter + ". Heuristic " + km._heuristicKnowledgeCounter);
+                
+                if (km.GetSubscribedAgentsCount() < 28)
+                    Console.WriteLine("WARNING! there is only " + km.GetSubscribedAgentsCount() + " agents connected to Knowledge Manager");
                 Console.WriteLine("  ");
             }
-
+            #endregion
             return true;
         }
 

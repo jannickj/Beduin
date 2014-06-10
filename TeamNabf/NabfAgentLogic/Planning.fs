@@ -31,11 +31,9 @@ module Planning =
                 false
 
     let distance (goals : Goal list) state cost =
-        let heuValue = List.max <| List.map (fun goal -> goalHeuristics goal <| state) goals 
-
-        let minimumTraversalCost = (heuValue / EDGE_COST_MAX) * turnCost state
-        let rechargesRequiredCost = (heuValue / state.Self.MaxEnergy.Value) * turnCost state
-        heuValue + minimumTraversalCost + rechargesRequiredCost
+        match goals with
+        | [] -> 0
+        | gl -> List.min <| List.map (fun goal -> goalHeuristics goal <| state) gl 
       
     let satisfiedGoalCount goals state =
         List.length <| List.filter ((flip generateGoalCondition) state) goals
@@ -49,12 +47,17 @@ module Planning =
     let goalTest goals state = 
         List.forall (fun goal -> generateGoalCondition goal state) goals
 
+    let applicableActions goals state =
+        let actions = Set.ofList <| List.collect (availableActions state) goals
+        let appActs = Set.filter (isApplicable state) actions
+        Set.toList appActs
+
     let agentProblem (state : State) goals = 
         let headGoal = List.head goals
 
         { InitialState = state
         ; GoalTest     = wrappedGoalTest <| goalTest goals
-        ; Actions      = fun state -> List.filter (isApplicable state) (availableActions headGoal state)
+        ; Actions      = applicableActions goals
         ; Result       = fun state action -> action.Effect state
         ; StepCost     = fun state action -> action.Cost state
         ; Heuristic    = h goals
@@ -94,7 +97,9 @@ module Planning =
                 not <| List.forall (fun node -> satisfiedGoalCount (goalList goalObjective node.State) node.State = 0) path
 
             match plan with
-            | Some {Cost = _; Path = []} -> Some ([], objectives)
+            | Some {Cost = _; Path = []} -> 
+                logImportant <| sprintf "Found empty plan for goals %A" goals
+                Some ([], objectives)
             | Some {Cost = _; Path = path} when isSomePathValid path -> 
                 let actions = List.map (fun node -> node.Action.Value) path
                 logImportant (sprintf "Found plan: %A" <| List.map (fun action -> action.ActionType) actions)

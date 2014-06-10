@@ -7,6 +7,7 @@ module LogicLib =
     open Constants
     open FsPlanning.Search
     open FsPlanning.Search.Problem
+    open ActionSpecifications
 
     let flip f x y = f y x
 
@@ -99,7 +100,9 @@ module LogicLib =
         let [nodeA;nodeB] = List.sort [node1; node2]
         match Map.tryFind (nodeA,nodeB) heuMap with
         | Some (cost,dist) ->
-            (state.Self.MaxEnergy.Value/2)*dist+cost
+            //let rechargesRequiredCost = (cost / (state.Self.MaxEnergy.Value/2)) * turnCost state
+            let minimumTraversalCost = dist * turnCost state
+            minimumTraversalCost + cost
         | None -> INFINITE_HEURISTIC
 
     let distanceBetweenAgentAndNode node state : int = distanceBetweenNodes state.Self.Node node state
@@ -193,6 +196,17 @@ module LogicLib =
 
 
     let nearestVertexSatisfying (state : State) (condition : (State -> VertexName -> bool)) =
-        List.map fst (Map.toList state.World)
-        |> List.filter (condition state)
-        |> List.minBy (flip distanceBetweenAgentAndNode <| state)
+        let satisfying = List.map fst (Map.toList state.World)
+                         |> List.filter (condition state)
+        if List.length satisfying > 0 then
+            Some (List.minBy (flip distanceBetweenAgentAndNode <| state) satisfying )
+        else
+            None
+
+        
+    let nodeHasNoOtherFriendlyAgentsOnIt (inputState:State) node : bool =
+        let friendliesOnNode = List.filter (fun a -> a.Node = node) inputState.FriendlyData
+        if (friendliesOnNode.Length = 1) then
+            friendliesOnNode.Head.Name = inputState.Self.Name
+        else
+            false

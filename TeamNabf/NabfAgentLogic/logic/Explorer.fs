@@ -45,11 +45,15 @@ module Explorer =
     let nodePartOfZone (s:State) =
         let occupyJobs = (List.filter (fun ((_,_,jType,_),_) -> jType = JobType.OccupyJob) s.Jobs)
         let occupyJobSet = Set.ofList (List.concat (List.map (fun (_,OccupyJob(_,l)) -> l) occupyJobs))
+//        logCritical <| sprintf "%A" s.Jobs
+//        logCritical <| sprintf "%A" occupyJobs
+//        logCritical <| sprintf "%A" occupyJobSet
+//        logCritical <| sprintf "%A" (Set.contains s.Self.Node occupyJobSet)
         Set.contains s.Self.Node occupyJobSet
 
     let nodeHostile (s:State) = false // Not implemented yet!
 
-    let newZoneFound (s:State) = (onHighValueNode s) && not (nodePartOfZone s) && not (nodeHostile s)
+    let newZoneFound (s:State) = (onHighValueNode s) && (not (nodePartOfZone s)) && (not (nodeHostile s))
 
     let hasValueHigherThan node value (s:State) = s.World.[node].Value.IsSome && s.World.[node].Value.Value >= value
     
@@ -201,6 +205,7 @@ module Explorer =
     let findNewZone (inputState:State) = 
         if (newZoneFound inputState)
         then
+            
             let origin = inputState.Self.Node
             Some("probe a new zone.",Activity,
                 [ MultiGoal(
@@ -241,4 +246,10 @@ module Explorer =
 
     let findNodeToProbe (inputState:State) =
         let nearestUnprobed = nearestVertexSatisfying inputState nodeIsUnprobed
-        Some("probe one more node.", Activity, [Requirement (Probed nearestUnprobed)])
+        //logImportant <| sprintf "Distance to 66 is: %A" (distanceBetweenNodes "v58" "v66" inputState)
+        //logImportant <| sprintf "Distance to 99 is: %A" (distanceBetweenNodes "v58" "v99" inputState)
+        //logImportant <| sprintf "Distance to 1 is: %A" (distanceBetweenNodes "v1" "v58" inputState)
+        match nearestUnprobed with
+        | Some unprobed ->
+            Some("probe one more node.", Activity, [Requirement (Probed unprobed)])
+        | _ -> None
