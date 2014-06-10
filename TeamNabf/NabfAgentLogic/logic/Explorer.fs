@@ -25,12 +25,14 @@ module Explorer =
         | _ -> zone
 
 
-    let rec removeDuplicates (zone:VertexName list) (result:VertexName list) =
+    let rec removeDuplicatesRec (zone:VertexName list) (result:VertexName list) =
         match zone with
         | head :: tail -> 
                         let target = List.tryFind (fun n -> n = head) tail
-                        if target.IsSome then removeDuplicates tail result else removeDuplicates tail (head::result)
+                        if target.IsSome then removeDuplicatesRec tail result else removeDuplicatesRec tail (head::result)
         | [] -> result
+
+    let removeDuplicates zone = removeDuplicatesRec zone []
 
     //Check if any jobs contain the current vertex.
     let checkZoneCandidate (s:State) = 
@@ -83,7 +85,7 @@ module Explorer =
         match (vl, zone) with
         | ([], _) -> []
         | (head :: tail, l) -> 
-            if (List.tryFind (fun n -> n = head) l).IsNone then 
+            if (List.tryFind (fun n -> n = head) l).IsSome then 
                 head :: (getOverlappingVertices tail l)
             else 
                 getOverlappingVertices tail l
@@ -232,7 +234,7 @@ module Explorer =
                             Some [Communicate( CreateJob( (None,zoneValue,JobType.OccupyJob,agentsNeeded),OccupyJob(agentPositions,Set.toList zone) ) )]
                         | head::tail -> 
                             let removeIds = List.map ( fun ((id:Option<JobID>,_,_,_),_) -> if id.IsSome then id.Value else -1) overlapping
-                            let merged = removeDuplicates (mergeZones (Set.toList zone) overlapping) []
+                            let merged = removeDuplicates (mergeZones (Set.toList zone) overlapping)
                             let subGraph = List.map (fun n -> state.World.[n]) merged
                             let agentPositions = findAgentPlacement subGraph state.World
                             let agentsNeeded = agentPositions.Length

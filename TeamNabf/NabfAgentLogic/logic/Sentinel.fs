@@ -19,7 +19,7 @@ module Sentinel =
         | ((id,_,_,_),_)::_ -> 
             let (_,node) = List.find (fun (jid,_) -> id.Value = jid) inputState.MyJobs
             Some
-                (   "occupy node " + node + "and then parry"
+                (   "occupy node " + node + " and then parry"
                 ,   Activity
                 ,   [ Requirement (At node)
                     ; Requirement Parried
