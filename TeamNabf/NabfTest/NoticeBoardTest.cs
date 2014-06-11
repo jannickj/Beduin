@@ -42,7 +42,7 @@ namespace NabfTest
 		[Test]
 		public void AddInitialNotice_NoDuplicateListEmpty_Success()
 		{
-            Assert.Pass("test disabled");
+            //Assert.Pass("test disabled");
 
             Notice n;
             bool addSuccess = nb.CreateAndAddNotice(NoticeBoard.JobType.Disrupt, 1, null, null, null, 0, out n);
@@ -54,7 +54,7 @@ namespace NabfTest
         [Test]
         public void AddNotice_DuplicateExists_Failure()
         {
-            Assert.Pass("test disabled");
+            //Assert.Pass("test disabled");
 
             List<NodeKnowledge> testNodes = new List<NodeKnowledge>() { new NodeKnowledge("n1"), new NodeKnowledge("n2") };
 
@@ -88,7 +88,7 @@ namespace NabfTest
         [Test]
         public void ApplyToNotice_DuplicateDesirability_Success()
         {
-            Assert.Pass("test disabled");
+            //Assert.Pass("test disabled");
             
             Notice n;
             nb.CreateAndAddNotice(NoticeBoard.JobType.Disrupt, 2
@@ -131,52 +131,11 @@ namespace NabfTest
         //    Assert.AreEqual(0, qq.Count());
 
         //}
-
-        [Test]
-        public void AddNotices_NoDuplicateListNoneEmpty_Success()
-        {
-            Assert.Pass("test disabled");
-
-            List<NodeKnowledge> testNodes = new List<NodeKnowledge>() { new NodeKnowledge("n1"), new NodeKnowledge("n2") };
-            List<NodeKnowledge> testNodes2 = new List<NodeKnowledge>() { new NodeKnowledge("n1"), new NodeKnowledge("n2") };
-
-            Notice no = new DisruptJob(2, testNodes, 0, ID++);
-            Notice no2 = new DisruptJob(2, testNodes2, 0, ID++);
-            Notice no3 = new DisruptJob(1, testNodes, 0, ID++);
-            Notice no4 = new DisruptJob(1, testNodes2, 0, ID++);
-            Notice no5 = new OccupyJob(1, testNodes, emptyZone, 0, ID++);
-            Notice no6 = new OccupyJob(1, testNodes2, emptyZone, 0, ID++);
-            Notice no7 = new AttackJob(1, testNodes, 0, ID++);
-            Notice no8 = new AttackJob(1, testNodes2, 0, ID++);
-            Notice no9 = new RepairJob(testNodes, emptyAgentName, 0, ID++);
-            Notice no10 = new RepairJob(testNodes2, emptyAgentName, 0, ID++);
-            bool addSuccess = nb.CreateAndAddNotice(NoticeBoard.JobType.Disrupt, 2, testNodes, emptyZone, emptyAgentName, 0, out no);
-            bool addSuccess2 = nb.CreateAndAddNotice(NoticeBoard.JobType.Disrupt, 2, testNodes2, emptyZone, emptyAgentName, 0, out no2);
-            bool addSuccess3 = nb.CreateAndAddNotice(NoticeBoard.JobType.Disrupt, 1, testNodes, emptyZone, emptyAgentName, 0, out no3);
-            bool addSuccess4 = nb.CreateAndAddNotice(NoticeBoard.JobType.Disrupt, 1, testNodes2, emptyZone, emptyAgentName, 0, out no4);
-            bool addSuccess5 = nb.CreateAndAddNotice(NoticeBoard.JobType.Occupy, 1, testNodes, emptyZone, emptyAgentName, 0, out no5);
-            bool addSuccess6 = nb.CreateAndAddNotice(NoticeBoard.JobType.Occupy, 1, testNodes2, emptyZone, emptyAgentName, 0, out no6);
-            bool addSuccess7 = nb.CreateAndAddNotice(NoticeBoard.JobType.Attack, 1, testNodes, emptyZone, emptyAgentName, 0, out no7);
-            bool addSuccess8 = nb.CreateAndAddNotice(NoticeBoard.JobType.Attack, 1, testNodes2, emptyZone, emptyAgentName, 0, out no8);
-            bool addSuccess9 = nb.CreateAndAddNotice(NoticeBoard.JobType.Repair, 1, testNodes, emptyZone, emptyAgentName, 0, out no9);
-            bool addSuccess10 = nb.CreateAndAddNotice(NoticeBoard.JobType.Repair, 1, testNodes2, emptyZone, emptyAgentName, 0, out no10);
-            Assert.True(addSuccess);
-            Assert.True(addSuccess2);
-            Assert.True(addSuccess3);
-            Assert.True(addSuccess4);
-            Assert.True(addSuccess5);
-            Assert.True(addSuccess6);
-            Assert.True(addSuccess7);
-            Assert.True(addSuccess8);
-            Assert.True(addSuccess9);
-            Assert.True(addSuccess10);
-            Assert.AreEqual(10, nb.GetNoticeCount());
-        }
         
         [Test]
         public void RemoveNotice_MultipleNotices_Success()
         {
-            Assert.Pass("test disabled");
+            //Assert.Pass("test disabled");
 
             List<NodeKnowledge> testNodes = new List<NodeKnowledge>() { new NodeKnowledge("n1"), new NodeKnowledge("n2") };
             List<NodeKnowledge> testNodes2 = new List<NodeKnowledge>() { new NodeKnowledge("n1"), new NodeKnowledge("n2") };
@@ -193,7 +152,7 @@ namespace NabfTest
         [Test]
         public void RemoveNotice_NoSuchNotice_Failure()
         {
-            Assert.Pass("test disabled");
+            //Assert.Pass("test disabled");
 
             List<NodeKnowledge> testNodes = new List<NodeKnowledge>() { new NodeKnowledge("n1"), new NodeKnowledge("n2") };
 
@@ -208,7 +167,7 @@ namespace NabfTest
         [Test]
         public void GetNoticeOfType_NoJobsOfSuchType_Failure()
         {
-            Assert.Pass("test disabled");
+            //Assert.Pass("test disabled");
 
             List<NodeKnowledge> testNodes = new List<NodeKnowledge>() { new NodeKnowledge("n1"), new NodeKnowledge("n2") };
 
@@ -228,7 +187,7 @@ namespace NabfTest
         [Test]
         public void GetNoticeOfType_MultipleJobsOfTypeAndOtherType_Success()
         {
-            Assert.Pass("test disabled");
+            //Assert.Pass("test disabled");
 
             List<NodeKnowledge> testNodes = new List<NodeKnowledge>() { new NodeKnowledge("n1"), new NodeKnowledge("n2") };
 
@@ -248,7 +207,7 @@ namespace NabfTest
         [Test]
         public void TwoAgentsApplyToSameNoticeThenUnApply_NoticeExists_Success()
         {
-            Assert.Pass("test disabled");
+            //Assert.Pass("test disabled");
 
             List<NodeKnowledge> testNodes = new List<NodeKnowledge>() { new NodeKnowledge("n1"), new NodeKnowledge("n2") };
 
@@ -279,7 +238,7 @@ namespace NabfTest
         [Test]
         public void UpdateNotice_NoticeExists_Success()
         {
-            Assert.Pass("test disabled");
+            //Assert.Pass("test disabled");
 
             Notice no = new DisruptJob(1, null, 0, 0);
             nb.CreateAndAddNotice(NoticeBoard.JobType.Disrupt, 1, null, null, null, 0, out no);
@@ -292,7 +251,7 @@ namespace NabfTest
         [Test]
         public void UpdateNotice_NoticeDontExists_Failure()
         {
-            Assert.Pass("test disabled");
+            //Assert.Pass("test disabled");
 
             bool updateSuccess = nb.UpdateNotice(0, new List<NodeKnowledge>(), null, 1, 0, null);
             Assert.IsFalse(updateSuccess);
@@ -301,25 +260,32 @@ namespace NabfTest
         [Test]
         public void FindJobsForAgents_AllJobsFilledAllTheTime_Success()
         {
-            Assert.Pass("test disabled");
+            //Assert.Pass("test disabled");
 
             List<NodeKnowledge> testNodes = new List<NodeKnowledge>() { new NodeKnowledge("n1"), new NodeKnowledge("n2") };
 
-            Notice no = new DisruptJob(1, testNodes, 0, ID++), no2 = new AttackJob(1, testNodes, 0, ID++), no3 = new OccupyJob(2, testNodes, emptyZone, 0, ID++);
+            Notice no = new DisruptJob(1, testNodes, 0, ID++)
+                , no2 = new AttackJob(1, testNodes, 0, ID++)
+                , no3 = new OccupyJob(2, testNodes, emptyZone, 0, ID++);
             nb.CreateAndAddNotice(NoticeBoard.JobType.Disrupt, 1, testNodes, emptyZone, emptyAgentName, 0, out no);
             nb.CreateAndAddNotice(NoticeBoard.JobType.Attack, 1, testNodes, emptyZone, emptyAgentName, 0, out no2);
             nb.CreateAndAddNotice(NoticeBoard.JobType.Occupy, 2, testNodes, emptyZone, emptyAgentName, 0, out no3);
             
-            NabfAgent a1 = new NabfAgent("agent1"), a2 = new NabfAgent("agent2"), a3 = new NabfAgent("agent3"), a4 = new NabfAgent("agent4");
+            NabfAgent a1 = new NabfAgent("agent1")
+                , a2 = new NabfAgent("agent2")
+                , a3 = new NabfAgent("agent3")
+                , a4 = new NabfAgent("agent4");
 
-
+            //requires 1 agent
             nb.ApplyToNotice(no, 1, a1);
-            nb.ApplyToNotice(no2, 50, a1);
             nb.ApplyToNotice(no, 50, a2);
-            nb.ApplyToNotice(no2, 1, a2);
-
             nb.ApplyToNotice(no, 1, a3);
 
+            //requires 1 agent
+            nb.ApplyToNotice(no2, 50, a1);
+            nb.ApplyToNotice(no2, 1, a2);
+
+            //requires 2 agent
             nb.ApplyToNotice(no3, 50, a3);
             nb.ApplyToNotice(no3, 100, a4);
 
@@ -351,8 +317,8 @@ namespace NabfTest
             Assert.IsTrue(a1.Name == agentAppliedToSecondNotice1.Name || a2.Name == agentAppliedToSecondNotice1.Name);
             Assert.IsTrue(a1.Name == agentAppliedToSecondNotice2.Name || a2.Name == agentAppliedToSecondNotice2.Name);
             Assert.IsTrue(a1.Name == agentAppliedToThirdNotice.Name || a2.Name == agentAppliedToThirdNotice.Name);
-            Assert.AreEqual(a3.Name, agentOnFirstNotice1.Name);
-            Assert.AreEqual(a4.Name, agentOnFirstNotice2.Name);
+            Assert.AreEqual(a4.Name, agentOnFirstNotice1.Name);
+            Assert.AreEqual(a3.Name, agentOnFirstNotice2.Name);
             Assert.AreEqual(a2.Name, agentOnSecondNotice.Name);
             Assert.AreEqual(a1.Name, agentOnThirdNotice.Name);
             //Assert.IsFalse(failed);
@@ -361,7 +327,7 @@ namespace NabfTest
         [Test]
         public void FindJobsForAgentsSomeAgentsIsPreferedForMultipleMultiJobs_AllJobsFilledAtStart_Success()
         {
-            Assert.Pass("test disabled");
+            //Assert.Pass("test disabled");
 
             #region setup
             List<NodeKnowledge> nodes = new List<NodeKnowledge>() { new NodeKnowledge("n1"), new NodeKnowledge("n2"), new NodeKnowledge("n3") };

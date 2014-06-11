@@ -22,7 +22,7 @@ module Sentinel =
                 (   "occupy node " + node + " and then parry"
                 ,   Activity
                 ,   [ Requirement (At node)
-                    ; Requirement Parried
+                    ; Plan <| fun _ -> Some [Perform Recharge]
                     ]
                 )
         | [] -> None   
@@ -30,3 +30,15 @@ module Sentinel =
     let applyToDisruptJob (inputState:State) = None //advanced feature
     
     let workOnDisruptJobThenParryIfEnemiesClose (inputState:State) = None //advanced feature
+
+    let selfDefence inputState = 
+        let agentList = List.filter (fun a -> a.Node = inputState.Self.Node) inputState.EnemyData
+        let probableSaboteursOnNode = List.filter (fun a -> a.Role.IsSome && a.Role.Value = Saboteur && a.RoleCertainty >= 50) agentList
+        let isInDanger = (List.length probableSaboteursOnNode) > 0
+        match isInDanger with
+        | true ->  Some
+                       (   "defend myself from a saboteur on my node."
+                       ,   Activity
+                       ,   [ Plan <| fun _ -> Some [Perform Parry] ]
+                       )
+        | false -> None

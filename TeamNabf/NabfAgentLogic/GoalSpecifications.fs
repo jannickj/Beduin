@@ -35,7 +35,7 @@ module GoalSpecifications =
 
     let atMinValueNode value state = 
         let n = state.World.[state.Self.Node] 
-        if (n.Value.IsSome ) then//&& nodeHasNoOtherFriendlyAgentsOnIt state n.Identifier
+        if (n.Value.IsSome && nodeHasNoOtherFriendlyAgentsOnIt state n.Identifier) then
             n.Value.Value >= value
         else
             false
