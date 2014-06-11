@@ -11,6 +11,7 @@ module StructureBuilder =
         ; Name = name
         ; Node = node
         ; Role = None
+        ; RoleCertainty = 100
         ; Strength = None
         ; Team = "EnemyTeam"
         ; Status = Normal

@@ -154,13 +154,14 @@ module Planning =
 
         let planToMinHeuristic state objective plan =
             
-            let heuristics (state, heu, cost) action = 
+            let heuristics (state, _, cost) action = 
                 let state' = action.Effect state 
                 let cost' = action.Cost state + cost
                 let heu' = h objective state' cost'
                 (state', heu', cost')
 
-            let heuList = List.scan heuristics (state, (0, 0), 0) plan
+            let initialState = (state, (h objective state 0), 0)
+            let heuList = initialState :: List.scan heuristics initialState plan
 
             let minHeu = List.minBy (fun (_, heu, _) -> heu) heuList
             let minHeuIdx = List.findIndex ((=) minHeu) heuList
