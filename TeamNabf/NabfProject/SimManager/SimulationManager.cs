@@ -274,9 +274,10 @@ namespace NabfProject.SimManager
                     Console.WriteLine("Total numbers of job un-applications received is: " + _unappliesReceivedCounter);
             }
 
-            Console.WriteLine("Agent " + a.Name + " unapplied from " + notice.ToString());
+            //Console.WriteLine("Agent " + a.Name + " unapplied from " + notice.ToString());
             //return; //disabling unapply
             nb.UnApplyToNotice(notice, a, true);
+            //Console.WriteLine("Agent " + a.Name + " unapplied from " + notice.ToString());
         }
 
         private void FindJobsForAgents(int simID)

@@ -64,6 +64,9 @@
                         lock actionLock (fun () -> NewActionEvent.Trigger(this, new UnaryValueEvent<_>((act))))
                         ()
                     | _ -> ()
+
+                member this.PerformActionBlockUntilFinished action = (this :> Actuator<AgentAction>).PerformAction action
+
                 member this.IsReady =  true
 
                 [<CLIEvent>]
