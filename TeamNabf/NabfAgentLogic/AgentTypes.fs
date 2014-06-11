@@ -111,6 +111,8 @@ module AgentTypes =
         | RemovedJob of Job
         | AcceptedJob of JobID*VertexName
         | FiredFrom of JobID 
+    
+    
 
     type Percept =
         | EnemySeen         of Agent
@@ -128,12 +130,9 @@ module AgentTypes =
         | AgentRolePercept  of AgentRolePercept
         | KnowledgeSent     of Percept list
         | HeuristicUpdate   of VertexName * VertexName * (int*int)
-        
+        | CommucationSent   of CommunicationAction
         | JobPercept        of JobPercept
-
-    type SimulationID = int
-
-    type CommunicationAction =
+    and CommunicationAction =
         | CreateJob of Job
         | RemoveJob of JobID
         | UpdateJob of Job
@@ -142,7 +141,12 @@ module AgentTypes =
         | SimulationSubscribe
         | ShareKnowledge of Percept list
         | NewRound of int
+
+    type SimulationID = int
     
+    
+    
+        
     type AgentAction = 
         | Communicate of CommunicationAction
         | Perform of Action
