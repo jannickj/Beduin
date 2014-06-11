@@ -204,14 +204,26 @@ module HandlePercepts =
                     { state with MyJobs =  existingJobRemoved }
 
                
-            | KnowledgeSent pl -> 
-                    let updatedNK = List.filter (fun p -> not <| List.exists ((=) p) pl) state.NewKnowledge
-                    logImportant <| sprintf "Clearing knowledge sent. We sent %A knowledge" pl.Length
-                    { state with NewKnowledge = updatedNK }
+//            | KnowledgeSent pl -> 
+//                    let updatedNK = List.filter (fun p -> not <| List.exists ((=) p) pl) state.NewKnowledge
+//                    logImportant <| sprintf "Clearing knowledge sent. We sent %A knowledge" pl.Length
+//                    { state with NewKnowledge = updatedNK }
 
             | HeuristicUpdate (n1,n2,dist) -> 
                 let (heuMap,countMap) = state.GraphHeuristic 
                 {state with GraphHeuristic = (Map.add (n1,n2) dist heuMap,countMap)}
+
+            | CommucationSent cs -> 
+                match cs with
+                | ShareKnowledge pl -> 
+                    let updatedNK = List.filter (fun p -> not <| List.exists ((=) p) pl) state.NewKnowledge
+                    logImportant <| sprintf "Clearing knowledge sent. We sent %A knowledge" pl.Length
+                    { state with NewKnowledge = updatedNK } 
+                | UnapplyJob jid -> 
+                    let removeMyJob jobID = List.filter (fst >> ((=) jobID)) state.MyJobs
+                    let existingJobRemoved = removeMyJob jid
+                    { state with MyJobs =  existingJobRemoved }
+                | _ -> state
 
             | unhandled -> logError (sprintf "Unhandled percept: %A" unhandled) 
                            state //fix this later by handling remaining percepts
