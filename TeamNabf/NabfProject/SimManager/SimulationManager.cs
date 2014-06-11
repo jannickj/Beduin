@@ -275,6 +275,7 @@ namespace NabfProject.SimManager
             }
 
             nb.UnApplyToNotice(notice, a, true);
+            Console.WriteLine("Agent " + a.Name + " unapplied from a job.");
         }
 
         private void FindJobsForAgents(int simID)
