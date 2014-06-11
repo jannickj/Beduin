@@ -453,7 +453,6 @@ namespace NabfProject.NoticeBoardModel
                     notice.Status = Status.unavailable;
                 }
             }
-            
 
 //            Notice n;
 //            foreach (NabfAgent agent in _sharingList.Except(agentsWhoReceivedJob))
@@ -502,7 +501,7 @@ namespace NabfProject.NoticeBoardModel
                 success = TryFindTopDesiresForNotice(n, out avg, out agents);
                 if (success)
                 {
-                    //n.ClearTopDesireAgents();
+                    n.ClearTopDesireAgents();
 					n.HighestAverageDesirabilityForNotice = avg;
                     dl.Add(n.HighestAverageDesirabilityForNotice, n);
                     foreach(NabfAgent a in agents)
