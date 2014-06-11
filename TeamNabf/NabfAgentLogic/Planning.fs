@@ -107,7 +107,7 @@ module Planning =
                 Some (actions, objectives)
             | Some {Cost = _; Path = path} ->
                 let actions = List.map (fun node -> node.Action.Value) path
-                logImportant <| sprintf "Discarded plan %A with objective %A" (List.map (fun action -> action.ActionType) actions) goalObjective
+                logImportant <| sprintf "Discarded plan %A" (List.map (fun action -> action.ActionType) actions) //with objective %A" goalObjective
                 None
             | _ ->
                 logImportant <| sprintf "No plan found for intention %A" goalObjective
@@ -138,7 +138,7 @@ module Planning =
                 (rechargeAction :: action :: rest, objectives)
             | _ -> plan'
 
-        logImportant <| sprintf "repairing plan %A" (List.map (fun action -> action.ActionType) (fst plan))
+        logInfo <| sprintf "repairing plan %A" (List.map (fun action -> action.ActionType) (fst plan))
 
         let rechargedState (state : State) = {state with Self = {state.Self with Energy = state.Self.MaxEnergy}}
 
