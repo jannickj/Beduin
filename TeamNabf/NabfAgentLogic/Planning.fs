@@ -161,7 +161,9 @@ module Planning =
                 (state', heu', cost')
 
             let initialState = (state, (h objective state 0), 0)
-            let heuList = initialState :: List.scan heuristics initialState plan
+//            let heuList = initialState :: List.scan heuristics initialState plan
+            let heuList = List.scan heuristics initialState plan
+
 
             let minHeu = List.minBy (fun (_, heu, _) -> heu) heuList
             let minHeuIdx = List.findIndex ((=) minHeu) heuList
