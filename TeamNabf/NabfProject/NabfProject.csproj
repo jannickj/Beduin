@@ -60,6 +60,9 @@
     <Compile Include="Events\SimulationSubscribedEvent.cs" />
     <Compile Include="KnowledgeManager\HeuristicKnowledge.cs" />
     <Compile Include="KnowledgeManager\MessageKnowledge.cs" />
+    <Compile Include="NewNoticeBoard\NewNoticeBoard.cs" />
+    <Compile Include="NewNoticeBoard\Notice.cs" />
+    <Compile Include="NewNoticeBoard\NoticeLib.cs" />
     <Compile Include="Parsers\AgentMasterDataParsers.cs" />
     <Compile Include="Library\StreamSplitter.cs" />
     <Compile Include="NabfModelFactory.cs" />

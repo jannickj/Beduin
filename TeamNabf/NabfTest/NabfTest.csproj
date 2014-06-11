@@ -44,6 +44,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="NewNoticeBoardTest.cs" />
     <Compile Include="KnowledgeManagerTest.cs" />
     <Compile Include="AgentMessagesTest.cs" />
     <Compile Include="AgentToMarsConverterTest.cs" />

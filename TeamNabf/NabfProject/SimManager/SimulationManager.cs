@@ -214,13 +214,13 @@ namespace NabfProject.SimManager
             return nb.UpdateNotice(noticeID, whichNodes, zoneNodes, agentsNeeded, value, agentToRepair);               
         }
 
-        public NoticeBoard.JobType NoticeToJobType(Notice no)
-        {
-            NoticeBoard nb;
-            TryGetNoticeBoard(_currentID, out nb);
+        //public NoticeBoard.JobType NoticeToJobType(Notice no)
+        //{
+        //    NoticeBoard nb;
+        //    TryGetNoticeBoard(_currentID, out nb);
 
-            return NoticeBoard.NoticeToJobType(no);
-        }
+        //    return NoticeBoard.NoticeToJobType(no);
+        //}
 
         public void ApplyToNotice(int simID, Int64 noticeId, int desirability, NabfAgent a)
         {

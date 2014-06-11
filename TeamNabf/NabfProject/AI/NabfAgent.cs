@@ -26,5 +26,19 @@ namespace NabfProject.AI
                 Id = rng.Next(Int32.MaxValue - 1);
             }
         }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+                return false;
+            else if (!(obj is NabfAgent))
+                return false;
+            return this.Name == ((NabfAgent)obj).Name;
+        }
+
+        public override string ToString()
+        {
+            return Name;
+        }
     }
 }
