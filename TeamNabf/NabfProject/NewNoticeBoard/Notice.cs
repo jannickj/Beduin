@@ -20,7 +20,7 @@ namespace NabfProject.NewNoticeBoard
         public int AvgDesirabilityAmongTopDesires { get { return _avgDesirabilityAmongTopDesires; } set { _avgDesirabilityAmongTopDesires = value; } }
 
         private List<NabfAgent> _agentsApplied = new List<NabfAgent>();
-        private List<NabfAgent> _topDesireAgents = new List<NabfAgent>();
+        private List<NabfAgent> _agentsOnJob = new List<NabfAgent>();
         private Dictionary<string, int> _agentNameToDesirability = new Dictionary<string, int>();
 
         public abstract NewNoticeBoard.JobType GetNoticeType();
@@ -32,28 +32,28 @@ namespace NabfProject.NewNoticeBoard
 
 
 
-        public List<NabfAgent> GetTopDesireAgents()
+        public List<NabfAgent> GetAgentsOnJob()
         {
-            return this._topDesireAgents.ToList();
+            return this._agentsOnJob.ToList();
         }
         public List<NabfAgent> GetAgentsApplied()
         {
             return _agentsApplied.ToList();
         }
 
-        public void ClearTopDesireAgents()
+        public void ClearAgentsOnJob()
         {
-            _topDesireAgents.Clear();
+            _agentsOnJob.Clear();
         }
 
-        public void AddToTopDesireAgents(NabfAgent toAdd)
+        public void AddToAgentsOnJob(NabfAgent toAdd)
         {
-			_topDesireAgents.Add(toAdd);
+			_agentsOnJob.Add(toAdd);
         }
-        public void AddRangeToTopDesireAgents(ICollection<NabfAgent> toAdd)
+        public void AddRangeToAgentsOnJob(ICollection<NabfAgent> toAdd)
         {
 			foreach (NabfAgent a in toAdd)
-				AddToTopDesireAgents (a);
+				AddToAgentsOnJob (a);
         }
 
 
@@ -74,9 +74,16 @@ namespace NabfProject.NewNoticeBoard
             throw new NotImplementedException();
         }
         //not impl yet
-        public void UpdateNotice(List<NodeKnowledge> whichNodes, int agentsNeeded, int value, List<NodeKnowledge> zoneNodes = null, string agentToRepair = null)
+        public void UpdateNotice(List<NodeKnowledge> whichNodes, int agentsNeeded, int value, List<NodeKnowledge> zoneNodes, string agentToRepair)
         {
-            throw new NotImplementedException();
+            WhichNodes = whichNodes;
+            AgentsNeeded = agentsNeeded;
+            Value = value;
+
+            if (this is RepairJob)
+                ((RepairJob)this).AgentToRepair = agentToRepair;
+            else if (this is OccupyJob)
+                ((OccupyJob)this).ZoneNodes = zoneNodes;
         }
 
 
