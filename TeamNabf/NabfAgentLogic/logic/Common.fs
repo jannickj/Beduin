@@ -180,6 +180,7 @@ module Common =
     
 
     let workOnOccupyJob (inputState:State) =
+        Logging.logImportant <| sprintf  "my jobs are: %A" (List.map fst inputState.MyJobs)//delete this line. no longer needed
         let myJobs = List.map (fun (id,_) -> getJobFromJobID inputState id) inputState.MyJobs
         let myOccupyJobs = getJobsByType JobType.OccupyJob myJobs
         match myOccupyJobs with

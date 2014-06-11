@@ -308,7 +308,7 @@ namespace NabfProject.SimManager
             _jobsFoundForThisRound = false;
             _numberOfAgentsFinishedApplying = 0;
 
-            //if (_currentRoundNumber % 5 == 0 || _currentRoundNumber < 10)
+            if (_currentRoundNumber % 5 == 0 || _currentRoundNumber < 10)
                 Console.WriteLine("-------- Simulation " + simID + ", Round: " + _currentRoundNumber + " --------");
 
             if (reporting)
@@ -321,10 +321,10 @@ namespace NabfProject.SimManager
                     Console.WriteLine("  ");
                     Console.WriteLine("--- status on all current jobs on round " + _currentRoundNumber + " ---");
                     Console.WriteLine("Total number of sent jobs: " + _sentJobCounter);
-                    Console.WriteLine("      Total sent occupy jobs: " + _sentOccupyJobCounter + ". Occupy jobs currently available: " + nb.GetNotices(NoticeBoard.JobType.Occupy).Count() + ". Occupy jobs currently in use: " + nb.GetUnavailableNotices(NoticeBoard.JobType.Occupy).Count());
-                    Console.WriteLine("      Total sent repair jobs: " + _sentRepairJobCounter + ". Repair jobs currently available: " + nb.GetNotices(NoticeBoard.JobType.Repair).Count() + ". Repair jobs currently in use: " + nb.GetUnavailableNotices(NoticeBoard.JobType.Repair).Count());
-                    Console.WriteLine("      Total sent attack jobs: " + _sentAttackJobCounter + ". Attack jobs currently available: " + nb.GetNotices(NoticeBoard.JobType.Attack).Count() + ". Attack jobs currently in use: " + nb.GetUnavailableNotices(NoticeBoard.JobType.Attack).Count());
-                    Console.WriteLine("      Total sent disrupt jobs: " + _sentDisruptJobCounter + ". Disrupt jobs currently available: " + nb.GetNotices(NoticeBoard.JobType.Disrupt).Count() + ". Disrupt jobs currently in use: " + nb.GetUnavailableNotices(NoticeBoard.JobType.Disrupt).Count());
+                    Console.WriteLine("      Total sent occupy jobs: " + _sentOccupyJobCounter + ". Occupy jobs currently available: " + nb.GetNotices(NoticeBoard.JobType.Occupy).Count() + ". Occupy jobs currently in use: " + (nb.GetUnavailableNotices(NoticeBoard.JobType.Occupy)).Count);
+                    Console.WriteLine("      Total sent repair jobs: " + _sentRepairJobCounter + ". Repair jobs currently available: " + nb.GetNotices(NoticeBoard.JobType.Repair).Count() + ". Repair jobs currently in use: " + (nb.GetUnavailableNotices(NoticeBoard.JobType.Repair)).Count);
+                    Console.WriteLine("      Total sent attack jobs: " + _sentAttackJobCounter + ". Attack jobs currently available: " + nb.GetNotices(NoticeBoard.JobType.Attack).Count() + ". Attack jobs currently in use: " + (nb.GetUnavailableNotices(NoticeBoard.JobType.Attack)).Count);
+                    Console.WriteLine("      Total sent disrupt jobs: " + _sentDisruptJobCounter + ". Disrupt jobs currently available: " + nb.GetNotices(NoticeBoard.JobType.Disrupt).Count() + ". Disrupt jobs currently in use: " + (nb.GetUnavailableNotices(NoticeBoard.JobType.Disrupt)).Count);
                     Console.WriteLine("Total number of sent job updates: " + _updatedJobCounter);
                     Console.WriteLine("Total number of sent applications: " + _applicationsReceivedCounter);
                     Console.WriteLine("Total number of sent un-applications: " + _unappliesReceivedCounter);
@@ -349,20 +349,39 @@ namespace NabfProject.SimManager
                         Console.WriteLine("WARNING! there is only " + km.GetSubscribedAgentsCount() + " agents connected to Knowledge Manager");
                     Console.WriteLine("  ");
                 }
+                if (_currentRoundNumber % 500 == 0 && _currentRoundNumber > 1)
+                {
+                    foreach (NabfAgent a in nb.GetSubscribedAgents())
+                    {
+                        Console.WriteLine(" ---- " + a.Name + " ---- ");
+                        Console.WriteLine("Applications (occupy) :");
+                        foreach (Notice n in nb.GetAllNotices(NoticeBoard.JobType.Occupy))
+                        {
+                            if (nb.AgentListContainsAgent(n.GetAgentsApplied(),a))
+                                Console.WriteLine(""+n.ToString());
+                        }
+                        Console.WriteLine("Got jobs (occupy) :");
+                        foreach (Notice n in nb.GetUnavailableNotices(NoticeBoard.JobType.Occupy))
+                        {
+                            if (nb.AgentListContainsAgent(n.GetTopDesireAgents(), a))
+                                Console.WriteLine("" + n.ToString());
+                        }
+                        Console.WriteLine("  ");
+                    }
+                }
                 #endregion
             }
             //Console.WriteLine("Number of occupy jobs: "+nb.GetNoticeCount(NoticeBoard.JobType.Occupy));
             //Console.WriteLine("Number of taken occupy jobs: " + nb.GetUnavailableNotices(NoticeBoard.JobType.Occupy).Count);
             //Console.WriteLine("Number of fired agents: " + nb._agentsFiredCounter);
             //Console.WriteLine("Total number of agent applications on non-taken jobs: " + nb.CountNumberOfApplications(nb.GetAvailableNotices(NoticeBoard.JobType.Occupy)));
-            foreach (Notice n in nb.GetAvailableJobs(NoticeBoard.JobType.Occupy))
-            {
-                //foreach (NabfAgent a in n.GetTopDesireAgents())
-                //    Console.WriteLine("" + a.Name + " has " + n.ToString());
-                //foreach (NabfAgent a in n.GetAgentsApplied())
-                //    Console.WriteLine(""+a.Name);
-                
-            }
+            //foreach (Notice n in nb.GetAvailableJobs(NoticeBoard.JobType.Occupy))
+            //{
+            //    //foreach (NabfAgent a in n.GetTopDesireAgents())
+            //    //    Console.WriteLine("" + a.Name + " has " + n.ToString());
+            //    //foreach (NabfAgent a in n.GetAgentsApplied())
+            //    //    Console.WriteLine(""+a.Name);                
+            //}
             
             return true;
         }

@@ -228,7 +228,7 @@ namespace NabfProject.NoticeBoardModel
             return counter;
         }
 
-        public List<Notice> GetAvailableJobs(JobType ofType)
+        public List<Notice> GetAllNotices(JobType ofType)
         {
             return _availableJobs[ofType].ToList();
         }
@@ -326,7 +326,7 @@ namespace NabfProject.NoticeBoardModel
         public ICollection<Notice> GetUnavailableNotices(JobType type)
         {
             List<Notice> result = new List<Notice>();
-            ICollection<Notice> noticesOfType = GetNotices(new List<NoticeBoard.JobType>() { type });
+            ICollection<Notice> noticesOfType = (_availableJobs[type].ToList());
             foreach (Notice n in noticesOfType)
             {
                 if (n.Status == Status.unavailable)
@@ -547,6 +547,7 @@ namespace NabfProject.NoticeBoardModel
 
             //if (NoticeIsReadyToBeExecutedEvent != null)
             //    NoticeIsReadyToBeExecutedEvent(this, args);
+
             foreach (NabfAgent a in n.GetTopDesireAgents())
             {
                 a.Raise(new ReceivedJobEvent(n, a));
@@ -594,6 +595,16 @@ namespace NabfProject.NoticeBoardModel
                         agent.Raise(new NewNoticeEvent(n));
                 }
             }
+        }
+
+        public bool AgentListContainsAgent(ICollection<NabfAgent> agentList, NabfAgent agent)
+        {
+            foreach (NabfAgent a in agentList)
+            {
+                if (a.Name == agent.Name)
+                    return true;
+            }
+            return false;
         }
     }
 
