@@ -162,6 +162,7 @@ module Planning =
 
             let initialState = (state, (h objective state 0), 0)
 //            let heuList = initialState :: List.scan heuristics initialState plan
+
             let heuList = List.scan heuristics initialState plan
 
 
@@ -169,18 +170,17 @@ module Planning =
             let minHeuIdx = List.findIndex ((=) minHeu) heuList
 
             let rec toNth ls nth count =
-                if count = nth then
-                    ls
-                else 
-                    toNth (List.tail ls) nth (count + 1)
+                match ls with
+                | [] -> []
+                | _ when nth = count -> []
+                | head :: tail -> head :: toNth tail nth (count + 1)
 
             toNth plan minHeuIdx 0
 
         match workingPlan state plan with           
         | Some p -> 
             let objective = List.head (snd plan)
-            let path = fst plan
-            let prunedPlan = planToMinHeuristic state (goalList objective state) path
+            let prunedPlan = planToMinHeuristic state (goalList objective state) p
             let fromState = List.fold (fun state action -> action.Effect state) state prunedPlan
 
             match makePlan fromState (snd plan) with

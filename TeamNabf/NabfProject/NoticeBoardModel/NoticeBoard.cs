@@ -370,9 +370,10 @@ namespace NabfProject.NoticeBoardModel
                                     Console.WriteLine("Total number of fired agents: " + _agentsFiredCounter);
                             }
                         }
+                        n.Status = Status.available;
                     }
 
-                    n.Status = Status.available;
+                    
                     break;
                 }
             }
@@ -549,6 +550,7 @@ namespace NabfProject.NoticeBoardModel
             foreach (NabfAgent a in n.GetTopDesireAgents())
             {
                 a.Raise(new ReceivedJobEvent(n, a));
+                Console.WriteLine("" + a.Name + " got " + n.ToString());
                 foreach (Notice no in _agentToNotice[a])
                 {
                     if (no.ContentIsEqualTo(n))

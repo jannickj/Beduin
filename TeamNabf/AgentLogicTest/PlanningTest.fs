@@ -15,7 +15,7 @@ module PlanningTest =
     type RepairTest() =
 
         [<Test>]
-        member self.RepairPlan_EnemyAgentMovingFromBToC_PlanToCInsteadOfB() =
+        member self.RepairPlanAttackEnemy_EnemyMovingFromBToC_PlanToCInsteadOfB() =
             let graph = 
                 [ ("a", {Identifier = "a"; Value = None; Edges = [(None, "b"); (None, "c")] |> Set.ofList})
                 ; ("b", {Identifier = "b"; Value = None; Edges = [(None, "a"); (None, "c")] |> Set.ofList})
@@ -51,6 +51,39 @@ module PlanningTest =
 
             let assertion = expectedPath = actualPath
             Assert.IsTrue(assertion)
+
+        [<Test>] 
+        member self.RepairPlanProbeZone_OneVertexInZoneIsProbed_PlanToProbeOtherNodeOnly() =
+            let world = 
+                [ ("a", {Identifier = "a"; Value = Some 10; Edges = [(None, "b"); (None, "c")] |> Set.ofList})
+                ; ("b", {Identifier = "b"; Value = Some 1; Edges = [(None, "a"); (None, "c")] |> Set.ofList})
+                ; ("c", {Identifier = "c"; Value = None; Edges = [(None, "a"); (None, "b")] |> Set.ofList})
+                ] |> Map.ofList 
+            
+            let originalPlan = 
+                [ moveAction "b"
+                ; probeAction None
+                ; moveAction "c"
+                ; probeAction None
+                ]
+
+            let objective = MultiGoal (fun _ -> [Probed "b"; Probed "c"])
+
+            let stateNoHeuristics = buildState "a" Explorer world 
+            let state = List.fold updateHeuristic stateNoHeuristics ["a"; "b"; "c"]
+
+            let intention = ("probe zone", Activity, [objective])
+
+            let expectedPlan = 
+                [ moveAction "c"
+                ; probeAction None
+                ]
+
+            let actualPlan = repairPlan state intention (originalPlan, [objective])
+
+            let assertion = expectedPlan = (fst actualPlan.Value)
+
+            Assert.IsTrue (assertion)
 
 
 //        [<Test>]
