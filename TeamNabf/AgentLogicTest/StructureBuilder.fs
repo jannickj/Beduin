@@ -2,7 +2,21 @@
 module StructureBuilder =
     open NabfAgentLogic.AgentTypes
     
-
+    let buildEnemy name node =
+        { Energy = None
+        ; Health = Some 30
+        ; MaxEnergy = None
+        ; MaxEnergyDisabled = None
+        ; MaxHealth = None
+        ; Name = name
+        ; Node = node
+        ; Role = None
+        ; RoleCertainty = 100
+        ; Strength = None
+        ; Team = "EnemyTeam"
+        ; Status = Normal
+        ; VisionRange = None
+        }
 
     let buildStateWithEnergy node role world energy = 
         {   World = world

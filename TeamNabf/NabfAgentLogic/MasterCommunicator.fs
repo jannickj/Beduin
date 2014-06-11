@@ -57,9 +57,9 @@
                 member this.PerformAction action =
                     match action with
                     | Communicate act ->
+                        lock perceptLock (fun () -> awaitingPercepts <- (CommucationSent act)::awaitingPercepts)
                         match act with
-                        | ShareKnowledge pl -> lock perceptLock (fun () -> awaitingPercepts <- (KnowledgeSent pl)::awaitingPercepts)
-                                               NewPerceptsEvent.Trigger(this, new EventArgs())
+                        | ShareKnowledge pl -> NewPerceptsEvent.Trigger(this, new EventArgs())
                         | _ -> ()
                         lock actionLock (fun () -> NewActionEvent.Trigger(this, new UnaryValueEvent<_>((act))))
                         ()
