@@ -1,4 +1,4 @@
-namespace NabfAgentLogic
+﻿namespace NabfAgentLogic
 module HandlePercepts =
     open FsPlanning.Agent
     open FsPlanning.Agent.Planning
@@ -44,6 +44,8 @@ module HandlePercepts =
                         let oldUpdated = { oldUpdated with Team = agentNew.Team }
 
                         let oldUpdated = { oldUpdated with Status = agentNew.Status }
+
+                        let oldUpdated = { oldUpdated with RoleCertainty = agentNew.RoleCertainty }
 
                         oldUpdated          
                             
