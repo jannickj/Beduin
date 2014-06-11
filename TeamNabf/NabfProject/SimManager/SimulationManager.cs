@@ -28,7 +28,7 @@ namespace NabfProject.SimManager
         private int _numberOfAgentsFinishedApplying = 0;
 
         private const bool verbose = false;
-        private const bool reporting = false;
+        private const bool reporting = true;
         //Status reporting
         private int _callsToSendKnowledge = 0;
         private int _sentJobCounter = 0;
@@ -243,9 +243,9 @@ namespace NabfProject.SimManager
             else
                 nb.ApplyToNotice(notice, desirability, a);
 
-            int numberOfAgents = nb.GetSubscribedAgentsCount();            
+            int numberOfAgents = nb.GetSubscribedAgentsCount();
 
-            if (numberOfAgents <= _numberOfAgentsFinishedApplying)
+            if (_numberOfAgentsFinishedApplying >= numberOfAgents)
                 FindJobs(simID);
 
             _applicationsReceivedCounter++;
@@ -274,6 +274,8 @@ namespace NabfProject.SimManager
                     Console.WriteLine("Total numbers of job un-applications received is: " + _unappliesReceivedCounter);
             }
 
+            Console.WriteLine("Agent " + a.Name + " unapplied from " + notice.ToString());
+            //return; //disabling unapply
             nb.UnApplyToNotice(notice, a, true);
         }
 
@@ -349,6 +351,19 @@ namespace NabfProject.SimManager
                 }
                 #endregion
             }
+            //Console.WriteLine("Number of occupy jobs: "+nb.GetNoticeCount(NoticeBoard.JobType.Occupy));
+            //Console.WriteLine("Number of taken occupy jobs: " + nb.GetUnavailableNotices(NoticeBoard.JobType.Occupy).Count);
+            //Console.WriteLine("Number of fired agents: " + nb._agentsFiredCounter);
+            //Console.WriteLine("Total number of agent applications on non-taken jobs: " + nb.CountNumberOfApplications(nb.GetAvailableNotices(NoticeBoard.JobType.Occupy)));
+            foreach (Notice n in nb.GetAvailableJobs(NoticeBoard.JobType.Occupy))
+            {
+                //foreach (NabfAgent a in n.GetTopDesireAgents())
+                //    Console.WriteLine("" + a.Name + " has " + n.ToString());
+                //foreach (NabfAgent a in n.GetAgentsApplied())
+                //    Console.WriteLine(""+a.Name);
+                
+            }
+            
             return true;
         }
 

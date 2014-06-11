@@ -15,7 +15,7 @@ namespace NabfProject.NoticeBoardModel
         private DictionaryList<JobType, Notice> _availableJobs = new DictionaryList<JobType, Notice>();
         private SortedList<int, Notice[]> _jobs = new SortedList<int, Notice[]>(new InvertedComparer<int>());
         private Dictionary<Int64, Notice> _idToNotice = new Dictionary<Int64, Notice>();
-        private DictionaryList<NabfAgent, Notice> _agentToNotice = new DictionaryList<NabfAgent, Notice>();
+        private DictionaryList<NabfAgent, Notice> _agentToNotice = new DictionaryList<NabfAgent, Notice>();//which nodes which agents have applied ti
         private Int64 _freeID = 0;
         private HashSet<NabfAgent> _sharingList = new HashSet<NabfAgent>();
 
@@ -23,6 +23,7 @@ namespace NabfProject.NoticeBoardModel
         public enum Status { available, unavailable}
 
         private const bool verbose = false;
+
         //status reporting for SimMan
         public int _agentsFiredCounter = 0;
         public int _nonUniqueJobsAttemptedToBeAdded = 0;
@@ -204,6 +205,32 @@ namespace NabfProject.NoticeBoardModel
         public int GetNoticeCount(JobType ofType)
         {
             return _availableJobs.Get(ofType).Count;
+        }
+
+        public ICollection<Notice> GetAvailableNotices(JobType ofType)
+        {
+            List<Notice> l = new List<Notice>();
+            foreach (Notice n in _availableJobs.Get(ofType))
+            {
+                if (n.Status == Status.available)
+                    l.Add(n);
+            }
+            return l;
+        }
+
+        public int CountNumberOfApplications(ICollection<Notice> input)
+        {
+            int counter = 0;
+            foreach (Notice n in input)
+            {
+                counter += n.GetAgentsApplied().Count;
+            }
+            return counter;
+        }
+
+        public List<Notice> GetAvailableJobs(JobType ofType)
+        {
+            return _availableJobs[ofType].ToList();
         }
 
         public bool RemoveNotice(Int64 id)
@@ -402,6 +429,7 @@ namespace NabfProject.NoticeBoardModel
 
         public void FindJobsForAgents()
         {
+            //Console.WriteLine("running FindJobsForAgents()");
             SortedList<int, Notice[]> jobs = PrepareSortedQueue();
             _jobs = new SortedList<int, Notice[]>(new InvertedComparer<int>());
             for (int i = jobs.Count - 1; i > -1; i--)
@@ -425,9 +453,6 @@ namespace NabfProject.NoticeBoardModel
                 }
             }
             
-            foreach (Notice n in _availableJobs[JobType.Occupy])
-                foreach (NabfAgent a in n.GetTopDesireAgents())
-                    Console.WriteLine("" + a.Name + " has job: " + n.ToString());
 
 //            Notice n;
 //            foreach (NabfAgent agent in _sharingList.Except(agentsWhoReceivedJob))
@@ -468,7 +493,7 @@ namespace NabfProject.NoticeBoardModel
         {
             DictionaryList<int, Notice> dl = new DictionaryList<int, Notice>();
             List<NabfAgent> agents;
-			bool success;
+			bool success, agentIsNotInDesiredAgentsAlready = true;
 			int avg;
 
             foreach (Notice n in _availableJobs.SelectMany(kvp => kvp.Value))
@@ -476,10 +501,33 @@ namespace NabfProject.NoticeBoardModel
                 success = TryFindTopDesiresForNotice(n, out avg, out agents);
                 if (success)
                 {
+                    //n.ClearTopDesireAgents();
 					n.HighestAverageDesirabilityForNotice = avg;
                     dl.Add(n.HighestAverageDesirabilityForNotice, n);
-                    n.ClearTopDesireAgents();
-                    n.AddRangeToTopDesireAgents(agents);
+                    foreach(NabfAgent a in agents)
+                    {
+                        agentIsNotInDesiredAgentsAlready = true;
+                        foreach (NabfAgent aa in n.GetTopDesireAgents())
+                        {
+                            if (aa.Name == a.Name)
+                                agentIsNotInDesiredAgentsAlready = false;
+                        }
+                        if (agentIsNotInDesiredAgentsAlready)
+                            n.AddToTopDesireAgents(a);
+                    }
+                }
+                if (n.GetTopDesireAgents().Count > n.AgentsNeeded)
+                {
+                    Console.WriteLine("");
+                    Console.WriteLine("");
+                    Console.WriteLine("         WARNING!!! TOP DESIRE AGENTS > AGENTS NEEDED!");
+                    Console.WriteLine("         WARNING!!! TOP DESIRE AGENTS > AGENTS NEEDED!");
+                    Console.WriteLine("         WARNING!!! TOP DESIRE AGENTS > AGENTS NEEDED!");
+                    Console.WriteLine("         WARNING!!! TOP DESIRE AGENTS > AGENTS NEEDED!");
+                    Console.WriteLine("         WARNING!!! TOP DESIRE AGENTS > AGENTS NEEDED!");
+                    Console.WriteLine("         WARNING!!! TOP DESIRE AGENTS > AGENTS NEEDED!");
+                    Console.WriteLine("");
+                    Console.WriteLine("");
                 }
             }
             SortedList<int, Notice[]> jobs = new SortedList<int, Notice[]>(new InvertedComparer<int>());
