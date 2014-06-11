@@ -251,19 +251,48 @@ module Planning =
         class
             interface Planner<State, AgentAction, Intention, Plan> with 
                 member self.FormulatePlan (state, intent) = 
-                    formulatePlan state intent
+                    let plan = 
+                        try formulatePlan state intent with
+                        | exn -> logError <| sprintf "Error encountered in formulatePlan: %A at %A" exn.Message exn.TargetSite
+                                 None
+                    plan
                 member self.RepairPlan (state, intent, solution) =
-                    match solution with
-                    | (_, Plan _ :: _) -> Some solution
-                    | _ -> repairPlan state intent solution
+                    let plan = 
+                        match solution with
+                        | (_, Plan _ :: _) -> Some solution
+                        | _ -> 
+                            try repairPlan state intent solution with
+                            | exn -> logError <| sprintf "Error encountered in repairPlan: %A at %A" exn.Message exn.TargetSite
+                                     None
+                    plan
+                    
                 member self.SolutionFinished (state, intent, solution) = 
-                    solutionFinished state intent solution
+                    let result = 
+                        try solutionFinished state intent solution with
+                        | exn -> logError <| sprintf "Error encountered in solutionFinished: %A at %A" exn.Message exn.TargetSite
+                                 false
+                    result
+                    
                 member self.NextAction (state, intent, solution) = 
-                    nextAction state intent solution
+                    let action = 
+                        try nextAction state intent solution with
+                        | exn -> logError <| sprintf "Error encountered in nextAction: %A at %A" exn.Message exn.TargetSite
+                                 None
+                    action
+
                 member self.UpdateStateBeforePlanning (state, intent) = 
-                    updateStateBeforePlanning state intent
+                    let newState = 
+                        try updateStateBeforePlanning state intent with
+                        | exn -> logError <| sprintf "Error encountered in updateStateBeforePlanning: %A at %A" exn.Message exn.TargetSite
+                                 state
+                    newState
                 
                 member self.UpdateStateOnSolutionFinished (state, intent, solution) = 
-                    updateStateOnSolutionFinished state intent solution
+                    let newState = 
+                        try updateStateOnSolutionFinished state intent solution with
+                        | exn -> logError <| sprintf "Error encountered in updateStateOnSolutionFinished: %A at %A" exn.Message exn.TargetSite
+                                 state
+                    newState
+                    
         end
  
