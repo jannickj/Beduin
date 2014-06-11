@@ -162,7 +162,6 @@ module HandlePercepts =
                 let jobIDFromHeader (header:JobHeader) =
                         match header with
                         | (jobID, _, _, _) -> jobID
-                        | _ -> None
 
                 let removeJob jobHeader = 
                     let removeId = jobIDFromHeader jobHeader
@@ -195,7 +194,8 @@ module HandlePercepts =
 
                     { state with Jobs =  existingJobRemoved }
 
-                | AcceptedJob (jobID, vertexName) -> 
+                | AcceptedJob (jobID, vertexName) ->
+                    logImportant <| sprintf "Added job w. id %A to myjobs. Round is %A" jobID state.SimulationStep
                     { state with MyJobs = (jobID, vertexName)::state.MyJobs }
 
                 | FiredFrom jobID -> 
@@ -217,7 +217,7 @@ module HandlePercepts =
                 match cs with
                 | ShareKnowledge pl -> 
                     let updatedNK = List.filter (fun p -> not <| List.exists ((=) p) pl) state.NewKnowledge
-                    logImportant <| sprintf "Clearing knowledge sent. We sent %A knowledge" pl.Length
+                    //logImportant <| sprintf "Clearing knowledge sent. We sent %A knowledge" pl.Length
                     { state with NewKnowledge = updatedNK } 
                 | UnapplyJob jid -> 
                     let removeMyJob jobID = List.filter (fst >> ((=) jobID)) state.MyJobs
