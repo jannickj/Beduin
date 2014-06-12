@@ -224,10 +224,29 @@ namespace NabfProject.NewNoticeBoardModel
         }
 
         //agents must still be in AgentsApplied list when they get the job
+        #region AssignJobs
         public bool AssignJobs()
         {
-            throw new NotImplementedException();
+            Queue<NewNotice> jobQueue;
+            CreateQueueSortedByAvgDesirability(out jobQueue);
+
+            while(true/*queue is not empty*/)
+            {
+                CreateQueueSortedByAvgDesirability(out jobQueue);
+            }
+
+
+
+
+
+            return true;
         }
+
+        private void CreateQueueSortedByAvgDesirability(out Queue<NewNotice> jobQueue)
+        {
+            jobQueue = new Queue<NewNotice>();
+        }
+        #endregion
 
         #region private helper functions
         private NewNotice GetNoticeFromId(Int64 inputId)
