@@ -7,9 +7,9 @@ using NabfProject.Events;
 using NabfProject.KnowledgeManagerModel;
 using JSLibrary;
 
-namespace NabfProject.NewNoticeBoard
+namespace NabfProject.NewNoticeBoardModel
 {
-    public class NewNoticeBoard : NoticeLib
+    public class NewNoticeBoard : NoticeBoardHelpers
     {
         private Int64 _freeID = 0;
         private HashSet<NabfAgent> _sharingList = new HashSet<NabfAgent>();
@@ -118,9 +118,12 @@ namespace NabfProject.NewNoticeBoard
 
             AddNoticeToAllNotices(n);
 
+            NoticeBoardModel.OccupyJob testNotice_TO_BE_REMOVED 
+                = new NoticeBoardModel.OccupyJob(0, new List<NodeKnowledge>(), new List<NodeKnowledge>(), 0, 0);//remove this once event has been changed to new notice class
+
             foreach (NabfAgent a in _sharingList)
             {
-                //a.Raise(new NewNoticeEvent(n));
+                a.Raise(new NewNoticeEvent(testNotice_TO_BE_REMOVED));//fix this once event has been changed to new notice class
             }
             if (n is OccupyJob)
                 _createdOccupyJob++;
@@ -172,6 +175,8 @@ namespace NabfProject.NewNoticeBoard
 
             return true;
         }
+
+        //unapply should check if agent is in _agentsOnJob, and if so fire all others. No bool as input!
     }
 }
 

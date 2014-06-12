@@ -4,14 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
-using NabfProject.NewNoticeBoard;
+using NabfProject.NewNoticeBoardModel;
 using NabfProject.AI;
 using System.Reflection;
 using JSLibrary.Data;
 using NabfProject.KnowledgeManagerModel;
 using NabfProject.Events;
 
-namespace NabfTest.NewNoticeBoardTest
+namespace NabfTest.NewNoticeBoardModelTest
 {
     /*
      ****Notices:
@@ -19,7 +19,7 @@ namespace NabfTest.NewNoticeBoardTest
      * Update
      * Delete
      * 
-     ****Jobs:
+     ****Jobs(internal consistency):
      * Apply
      * Update application
      * Unapply
@@ -27,7 +27,7 @@ namespace NabfTest.NewNoticeBoardTest
      * AssignJobs
      * 
      ****Messaging to/from agents:
-     * All of the above
+     * All of the above + SendOutAllNoticesToAgent
      */
 
     [TestFixture]
@@ -39,7 +39,7 @@ namespace NabfTest.NewNoticeBoardTest
 
         int DontCareInt = 1;
         string DontCareString = "";
-        List<NodeKnowledge> DontCareNodes = new List<NodeKnowledge>() { };
+        List<NodeKnowledge> DontCareNodes = new List<NodeKnowledge>() { new NodeKnowledge("uniquename") };
 
 
         //called before each test
@@ -50,7 +50,8 @@ namespace NabfTest.NewNoticeBoardTest
             agent1 = new NabfAgent("a1"); agent2 = new NabfAgent("a2"); agent3 = new NabfAgent("a3"); agent4 = new NabfAgent("a4");
         }
 
-		[Test]
+        #region CRUD for notices
+        [Test]
 		public void CreateNotice_NoDuplicateExists_Success()
 		{
             #region init
@@ -180,8 +181,59 @@ namespace NabfTest.NewNoticeBoardTest
             Assert.False(deleteSuccess);
             Assert.AreEqual(1, nb.GetAllNotices().Count);
         }
+        #endregion
 
+        #region Internal consistency (Jobs)
+        [Test]
+        public void ApplyToNotice_Simple_AddApplication()
+        {
+        }
 
+        [Test]
+        public void ApplyToNotice_AgentHasAlreadyApplied_overrideApplication()
+        {
+        }
+
+        [Test]
+        public void UnapplyToNotice_DontHaveTheJob_AgentRemovedFromApplyList()
+        {
+        }
+
+        [Test]
+        public void UnapplyToNotice_NoticeDontExists_failure()
+        {
+        }
+
+        [Test]
+        public void UnapplyToNotice_HasTheJob_StatusSetToAvailable()
+        {
+        }
+        #endregion
+
+        #region Messaging
+        [Test]
+        public void CreateNotice_NoDuplicateExists_MsgArrived()
+        {
+            #region init
+            int agentsNeeded = 0;
+            int jobValue = 0;
+            string notNeededForOccupyJob = "";
+            NewNoticeBoard.JobType jobType = NewNoticeBoard.JobType.Occupy;
+            List<NodeKnowledge> whichNodesIsInvolvedInJob = new List<NodeKnowledge>() { };
+            List<NodeKnowledge> whichNodesToStandOn = new List<NodeKnowledge>() { };
+            #endregion
+
+            int eventFiredCounter = 0;
+            agent1.Register(new XmasEngineModel.Management.Trigger<NewNoticeEvent>(evt => eventFiredCounter++));
+
+            nb.CreateNotice(jobType, agentsNeeded, whichNodesIsInvolvedInJob, whichNodesToStandOn, notNeededForOccupyJob, jobValue);
+            Assert.AreEqual(0,eventFiredCounter);
+
+            nb.Subscribe(agent1);
+            nb.CreateNotice(jobType, agentsNeeded, DontCareNodes, DontCareNodes, notNeededForOccupyJob, jobValue);
+            Assert.AreEqual(1, eventFiredCounter);
+        }
+        #endregion
 
 
         private object getField(object instance, bool useBase, String name)

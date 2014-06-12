@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using NabfProject.AI;
 using NabfProject.KnowledgeManagerModel;
 
-namespace NabfProject.NewNoticeBoard
+namespace NabfProject.NewNoticeBoardModel
 {
     public abstract class NewNotice : IEquatable<NewNotice>, IComparable, IEqualityComparer<NewNotice>
     {
@@ -22,8 +22,8 @@ namespace NabfProject.NewNoticeBoard
         private List<NabfAgent> _agentsApplied = new List<NabfAgent>();
         private List<NabfAgent> _agentsOnJob = new List<NabfAgent>();
         private Dictionary<string, int> _agentNameToDesirability = new Dictionary<string, int>();
-
         public abstract NewNoticeBoard.JobType GetNoticeType();
+
 
         public NewNotice(Int64 id)
         {
@@ -31,7 +31,15 @@ namespace NabfProject.NewNoticeBoard
         }
 
 
-
+        public void AddToAgentsOnJob(NabfAgent toAdd)
+        {
+            _agentsOnJob.Add(toAdd);
+        }
+        public void AddRangeToAgentsOnJob(ICollection<NabfAgent> toAdd)
+        {
+            foreach (NabfAgent a in toAdd)
+                AddToAgentsOnJob(a);
+        }
         public List<NabfAgent> GetAgentsOnJob()
         {
             return this._agentsOnJob.ToList();
@@ -40,22 +48,10 @@ namespace NabfProject.NewNoticeBoard
         {
             return _agentsApplied.ToList();
         }
-
         public void ClearAgentsOnJob()
         {
             _agentsOnJob.Clear();
         }
-
-        public void AddToAgentsOnJob(NabfAgent toAdd)
-        {
-			_agentsOnJob.Add(toAdd);
-        }
-        public void AddRangeToAgentsOnJob(ICollection<NabfAgent> toAdd)
-        {
-			foreach (NabfAgent a in toAdd)
-				AddToAgentsOnJob (a);
-        }
-
 
         public bool TryGetDesirabilityOfAgent(NabfAgent agent, out int desire)
         {
@@ -132,15 +128,6 @@ namespace NabfProject.NewNoticeBoard
                 throw new ArgumentException("Object : " + obj.GetType().Name + " of CompareTo is not of type Notice");
         }
 
-        bool IEquatable<NewNotice>.Equals(NewNotice other)
-        {
-            if (other == null)
-                return false;
-            if (!(other is NewNotice))
-                return false;
-            return Id == other.Id;
-        }
-
         public override bool Equals(object obj)
         {
             if (obj == null)
@@ -149,7 +136,14 @@ namespace NabfProject.NewNoticeBoard
                 return false;
             return Id == ((NewNotice)obj).Id;
         }
-
+        bool IEquatable<NewNotice>.Equals(NewNotice other)
+        {
+            if (other == null)
+                return false;
+            if (!(other is NewNotice))
+                return false;
+            return Id == other.Id;
+        }
         bool IEqualityComparer<NewNotice>.Equals(NewNotice x, NewNotice y)
         {
             return x.Id == y.Id;
@@ -158,6 +152,10 @@ namespace NabfProject.NewNoticeBoard
         int IEqualityComparer<NewNotice>.GetHashCode(NewNotice obj)
         {
             return obj.Id.GetHashCode();
+        }
+        public override int GetHashCode()
+        {
+            return this.Id.GetHashCode();
         }
 
         public bool IsEmpty()

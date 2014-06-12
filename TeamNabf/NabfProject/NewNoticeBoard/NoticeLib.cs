@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using NabfProject.AI;
-using NabfProject.NewNoticeBoard;
 
-namespace NabfProject.NewNoticeBoard
+namespace NabfProject.NewNoticeBoardModel
 {
-    public abstract class NoticeLib
+    public abstract class NoticeBoardHelpers
     {
         public NewNoticeBoard.JobType NoticeToJobType(NewNotice no)
         {
