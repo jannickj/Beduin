@@ -6,6 +6,22 @@ module ActionSpecifications =
     open Constants
     open Logging
 
+    let buildAgent name node =
+        { Energy = None
+        ; Health = Some 30
+        ; MaxEnergy = None
+        ; MaxEnergyDisabled = None
+        ; MaxHealth = None
+        ; Name = name
+        ; Node = node
+        ; Role = None
+        ; RoleCertainty = 100
+        ; Strength = None
+        ; Team = "EnemyTeam"
+        ; Status = Normal
+        ; VisionRange = None
+        }
+
     type ConditionResult = 
         | Success
         | Failure of string
@@ -233,10 +249,16 @@ module ActionSpecifications =
             | true -> Success
             | false -> Failure <| sprintf "No uninspected agents present"
 
+        //Make some fake agents from names. Used by the planner when inspecting.
+        let rec buildAgents state names =
+            match names with
+            | head :: tail -> (buildAgent head state.Self.Node) :: (buildAgents state tail)
+            | [] -> []
+
         let updateState (state : State) = 
             { state with 
                     InspectedEnemies = Set.union state.InspectedEnemies (agentNames state |> Set.ofList);
-                    PlannerInspectedEnemies = Set.union state.PlannerInspectedEnemies (agentNames state |> Set.ofList);
+                    EnemyData = Set.toList <| Set.union (state.EnemyData |> Set.ofList) (buildAgents state (agentNames state) |> Set.ofList);
                     Self = deductEnergy Constants.ACTION_COST_EXPENSIVE state
                     LastAction = Action.Inspect agentNameOption
             }
@@ -320,10 +342,11 @@ module ActionSpecifications =
             []
 
     let inspectActions agent state = 
-        let agentsHere = agentsAt state.Self.Node state.FriendlyData
+        let agentsHere = agentsAt state.Self.Node state.EnemyData
         if List.exists ((=) agent) agentsHere then
             [inspectAction None]
-        else 
+        else
+            logImportant <| sprintf "No agent found" 
             []
 
     let parryActions state = [parryAction]
