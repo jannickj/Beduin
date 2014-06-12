@@ -121,7 +121,7 @@ module Planning =
         | Successful | FailedRandom -> ()
         | err -> logError <| sprintf "Last action result was %A, trying to repair plan anyway" err
 
-        let plan' = 
+        let tmpPlan = 
             match originalPlan with
             | (action :: tail, objectives) when state.LastActionResult <> FailedRandom || action = skipAction -> 
                 (tail, objectives)
@@ -130,13 +130,13 @@ module Planning =
             | ([], _) -> originalPlan
 
         let plan = 
-            match plan' with
+            match tmpPlan with
             | (action :: rest, _) when isApplicable state action ->
 //                logImportant <| sprintf "applicable: (action, cost, energy) (%A, %A, %A)" action.ActionType (action.Cost state) state.Self.Energy
-                plan'
+                tmpPlan
             | (action :: rest, objectives) when isApplicable (rechargeAction.Effect state) action ->
                 (rechargeAction :: action :: rest, objectives)
-            | _ -> plan'
+            | _ -> tmpPlan
 
         logInfo <| sprintf "repairing plan %A" (List.map (fun action -> action.ActionType) (fst plan))
 
@@ -161,7 +161,6 @@ module Planning =
                 (state', heu', cost')
 
             let initialState = (state, (h objective state 0), 0)
-//            let heuList = initialState :: List.scan heuristics initialState plan
 
             let heuList = List.scan heuristics initialState plan
 
