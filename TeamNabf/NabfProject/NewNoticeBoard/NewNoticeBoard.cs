@@ -56,8 +56,7 @@ namespace NabfProject.NewNoticeBoardModel
             return _allNotices.Values.ToList();
         }
 
-
-
+        
 
         /// <summary>
         /// Sends out all notices to an agent. 
@@ -71,8 +70,7 @@ namespace NabfProject.NewNoticeBoardModel
                 //agent.Raise(new NewNoticeEvent(n));
             }
         }
-
-
+        
 
         public bool CreateNotice(JobType jobType, int agentsNeeded, List<NodeKnowledge> whichNodesIsInvolvedInJob, List<NodeKnowledge> whichNodesToStandOn, string agentToRepair, int jobValue)
         {
@@ -136,7 +134,6 @@ namespace NabfProject.NewNoticeBoardModel
 
             return true;
         }
-
         public bool UpdateNotice(int id, List<NodeKnowledge> whichNodesIsInvolvedInJob, List<NodeKnowledge> whichNodesToStandOn, int agentsNeeded, int jobValue, string agentToRepair)
         {
             NewNotice no;
@@ -154,7 +151,6 @@ namespace NabfProject.NewNoticeBoardModel
 
             return true;
         }
-
         public bool DeleteNotice(int id)
         {
             NewNotice notice;
@@ -175,33 +171,94 @@ namespace NabfProject.NewNoticeBoardModel
 
             return true;
         }
+                
 
-        //unapply should check if agent is in _agentsOnJob, and if so fire all others. No bool as input!
+        public bool ApplyToNotice(NabfAgent agent, Int64 idToApplyTo, int desireAppliedWith)
+        {
+            NewNotice noticeAppliedTo = GetNoticeFromId(idToApplyTo);
+            if (noticeAppliedTo == null)
+                return false;
+
+            noticeAppliedTo.Apply(desireAppliedWith, agent);
+
+            return true;
+        }
+        public bool UnapplyToNotice(NabfAgent agent, Int64 idToUnapplyTo)
+        {
+            NewNotice noticeUnappliedTo = GetNoticeFromId(idToUnapplyTo);
+            if (noticeUnappliedTo == null)
+                return false;
+            bool agentHasApplied = false;
+            foreach (NabfAgent a in noticeUnappliedTo.GetAgentsApplied())
+            {
+                if (a.Name == a.Name)
+                {
+                    agentHasApplied = true;
+                    break;
+                }
+            }
+
+            if (agentHasApplied == false)
+                return false;
+
+            bool agentHadJob = AgentListContainsAgent(noticeUnappliedTo.GetAgentsOnJob(), agent);
+
+            noticeUnappliedTo.Unapply(agent);
+
+            //if agent has the job, fire the rest recursively and resset the notice.
+            if (agentHadJob)
+            {
+                foreach (NabfAgent a in noticeUnappliedTo.GetAgentsOnJob())
+                {
+                    UnapplyToNotice(a, noticeUnappliedTo.Id);
+                    RaiseFiredEventForNotice(noticeUnappliedTo, a);
+                    _agentsFiredCounter++;
+                    if (verbose && _agentsFiredCounter % 10 == 0)
+                        Console.WriteLine("Total number of fired agents: " + _agentsFiredCounter);
+                }
+                noticeUnappliedTo.Status = Status.available;
+                noticeUnappliedTo.AvgDesirabilityAmongTopDesires = -1;
+            }
+
+            return true;
+        }
+
+        //agents must still be in AgentsApplied list when they get the job
+        public bool AssignJobs()
+        {
+            throw new NotImplementedException();
+        }
+
+        #region private helper functions
+        private NewNotice GetNoticeFromId(Int64 inputId)
+        {
+            NewNotice result = null;
+            foreach (NewNotice n in GetAllNotices())
+            {
+                if (n.Id == inputId)
+                {
+                    result = n;
+                    break;
+                }
+            }
+            return result;
+        }
+        #endregion
+
+        #region legacy backup
+        private bool RaiseEventForNotice(NewNotice n, bool fireOtherAtEnd)
+        {
+            //a.Raise(new ReceivedJobEvent(n, a));
+            return true;
+        }
+        private bool RaiseFiredEventForNotice(NewNotice n, NabfAgent a)
+        {
+            //a.Raise(new FiredFromJobEvent(n, a));
+
+            return true;
+        }
+        #endregion
+
     }
 }
 
-#region legacy backup
-//private bool RaiseEventForNotice(NewNotice n, bool fireOtherAtEnd)
-//{
-//    //a.Raise(new ReceivedJobEvent(n, a));
-//    return true;
-//}
-//private bool RaiseFiredEventForNotice(NewNotice n, NabfAgent a)
-//{
-//    //a.Raise(new FiredFromJobEvent(n, a));
-
-//    return true;
-//}
-
-//public void SendOutAllNoticesToAgent(NabfAgent agent)
-//{
-//    //foreach (KeyValuePair<JobType, Notice[]> kvp in _availableJobs)
-//    //{
-//    //    foreach (Notice n in kvp.Value)
-//    //    {
-//    //        if (n.Status == Status.available)
-//    //            agent.Raise(new NewNoticeEvent(n));
-//    //    }
-//    //}
-//}
-#endregion

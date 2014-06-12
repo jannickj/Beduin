@@ -57,19 +57,45 @@ namespace NabfProject.NewNoticeBoardModel
         {
             return _agentNameToDesirability.TryGetValue(agent.Name, out desire);
         }
+        public int SizeOfAgentNameToDesirabilityMapping()
+        {
+            return _agentNameToDesirability.Keys.Count;
+        }
 
 
-        //not impl yet
-        public void Apply(int desirability, NabfAgent a)
+        public void Apply(int desirability, NabfAgent agent)
         {
-            throw new NotImplementedException();
+            NabfAgent a;
+            _agentNameToDesirability.Remove(agent.Name);
+
+            for (int i = 0; i < _agentsApplied.Count; i++)
+            {
+                a = _agentsApplied[i];
+                if (a.Name == agent.Name)
+                    _agentsApplied.Remove(a);
+            } 
+
+            _agentsApplied.Add(agent);
+            _agentNameToDesirability.Add(agent.Name, desirability);
         }
-        //not impl yet
-        public void UnApply(NabfAgent a)
+        public void Unapply(NabfAgent agent)
         {
-            throw new NotImplementedException();
+            NabfAgent a;
+            _agentNameToDesirability.Remove(agent.Name);   
+
+            for (int i = 0; i < _agentsApplied.Count; i++)
+            {
+                a = _agentsApplied[i];
+                if (a.Name == agent.Name)
+                    _agentsApplied.Remove(a);
+            }  
+            for(int i = 0; i < _agentsOnJob.Count; i++)
+            {
+                a = _agentsOnJob[i];
+                if (a.Name == agent.Name)
+                    _agentsOnJob.Remove(a);
+            }
         }
-        //not impl yet
         public void UpdateNotice(List<NodeKnowledge> whichNodes, int agentsNeeded, int value, List<NodeKnowledge> zoneNodes, string agentToRepair)
         {
             WhichNodes = whichNodes;
