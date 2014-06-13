@@ -231,7 +231,6 @@ namespace NabfProject.NewNoticeBoardModel
             return true;
         }
 
-        //agents must still be in AgentsApplied list when they get the job
         #region AssignJobs
         public bool AssignJobs()
         {
