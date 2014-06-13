@@ -8,7 +8,7 @@ using NabfProject.AI;
 using NabfProject.Events;
 using NabfProject.KnowledgeManagerModel;
 
-namespace NabfProject.NoticeBoardModel
+namespace NabfProject.OLDNoticeBoardModel
 {
     public class NoticeBoard
     {
@@ -156,7 +156,7 @@ namespace NabfProject.NoticeBoardModel
 
             foreach (NabfAgent a in _sharingList)
             {
-                a.Raise(new NewNoticeEvent(n));                
+                //a.Raise(new NewNoticeEvent(n));                
             }
             if (n is OccupyJob)
             {
@@ -251,8 +251,8 @@ namespace NabfProject.NoticeBoardModel
             _idToNotice.Remove(no.Id);
             _availableJobs.Remove(NoticeToJobType(no), no);
 
-            foreach (NabfAgent a in _sharingList)
-                a.Raise(new NoticeRemovedEvent(no));
+            //foreach (NabfAgent a in _sharingList)
+            //    a.Raise(new NoticeRemovedEvent(no));
 
             return true;
         }
@@ -267,8 +267,8 @@ namespace NabfProject.NoticeBoardModel
 
             no.UpdateNotice(whichNodes, zoneNodes, agentsNeeded, value, agentToRepair);
 
-            foreach (NabfAgent a in _sharingList)
-                a.Raise(new NoticeUpdatedEvent(id, no));
+            //foreach (NabfAgent a in _sharingList)
+            //    a.Raise(new NoticeUpdatedEvent(id, no));
 
             return true;
         }
@@ -549,7 +549,7 @@ namespace NabfProject.NoticeBoardModel
 
             foreach (NabfAgent a in n.GetTopDesireAgents())
             {
-                a.Raise(new ReceivedJobEvent(n, a));
+                //a.Raise(new ReceivedJobEvent(n, a));
                 Console.WriteLine("" + a.Name + " got " + n.ToString());
                 foreach (Notice no in _agentToNotice[a])
                 {
@@ -565,7 +565,7 @@ namespace NabfProject.NoticeBoardModel
 
         private bool RaiseFiredEventForNotice(Notice n, NabfAgent a)
         {
-            a.Raise(new FiredFromJobEvent(n, a));
+            //a.Raise(new FiredFromJobEvent(n, a));
 
             return true;
         }
@@ -590,8 +590,8 @@ namespace NabfProject.NoticeBoardModel
             {
                 foreach (Notice n in kvp.Value)
                 {
-                    if (n.Status == Status.available)
-                        agent.Raise(new NewNoticeEvent(n));
+                    //if (n.Status == Status.available)
+                    //    agent.Raise(new NewNoticeEvent(n));
                 }
             }
         }

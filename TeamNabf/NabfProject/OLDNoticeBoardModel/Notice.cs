@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using NabfProject.AI;
 using NabfProject.KnowledgeManagerModel;
 
-namespace NabfProject.NoticeBoardModel
+namespace NabfProject.OLDNoticeBoardModel
 {
     public abstract class Notice : IEquatable<Notice>, IComparable
     {

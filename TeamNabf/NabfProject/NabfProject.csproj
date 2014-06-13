@@ -60,9 +60,9 @@
     <Compile Include="Events\SimulationSubscribedEvent.cs" />
     <Compile Include="KnowledgeManager\HeuristicKnowledge.cs" />
     <Compile Include="KnowledgeManager\MessageKnowledge.cs" />
-    <Compile Include="NewNoticeBoard\NewNoticeBoard.cs" />
-    <Compile Include="NewNoticeBoard\Notice.cs" />
-    <Compile Include="NewNoticeBoard\NoticeLib.cs" />
+    <Compile Include="NoticeBoard\NoticeBoard.cs" />
+    <Compile Include="NoticeBoard\Notice.cs" />
+    <Compile Include="NoticeBoard\NoticeLib.cs" />
     <Compile Include="Parsers\AgentMasterDataParsers.cs" />
     <Compile Include="Library\StreamSplitter.cs" />
     <Compile Include="NabfModelFactory.cs" />
@@ -120,8 +120,6 @@
     <Compile Include="AI\XmlTransmitterMessage.cs" />
     <Compile Include="NabfModel.cs" />
     <Compile Include="Events\NewNoticeEvent.cs" />
-    <Compile Include="NoticeBoardModel\Notice.cs" />
-    <Compile Include="NoticeBoardModel\NoticeBoard.cs" />
     <Compile Include="Parsers\AgentToMarsParser.cs" />
     <Compile Include="Parsers\MarsToAgentConverters\ConvertSimEndToIilPerceptCollection.cs" />
     <Compile Include="Parsers\MarsToAgentConverters\ConvertByeMessageToIilPerceptCollection.cs" />

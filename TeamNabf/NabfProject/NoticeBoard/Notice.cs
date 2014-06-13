@@ -6,15 +6,15 @@ using System.Threading.Tasks;
 using NabfProject.AI;
 using NabfProject.KnowledgeManagerModel;
 
-namespace NabfProject.NewNoticeBoardModel
+namespace NabfProject.NoticeBoardModel
 {
-    public abstract class NewNotice : IEquatable<NewNotice>, IEqualityComparer<NewNotice>//, IComparable
+    public abstract class Notice : IEquatable<Notice>, IEqualityComparer<Notice>//, IComparable
     {
         public List<NodeKnowledge> WhichNodes { get; protected set; }
         public int AgentsNeeded { get; protected set; }
         public Int64 Id { get; private set; }
         public int Value { get; protected set; }
-        public NewNoticeBoard.Status Status = NewNoticeBoard.Status.available;
+        public NoticeBoard.Status Status = NoticeBoard.Status.available;
 
         //private int _avgDesirabilityAmongTopDesires = -1;
         //public int AvgDesirabilityAmongTopDesires { get { return _avgDesirabilityAmongTopDesires; } set { _avgDesirabilityAmongTopDesires = value; } }
@@ -23,12 +23,12 @@ namespace NabfProject.NewNoticeBoardModel
         private List<NabfAgent> _agentsOnJob = new List<NabfAgent>();
         private List<NabfAgent> _agentProspects = new List<NabfAgent>();
         private Dictionary<string, int> _agentNameToDesirability = new Dictionary<string, int>();
-        public abstract NewNoticeBoard.JobType GetNoticeType();
+        public abstract NoticeBoard.JobType GetNoticeType();
 
         public double AverageDesireFromTopContenders = 0;
 
 
-        public NewNotice(Int64 id)
+        public Notice(Int64 id)
         {
             Id = id;
         }
@@ -135,17 +135,17 @@ namespace NabfProject.NewNoticeBoardModel
         }
 
 
-		public virtual bool ContentIsSubsetOf(NewNotice n)
+		public virtual bool ContentIsSubsetOf(Notice n)
 		{
             if (n.GetNoticeType() != this.GetNoticeType())
                 return false;
 			return this.WhichNodes.Intersect(n.WhichNodes).Count() > 0;
 		}
-        public bool ContentIsEqualTo(NewNotice no)
+        public bool ContentIsEqualTo(Notice no)
         {
             if (no == null)
                 throw new ArgumentException("Input of ContentIsEqualTo of " + this.GetType().Name + " is null");
-            else if (!(no is NewNotice))
+            else if (!(no is Notice))
                 throw new ArgumentException("Object : " + no.GetType().Name + " of ContentIsEqualTo is not of type Notice");
 
             if (no.GetNoticeType() != this.GetNoticeType())
@@ -184,24 +184,24 @@ namespace NabfProject.NewNoticeBoardModel
         {
             if (obj == null)
                 return false;
-            if (!(obj is NewNotice))
+            if (!(obj is Notice))
                 return false;
-            return Id == ((NewNotice)obj).Id;
+            return Id == ((Notice)obj).Id;
         }
-        bool IEquatable<NewNotice>.Equals(NewNotice other)
+        bool IEquatable<Notice>.Equals(Notice other)
         {
             if (other == null)
                 return false;
-            if (!(other is NewNotice))
+            if (!(other is Notice))
                 return false;
             return Id == other.Id;
         }
-        bool IEqualityComparer<NewNotice>.Equals(NewNotice x, NewNotice y)
+        bool IEqualityComparer<Notice>.Equals(Notice x, Notice y)
         {
             return x.Id == y.Id;
         }
 
-        int IEqualityComparer<NewNotice>.GetHashCode(NewNotice obj)
+        int IEqualityComparer<Notice>.GetHashCode(Notice obj)
         {
             return obj.Id.GetHashCode();
         }
@@ -223,11 +223,11 @@ namespace NabfProject.NewNoticeBoardModel
         }
     }
     
-    public class DisruptJob : NewNotice
+    public class DisruptJob : Notice
     {
-        public override NewNoticeBoard.JobType GetNoticeType()
+        public override NoticeBoard.JobType GetNoticeType()
         {
-            return NewNoticeBoard.JobType.Disrupt;
+            return NoticeBoard.JobType.Disrupt;
         }
 
         public DisruptJob(int agentsNeeded, List<NodeKnowledge> whichNodes, int value, Int64 id)
@@ -241,11 +241,11 @@ namespace NabfProject.NewNoticeBoardModel
 		
     }
 
-    public class AttackJob : NewNotice
+    public class AttackJob : Notice
     {
-        public override NewNoticeBoard.JobType GetNoticeType()
+        public override NoticeBoard.JobType GetNoticeType()
         {
-            return NewNoticeBoard.JobType.Attack;
+            return NoticeBoard.JobType.Attack;
         }
 
         public AttackJob(int agentsNeeded, List<NodeKnowledge> whichNodes, int value, Int64 id)
@@ -258,11 +258,11 @@ namespace NabfProject.NewNoticeBoardModel
 		
     }
 
-    public class OccupyJob : NewNotice
+    public class OccupyJob : Notice
     {
-        public override NewNoticeBoard.JobType GetNoticeType()
+        public override NoticeBoard.JobType GetNoticeType()
         {
-            return NewNoticeBoard.JobType.Occupy;
+            return NoticeBoard.JobType.Occupy;
         }
         public List<NodeKnowledge> ZoneNodes { get; set; } //the nodes which is part of the zone (not the nodes to stand on)
 
@@ -275,7 +275,7 @@ namespace NabfProject.NewNoticeBoardModel
             Value = value;
         }
 
-		public override bool ContentIsSubsetOf(NewNotice n)
+		public override bool ContentIsSubsetOf(Notice n)
 		{
 			if (n is OccupyJob)
 			{
@@ -286,11 +286,11 @@ namespace NabfProject.NewNoticeBoardModel
 		}
     }
 
-    public class RepairJob : NewNotice
+    public class RepairJob : Notice
     {
-        public override NewNoticeBoard.JobType GetNoticeType()
+        public override NoticeBoard.JobType GetNoticeType()
         {
-            return NewNoticeBoard.JobType.Repair;
+            return NoticeBoard.JobType.Repair;
         }
         public string AgentToRepair { get; set; }
 
@@ -306,11 +306,11 @@ namespace NabfProject.NewNoticeBoardModel
 		
     }
 
-    public class EmptyJob : NewNotice
+    public class EmptyJob : Notice
     {
-        public override NewNoticeBoard.JobType GetNoticeType()
+        public override NoticeBoard.JobType GetNoticeType()
         {
-            return NewNoticeBoard.JobType.Empty;
+            return NoticeBoard.JobType.Empty;
         }
         public EmptyJob()
             : base(-1)

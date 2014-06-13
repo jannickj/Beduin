@@ -152,12 +152,12 @@ namespace NabfProject.SimManager
             }
         }
 
-        public bool CreateAndAddNotice(int simID, NoticeBoard.JobType type, int agentsNeeded, List<NodeKnowledge> whichNodes, List<NodeKnowledge> zoneNodes, string agentToRepair, int value, out Notice notice)
+        public bool CreateAndAddNotice(int simID, NoticeBoard.JobType type, int agentsNeeded, List<NodeKnowledge> whichNodes, List<NodeKnowledge> zoneNodes, string agentToRepair, int value)
         {
             NoticeBoard nb;
             TryGetNoticeBoard(simID, out nb);
 
-            bool ret = nb.CreateAndAddNotice(type, agentsNeeded, whichNodes, zoneNodes, agentToRepair, value, out notice);
+            bool ret = nb.CreateNotice(type, agentsNeeded, whichNodes, zoneNodes, agentToRepair, value);
 
             _sentJobCounter++;
             if (verbose)
@@ -194,7 +194,7 @@ namespace NabfProject.SimManager
                     Console.WriteLine("Total numbers of jobs removed is: " + _noticesRemovedCounter);
             }
 
-            return nb.RemoveNotice(noticeId);
+            return nb.DeleteNotice(noticeId);
         }
 
         public bool UpdateNotice(int simID, Int64 noticeID, int agentsNeeded, List<NodeKnowledge> whichNodes, List<NodeKnowledge> zoneNodes, string agentToRepair, int value)
@@ -231,7 +231,7 @@ namespace NabfProject.SimManager
             TryGetNoticeBoard(simID, out nb);
             if (noticeId != -1)
             {
-                bool b = nb.TryGetNoticeFromId(noticeId, out notice);
+                bool b = nb.TryGetNoticeById(noticeId, out notice);
                 if (b == false)
                     return;
             }
@@ -241,9 +241,9 @@ namespace NabfProject.SimManager
             if (notice.IsEmpty())
                 _numberOfAgentsFinishedApplying++;
             else
-                nb.ApplyToNotice(notice, desirability, a);
+                nb.ApplyToNotice(a, noticeId, desirability);
 
-            int numberOfAgents = nb.GetSubscribedAgentsCount();
+            int numberOfAgents = nb.GetSubscribedAgents().Count;
 
             if (_numberOfAgentsFinishedApplying >= numberOfAgents)
                 FindJobs(simID);
@@ -263,7 +263,7 @@ namespace NabfProject.SimManager
             NoticeBoard nb;
             Notice notice;
             TryGetNoticeBoard(simID, out nb);
-            bool b = nb.TryGetNoticeFromId(noticeId, out notice);
+            bool b = nb.TryGetNoticeById(noticeId, out notice);
             if (b == false)
                 return;
 
@@ -276,7 +276,7 @@ namespace NabfProject.SimManager
 
             Console.WriteLine("Agent " + a.Name + " unapplied from " + notice.ToString());
             //return; //disabling unapply
-            nb.UnApplyToNotice(notice, a, true);
+            nb.UnapplyToNotice(a, noticeId);
         }
 
         private void FindJobsForAgents(int simID)
@@ -286,7 +286,7 @@ namespace NabfProject.SimManager
             NoticeBoard nb;
             TryGetNoticeBoard(simID, out nb);
 
-            nb.FindJobsForAgents();
+            nb.AssignJobs();
         }
 
         public bool TryGoNextRound(int simID, int roundNumber)
@@ -321,10 +321,10 @@ namespace NabfProject.SimManager
                     Console.WriteLine("  ");
                     Console.WriteLine("--- status on all current jobs on round " + _currentRoundNumber + " ---");
                     Console.WriteLine("Total number of sent jobs: " + _sentJobCounter);
-                    Console.WriteLine("      Total sent occupy jobs: " + _sentOccupyJobCounter + ". Occupy jobs currently available: " + nb.GetNotices(NoticeBoard.JobType.Occupy).Count() + ". Occupy jobs currently in use: " + (nb.GetUnavailableNotices(NoticeBoard.JobType.Occupy)).Count);
-                    Console.WriteLine("      Total sent repair jobs: " + _sentRepairJobCounter + ". Repair jobs currently available: " + nb.GetNotices(NoticeBoard.JobType.Repair).Count() + ". Repair jobs currently in use: " + (nb.GetUnavailableNotices(NoticeBoard.JobType.Repair)).Count);
-                    Console.WriteLine("      Total sent attack jobs: " + _sentAttackJobCounter + ". Attack jobs currently available: " + nb.GetNotices(NoticeBoard.JobType.Attack).Count() + ". Attack jobs currently in use: " + (nb.GetUnavailableNotices(NoticeBoard.JobType.Attack)).Count);
-                    Console.WriteLine("      Total sent disrupt jobs: " + _sentDisruptJobCounter + ". Disrupt jobs currently available: " + nb.GetNotices(NoticeBoard.JobType.Disrupt).Count() + ". Disrupt jobs currently in use: " + (nb.GetUnavailableNotices(NoticeBoard.JobType.Disrupt)).Count);
+                    Console.WriteLine("      Total sent occupy jobs: " + _sentOccupyJobCounter + ". Occupy jobs currently available: " + nb.GetAllNotices(NoticeBoard.JobType.Occupy).Count() + ". Occupy jobs currently in use: " + (nb.GetUnavailableNotices(NoticeBoard.JobType.Occupy)).Count);
+                    Console.WriteLine("      Total sent repair jobs: " + _sentRepairJobCounter + ". Repair jobs currently available: " + nb.GetAllNotices(NoticeBoard.JobType.Repair).Count() + ". Repair jobs currently in use: " + (nb.GetUnavailableNotices(NoticeBoard.JobType.Repair)).Count);
+                    Console.WriteLine("      Total sent attack jobs: " + _sentAttackJobCounter + ". Attack jobs currently available: " + nb.GetAllNotices(NoticeBoard.JobType.Attack).Count() + ". Attack jobs currently in use: " + (nb.GetUnavailableNotices(NoticeBoard.JobType.Attack)).Count);
+                    Console.WriteLine("      Total sent disrupt jobs: " + _sentDisruptJobCounter + ". Disrupt jobs currently available: " + nb.GetAllNotices(NoticeBoard.JobType.Disrupt).Count() + ". Disrupt jobs currently in use: " + (nb.GetUnavailableNotices(NoticeBoard.JobType.Disrupt)).Count);
                     Console.WriteLine("Total number of sent job updates: " + _updatedJobCounter);
                     Console.WriteLine("Total number of sent applications: " + _applicationsReceivedCounter);
                     Console.WriteLine("Total number of sent un-applications: " + _unappliesReceivedCounter);
@@ -332,8 +332,8 @@ namespace NabfProject.SimManager
                     Console.WriteLine("Total number of sent job removals: " + _noticesRemovedCounter);
                     Console.WriteLine("Total number of received non-unique jobs: " + nb._nonUniqueJobsAttemptedToBeAdded);
 
-                    if (nb.GetSubscribedAgentsCount() < 28)
-                        Console.WriteLine("WARNING! there is only " + nb.GetSubscribedAgentsCount() + " agents connected to Notice Board");
+                    if (nb.GetSubscribedAgents().Count < 28)
+                        Console.WriteLine("WARNING! there is only " + nb.GetSubscribedAgents().Count + " agents connected to Notice Board");
 
                     Console.WriteLine("  ");
 
@@ -354,16 +354,16 @@ namespace NabfProject.SimManager
                     foreach (NabfAgent a in nb.GetSubscribedAgents())
                     {
                         Console.WriteLine(" ---- " + a.Name + " ---- ");
-                        Console.WriteLine("Applications (occupy) :");
-                        foreach (Notice n in nb.GetAllNotices(NoticeBoard.JobType.Occupy))
+                        Console.WriteLine("Applications :");
+                        foreach (Notice n in nb.GetAllNotices())
                         {
-                            if (nb.AgentListContainsAgent(n.GetAgentsApplied(),a))
+                            if (NoticeBoardHelpers.AgentListContainsAgent(n.GetAgentsApplied(), a))
                                 Console.WriteLine(""+n.ToString());
                         }
-                        Console.WriteLine("Got jobs (occupy) :");
-                        foreach (Notice n in nb.GetUnavailableNotices(NoticeBoard.JobType.Occupy))
+                        Console.WriteLine("Got jobs :");
+                        foreach (Notice n in nb.GetUnavailableNotices())
                         {
-                            if (nb.AgentListContainsAgent(n.GetTopDesireAgents(), a))
+                            if (NoticeBoardHelpers.AgentListContainsAgent(n.GetAgentsOnJob(), a))
                                 Console.WriteLine("" + n.ToString());
                         }
                         Console.WriteLine("  ");

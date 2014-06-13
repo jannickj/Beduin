@@ -22,7 +22,7 @@ namespace NabfProject.Parsers.AgentMasterToAgentConverters
 
             SortedList<long, NabfAgent> sl = new SortedList<long, NabfAgent>();
 
-            foreach (NabfAgent a in gobj.Notice.GetTopDesireAgents())
+            foreach (NabfAgent a in gobj.Notice.GetAgentsOnJob())
                 sl.Add(a.Id, a);
 
             int receiverIndex = sl.IndexOfValue(gobj.Receiver); ; //gobj.Notice.GetTopDesireAgents().IndexOf(gobj.Receiver);

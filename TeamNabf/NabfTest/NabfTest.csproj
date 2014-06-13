@@ -44,12 +44,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="NewNoticeBoardTest.cs" />
+    <Compile Include="NoticeBoardTest.cs" />
     <Compile Include="KnowledgeManagerTest.cs" />
     <Compile Include="AgentMessagesTest.cs" />
     <Compile Include="AgentToMarsConverterTest.cs" />
     <Compile Include="MarsToAgentParserTest.cs" />
-    <Compile Include="NoticeBoardTest.cs" />
     <Compile Include="ExampleTest.cs" />
     <Compile Include="Scenarios\AgentToServerCommunicationTest.cs" />
     <Compile Include="ServerCommunicationTest.cs" />

@@ -8,13 +8,13 @@ using NabfProject.KnowledgeManagerModel;
 using JSLibrary;
 using JSLibrary.Data;
 
-namespace NabfProject.NewNoticeBoardModel
+namespace NabfProject.NoticeBoardModel
 {
-    public class NewNoticeBoard : NoticeBoardHelpers
+    public class NoticeBoard : NoticeBoardHelpers
     {
         private Int64 _freeID = 0;
         private HashSet<NabfAgent> _sharingList = new HashSet<NabfAgent>();
-        private Dictionary<Int64, NewNotice> _allNotices = new Dictionary<Int64, NewNotice>();
+        private Dictionary<Int64, Notice> _allNotices = new Dictionary<Int64, Notice>();
         private DictionaryList<string, Int64> _agentToAppliedNotices = new DictionaryList<string, Int64>();
 
         public enum JobType { Empty = 0, Occupy = 1, Repair = 2, Disrupt = 3, Attack = 4 }
@@ -28,6 +28,8 @@ namespace NabfProject.NewNoticeBoardModel
         public int _createdAttackJob = 0;
         public int _createdRepairJob = 0;
         public int _createdDisruptJob = 0;
+
+
 
         public bool Subscribe(NabfAgent agent)
         {
@@ -44,43 +46,15 @@ namespace NabfProject.NewNoticeBoardModel
         {
             return _sharingList.Contains(agent);
         }
-        public ICollection<NabfAgent> GetSubscribedAgents()
-        {
-            return _sharingList.ToList();
-        }
 
-        public void AddNoticeToAllNotices(NewNotice n)
+        public void AddNoticeToAllNotices(Notice n)
         {
             _allNotices.Add(n.Id, n);
-        }
-        public ICollection<NewNotice> GetAllNotices()
-        {
-            return _allNotices.Values.ToList();
-        }
-        public NewNotice GetNoticeById(Int64 id)
-        {
-            return _allNotices[id];
-        }
-
-        
-
-        /// <summary>
-        /// Sends out all notices to an agent. 
-        /// Only to be used when reconnecting after a disconnect.
-        /// </summary>
-        /// <param name="agent">Agent to send data to</param>
-        public void SendOutAllNoticesToAgent(NabfAgent agent)
-        {
-            foreach (KeyValuePair<Int64, NewNotice> kvp in _allNotices)
-            {
-                //agent.Raise(new NewNoticeEvent(n));
-            }
-        }
-        
+        }                
 
         public bool CreateNotice(JobType jobType, int agentsNeeded, List<NodeKnowledge> whichNodesIsInvolvedInJob, List<NodeKnowledge> whichNodesToStandOn, string agentToRepair, int jobValue)
         {
-            NewNotice n = null;
+            Notice n = null;
             Int64 id = _freeID;
             _freeID++;
             switch (jobType)
@@ -103,10 +77,10 @@ namespace NabfProject.NewNoticeBoardModel
 
             return AddNotice(n);
         }
-        private bool AddNotice(NewNotice n)
+        private bool AddNotice(Notice n)
         {
             bool isUnique = true;
-            foreach (NewNotice job in GetAllNotices())
+            foreach (Notice job in GetAllNotices())
             {
                 if (job.ContentIsEqualTo(n) || job.ContentIsSubsetOf(n) || job.Equals(n))
                     isUnique = false;
@@ -122,12 +96,9 @@ namespace NabfProject.NewNoticeBoardModel
 
             AddNoticeToAllNotices(n);
 
-            NoticeBoardModel.OccupyJob testNotice_TO_BE_REMOVED 
-                = new NoticeBoardModel.OccupyJob(0, new List<NodeKnowledge>(), new List<NodeKnowledge>(), 0, 0);//remove this once event has been changed to new notice class
-
             foreach (NabfAgent a in _sharingList)
             {
-                a.Raise(new NewNoticeEvent(testNotice_TO_BE_REMOVED));//fix this once event has been changed to new notice class
+                a.Raise(new NewNoticeEvent(n));
             }
             if (n is OccupyJob)
                 _createdOccupyJob++;
@@ -140,9 +111,9 @@ namespace NabfProject.NewNoticeBoardModel
 
             return true;
         }
-        public bool UpdateNotice(int id, List<NodeKnowledge> whichNodesIsInvolvedInJob, List<NodeKnowledge> whichNodesToStandOn, int agentsNeeded, int jobValue, string agentToRepair)
+        public bool UpdateNotice(Int64 id, List<NodeKnowledge> whichNodesIsInvolvedInJob, List<NodeKnowledge> whichNodesToStandOn, int agentsNeeded, int jobValue, string agentToRepair)
         {
-            NewNotice no;
+            Notice no;
             bool b = _allNotices.TryGetValue(id, out no);
 
             if (b == false)
@@ -152,37 +123,58 @@ namespace NabfProject.NewNoticeBoardModel
 
             foreach (NabfAgent a in _sharingList)
             {
-                //a.Raise(new NoticeUpdatedEvent(id, no));
+                a.Raise(new NoticeUpdatedEvent(id, no));
             }
 
             return true;
         }
-        public bool DeleteNotice(int id)
+        public bool DeleteNotice(Int64 id)
         {
-            NewNotice notice;
+            Notice notice;
             bool b = _allNotices.TryGetValue(id, out notice);
             if (b == false)
                 return false;
 
             foreach (NabfAgent a in notice.GetAgentsOnJob())
             {
-                //FireAgentFromNotice(a,notice);
+                a.Raise(new FiredFromJobEvent(notice, a));
+                _agentsFiredCounter++;
+                if (verbose)
+                {
+                    if (_agentsFiredCounter % 20 == 0)
+                        Console.WriteLine("Total number of fired agents: " + _agentsFiredCounter);
+                }
             }
             _allNotices.Remove(notice.Id);
 
             foreach (NabfAgent a in _sharingList)
             {
-                //a.Raise(new NoticeRemovedEvent(no));
+                a.Raise(new NoticeRemovedEvent(notice));
             }
 
             return true;
         }
-                
+
+        /// <summary>
+        /// Sends out all notices to an agent. 
+        /// Only to be used when reconnecting after a disconnect.
+        /// </summary>
+        /// <param name="agent">Agent to send data to</param>
+        public void SendOutAllNoticesToAgent(NabfAgent agent)
+        {
+            foreach (KeyValuePair<Int64, Notice> kvp in _allNotices)
+            {
+                agent.Raise(new NewNoticeEvent(kvp.Value));
+            }
+        }
 
         public bool ApplyToNotice(NabfAgent agent, Int64 idToApplyTo, int desireAppliedWith)
         {
-            NewNotice noticeAppliedTo = GetNoticeFromId(idToApplyTo);
-            if (noticeAppliedTo == null)
+            Notice noticeAppliedTo;
+            bool b = TryGetNoticeById(idToApplyTo, out noticeAppliedTo); 
+            if (b == false)
+                return false;
+            if (noticeAppliedTo.Status == Status.unavailable)
                 return false;
 
             noticeAppliedTo.Apply(desireAppliedWith, agent);
@@ -192,8 +184,9 @@ namespace NabfProject.NewNoticeBoardModel
         }
         public bool UnapplyToNotice(NabfAgent agent, Int64 idToUnapplyTo)
         {
-            NewNotice noticeUnappliedTo = GetNoticeFromId(idToUnapplyTo);
-            if (noticeUnappliedTo == null)
+            Notice noticeUnappliedTo;
+            bool b = TryGetNoticeById(idToUnapplyTo, out noticeUnappliedTo);
+            if (b == false)
                 return false;
             bool agentHasApplied = false;
             foreach (NabfAgent a in noticeUnappliedTo.GetAgentsApplied())
@@ -219,9 +212,9 @@ namespace NabfProject.NewNoticeBoardModel
                 foreach (NabfAgent a in noticeUnappliedTo.GetAgentsOnJob())
                 {
                     UnapplyToNotice(a, noticeUnappliedTo.Id);
-                    RaiseFiredEventForNotice(noticeUnappliedTo, a);
+                    a.Raise(new FiredFromJobEvent(noticeUnappliedTo, a));
                     _agentsFiredCounter++;
-                    if (verbose && _agentsFiredCounter % 10 == 0)
+                    if (verbose && _agentsFiredCounter % 20 == 0)
                         Console.WriteLine("Total number of fired agents: " + _agentsFiredCounter);
                 }
                 noticeUnappliedTo.Status = Status.available;
@@ -234,11 +227,11 @@ namespace NabfProject.NewNoticeBoardModel
         #region AssignJobs
         public bool AssignJobs()
         {
-            NewNotice notice, nextNotice;
+            Notice notice, nextNotice;
             bool agentsAlsoAppearAsTopDesiresOnNextNotice = false;
             List<Int64> noticesToUnapplyFrom;            
 
-            Queue<NewNotice> jobQueue = CreateQueueSortedByAvgDesirability();
+            Queue<Notice> jobQueue = CreateQueueSortedByAvgDesirability();
 
             if (jobQueue.Count <= 0)
                 return false;
@@ -253,7 +246,9 @@ namespace NabfProject.NewNoticeBoardModel
                 foreach (NabfAgent agent in notice.GetAgentsOnJob())
                 {
                     agentsAlsoAppearAsTopDesiresOnNextNotice = false;
-                    //a.Raise(new ReceivedJobEvent(notice, agent));
+                    agent.Raise(new ReceivedJobEvent(notice, agent));
+                    if (verbose)
+                        Console.WriteLine("" + agent.Name + " got " + notice.ToString());
 
                     #region checks if queue needs re-ordering
                     if (jobQueue.Count > 0)
@@ -286,37 +281,37 @@ namespace NabfProject.NewNoticeBoardModel
         //Average desirability is calculated here as:
         //the sum of the desire of the K agents with highest desire, divided by K
         //The method also puts the top K agents into AgentProspects
-        public Queue<NewNotice> CreateQueueSortedByAvgDesirability()
+        public Queue<Notice> CreateQueueSortedByAvgDesirability()
         {
-            Queue<NewNotice> jobQueue = new Queue<NewNotice>();
+            Queue<Notice> jobQueue = new Queue<Notice>();
             List<NabfAgent> namesOfTopContenders;
             //SortedList<double, NewNotice> sortedNoticeList = new SortedList<double, NewNotice>(new InvertedComparer<double>());//the list now sorts descending
-            List<KeyValuePair<double, NewNotice>> noticeList = new List<KeyValuePair<double, NewNotice>>();
-            foreach (NewNotice n in GetAllNotices())
+            List<KeyValuePair<double, Notice>> noticeList = new List<KeyValuePair<double, Notice>>();
+            foreach (Notice n in GetAllNotices())
             {
                 n.ClearAgentProspects();
             }
             
 
-            foreach (NewNotice notice in GetAllNotices())
+            foreach (Notice notice in GetAllNotices())
             {
                 if (notice.GetAgentsApplied().Count >= notice.AgentsNeeded && notice.Status == Status.available)
                 {
-                    noticeList.Add(new KeyValuePair<double, NewNotice>(CalculateAverageDesireForTopContenders(notice, out namesOfTopContenders), notice));
+                    noticeList.Add(new KeyValuePair<double, Notice>(CalculateAverageDesireForTopContenders(notice, out namesOfTopContenders), notice));
                     notice.AddRangeToAgentProspects(namesOfTopContenders);
                 }
             }
 
-            noticeList.Sort(new KvpKeyInvertedComparer<double, NewNotice>());
+            noticeList.Sort(new KvpKeyInvertedComparer<double, Notice>());
 
             for (int i = 0; i < noticeList.Count; i++)
             {
-                jobQueue.Enqueue((NewNotice)noticeList[i].Value);
+                jobQueue.Enqueue((Notice)noticeList[i].Value);
             }
 
             return jobQueue;
         }
-        public double CalculateAverageDesireForTopContenders(NewNotice notice, out List<NabfAgent> namesOfTopContenders)
+        public double CalculateAverageDesireForTopContenders(Notice notice, out List<NabfAgent> namesOfTopContenders)
         {
             double result = -1.0;
             int desire;
@@ -331,7 +326,6 @@ namespace NabfProject.NewNoticeBoardModel
                 if (desireFound)
                 {
                     agentList.Add(new KeyValuePair<int, NabfAgent>(desire, agent));
-                    //sortedAgentList.Add(desire, agent);
                 }
             }
             agentList.Sort(new KvpKeyInvertedComparer<int, NabfAgent>());
@@ -351,36 +345,58 @@ namespace NabfProject.NewNoticeBoardModel
         }
         #endregion
 
-        #region private helper functions
-        private NewNotice GetNoticeFromId(Int64 inputId)
+        #region Get'ers
+        public ICollection<NabfAgent> GetSubscribedAgents()
         {
-            NewNotice result = null;
-            foreach (NewNotice n in GetAllNotices())
+            return _sharingList.ToList();
+        }
+
+        public ICollection<Notice> GetAllNotices()
+        {
+            return _allNotices.Values.ToList();
+        }
+        public bool TryGetNoticeById(Int64 id, out Notice notice)
+        {
+            bool b = _allNotices.TryGetValue(id, out notice);
+            return b;
+        }
+        internal ICollection<Notice> GetUnavailableNotices()
+        {
+            List<Notice> result = new List<Notice>();
+
+            foreach (KeyValuePair<Int64, Notice> kvp in _allNotices)
             {
-                if (n.Id == inputId)
-                {
-                    result = n;
-                    break;
-                }
+                if (kvp.Value.Status == Status.unavailable)
+                    result.Add(kvp.Value);
             }
+
+            return result;
+        }
+        internal ICollection<Notice> GetUnavailableNotices(JobType type)
+        {
+            List<Notice> result = new List<Notice>();
+
+            foreach (KeyValuePair<Int64, Notice> kvp in _allNotices)
+            {
+                if (kvp.Value.Status == Status.unavailable && kvp.Value.GetNoticeType() == type)
+                    result.Add(kvp.Value);
+            }
+
+            return result;
+        }
+        internal ICollection<Notice> GetAllNotices(JobType type)
+        {
+            List<Notice> result = new List<Notice>();
+
+            foreach (KeyValuePair<Int64, Notice> kvp in _allNotices)
+            {
+                if (kvp.Value.GetNoticeType() == type)
+                    result.Add(kvp.Value);
+            }
+
             return result;
         }
         #endregion
-
-        #region legacy backup
-        private bool RaiseEventForNotice(NewNotice n, bool fireOtherAtEnd)
-        {
-            //a.Raise(new ReceivedJobEvent(n, a));
-            return true;
-        }
-        private bool RaiseFiredEventForNotice(NewNotice n, NabfAgent a)
-        {
-            //a.Raise(new FiredFromJobEvent(n, a));
-
-            return true;
-        }
-        #endregion
-
     }
 
 
