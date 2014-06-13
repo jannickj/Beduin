@@ -256,7 +256,7 @@ module AgentTypes =
         | Probed    of VertexName
         | Attacked  of AgentName 
         | Repaired  of AgentName
-        | Inspected of AgentName
+        | Inspected of VertexName
         | Explored  of VertexName
         | AtMinValueNode of int
         | Parried

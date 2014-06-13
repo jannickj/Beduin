@@ -5,6 +5,7 @@ module ActionSpecifications =
     open Graphing.Graph
     open Constants
     open Logging
+    open GeneralLib
 
     let buildAgent name node =
         { Energy = None
@@ -14,7 +15,7 @@ module ActionSpecifications =
         ; MaxHealth = None
         ; Name = name
         ; Node = node
-        ; Role = None
+        ; Role = Some Explorer
         ; RoleCertainty = 100
         ; Strength = None
         ; Team = "EnemyTeam"
@@ -237,14 +238,16 @@ module ActionSpecifications =
         ; Cost          = fun state -> turnCost state + Constants.ACTION_COST_CHEAP
         }
 
-    let inspectAction agentNameOption =
+    let inspectAction vertexNameOption =
         let agentNames (state : State) = 
-            match agentNameOption with
-            | Some agentName -> [ agentName ]
+            match vertexNameOption with
+            | Some vertexName -> [ vertexName ]
             | None -> List.filter (fun enemy -> enemy.Node = state.Self.Node) state.EnemyData |> List.map (fun enemy -> enemy.Name)
 
         let enemiesNotInspected state = 
-            let res = not <| List.forall (fun enemy -> Set.contains enemy state.InspectedEnemies) (agentNames state)
+            let res = not <| List.forall (fun enemy -> Option.isSome enemy.Role) (enemiesHere state state.Self.Node)
+//            logImportant <| sprintf "result: %A %A" res (enemiesHere state state.Self.Node)
+//            let res = not <| List.forall (fun enemy -> Set.contains enemy state.InspectedEnemies) (agentNames state)
             match res with
             | true -> Success
             | false -> Failure <| sprintf "No uninspected agents present"
@@ -255,15 +258,28 @@ module ActionSpecifications =
             | head :: tail -> (buildAgent head state.Self.Node) :: (buildAgents state tail)
             | [] -> []
 
+        let newEnemyData state =
+            let vertex = state.Self.Node
+            let updatedEnemies = //[for enemy in (enemiesHere state vertex) -> { enemy with Role = Some Explorer }]
+                List.map (fun enemy -> {enemy with Role = Some Explorer}) (enemiesHere state vertex)
+//            logImportant <| sprintf "enemies here (EFFECT): %A)" (enemiesHere state vertex)
+//            logImportant <| sprintf "updatedEnemies: %A" updatedEnemies
+            let enemiesNotHere = 
+                Set.toList <| Set.difference (Set.ofList state.EnemyData) (Set.ofList <| enemiesHere state vertex)
+//            let enemiesNotHere = List.filter (fun enemy -> not <| List.exists ((=) enemy) (enemiesHere state vertex)) state.EnemyData
+            enemiesNotHere @ updatedEnemies
+
+
         let updateState (state : State) = 
             { state with 
-                    InspectedEnemies = Set.union state.InspectedEnemies (agentNames state |> Set.ofList);
-                    EnemyData = Set.toList <| Set.union (state.EnemyData |> Set.ofList) (buildAgents state (agentNames state) |> Set.ofList);
+//                    InspectedEnemies = Set.union state.InspectedEnemies (agentNames state |> Set.ofList);
+//                    EnemyData = Set.toList <| Set.union (state.EnemyData |> Set.ofList) (buildAgents state (agentNames state) |> Set.ofList);
+                    EnemyData = newEnemyData state
                     Self = deductEnergy Constants.ACTION_COST_EXPENSIVE state
-                    LastAction = Action.Inspect agentNameOption
+                    LastAction = Action.Inspect vertexNameOption
             }
 
-        { ActionType    = Perform <| Inspect agentNameOption
+        { ActionType    = Perform <| Inspect vertexNameOption
         ; Preconditions = [ enemiesNotInspected; enoughEnergy Constants.ACTION_COST_EXPENSIVE; isNotDisabled ]
         ; Effect        = updateState
         ; Cost          = fun state -> turnCost state + Constants.ACTION_COST_EXPENSIVE
@@ -316,14 +332,6 @@ module ActionSpecifications =
             [attackAction agent]
         else 
             []
-//        match agent with
-//        | Some agent -> 
-//            if List.exists ((=) agent) agentsHere then
-//                [attackAction agent]
-//            else 
-//                []
-//        | None -> 
-//            List.map attackAction <| agentsHere
 
 
     let rechargeActions state = [rechargeAction]
@@ -341,26 +349,18 @@ module ActionSpecifications =
         else 
             []
 
-    let inspectActions agent state = 
-        let agentsHere = agentsAt state.Self.Node state.EnemyData
-        if List.exists ((=) agent) agentsHere then
+    let inspectActions vertex state = 
+        let someUninspectedEnemy = 
+            not <| List.forall (fun enemy -> Option.isSome enemy.Role) (enemiesHere state vertex)
+        if vertex = state.Self.Node && someUninspectedEnemy then
             [inspectAction None]
         else
-            logImportant <| sprintf "No agent found" 
+            logImportant <| sprintf "No agent found (@ %A)" state.Self.Node
             []
 
     let parryActions state = [parryAction]
 
     let commonActions state = gotoActions state @ rechargeActions state
-
-//    let roleActions state =
-//        match state.Self.Role with
-//        | Some Explorer  -> probeActions state   @ commonActions state 
-//        | Some Inspector -> inspectActions state @ commonActions state 
-//        | Some Repairer  -> repairActions state  @ commonActions state 
-//        | Some Saboteur  -> attackActions state  @ commonActions state 
-//        | Some Sentinel  -> parryActions state   @ commonActions state 
-//        | None -> failwith "agent role is unknown"
 
     let availableActions state  goal  =
         let actions = 
@@ -369,8 +369,8 @@ module ActionSpecifications =
                 gotoActions state
             | Attacked agent -> 
                 gotoActions state @ attackActions agent state
-            | Inspected agent -> 
-                gotoActions state @ inspectActions agent state
+            | Inspected vertex -> 
+                gotoActions state @ inspectActions vertex state
             | Probed vertex -> 
                 gotoActions state @ probeActions vertex state
             | Repaired agent -> 

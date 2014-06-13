@@ -6,6 +6,7 @@ module Inspector =
     open LogicLib
     open Constants
     open Graphing.Graph
+    open GeneralLib
 
     let distanceToOccupyJobMod = 0.1
 
@@ -38,17 +39,48 @@ module Inspector =
 
     ////////////////////////////////////////Logic////////////////////////////////////////////
 
+    let spontaneousInspectAgentOnMyNode (inputState : State) =
+        let vertex = inputState.Self.Node
+        if List.isEmpty <| List.filter (fun enemy -> Option.isNone enemy.Role) (enemiesHere inputState vertex) then
+            None
+        else 
+            Some ("inspect vertex " + vertex, Activity, [Requirement <| Inspected vertex])
     
     let spontanousInspectAgent (inputState:State) = 
-        let uninspectedNearbyEnemies = List.filter (fun a -> a.Role.IsNone) (nearbyEnemies inputState inputState.Self)
-        match uninspectedNearbyEnemies with
-        | [] -> None
-        | head::tail ->     
-            Some(
-                    "inspect agent " + head.Name
-                    , Activity
-                    , [Requirement (Inspected head.Name)]
-                )
+        let rec nodeToAgentCount map list = 
+            match list with
+            | agent :: other when Option.isNone agent.Role -> 
+                let tmpMap = (nodeToAgentCount map other)
+                let count = if Map.containsKey agent.Node tmpMap then tmpMap.[agent.Node] + 1 else 1
+                Map.add agent.Node count tmpMap
+            | agent :: other ->
+                nodeToAgentCount map other
+            | [] -> 
+                map
+
+        let bestVertex = 
+            let mapping = nodeToAgentCount Map.empty (nearbyEnemies inputState inputState.Self)
+            if Map.isEmpty mapping then
+                None
+            else
+                Map.toList mapping
+                |> List.maxBy snd
+                |> fst
+                |> Some
+            
+        match bestVertex with
+        | Some vertex -> Some ("inspect vertex " + vertex, Activity, [Requirement <| Inspected vertex])
+        | None -> None
+        
+//        let uninspectedNearbyEnemies = List.filter (fun a -> a.Role.IsNone) (nearbyEnemies inputState inputState.Self)
+//        match uninspectedNearbyEnemies with
+//        | [] -> None
+//        | head::tail ->     
+//            Some(
+//                    "inspect agent " + head.Name
+//                    , Activity
+//                    , [Requirement (Inspected head.Name)]
+//                )
 
     let applyToOccupyJob (inputState:State) = 
         let applicationList = createApplicationList inputState JobType.OccupyJob calculateDesireOccupyJob

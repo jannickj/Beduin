@@ -43,10 +43,17 @@ module Planning =
         List.length <| List.filter (not << (flip generateGoalCondition) state) goals
 
     let h goals state cost = 
-        (unSatisfiedGoalCount goals state, cost + distance goals state cost)
+        logImportant <| sprintf "cost: %A" cost
+        logImportant <| sprintf "distance: %A" (distance goals state cost)
+        let heu = (unSatisfiedGoalCount goals state, cost + distance goals state cost)
+        logImportant <| sprintf "heuristics %A %A %A" state.Self.Node heu state.LastAction
+        heu
     
     let goalTest goals state = 
-        List.forall (fun goal -> generateGoalCondition goal state) goals
+        logImportant <| sprintf "goalTest at %A" state.Self.Node
+        logImportant <| sprintf "goals: %A" goals
+        logImportant <| sprintf "satisfied: %A" [for goal in goals -> generateGoalCondition goal state]
+        List.forall (fun goal -> (generateGoalCondition goal) state) goals
 
     let applicableActions goals state =
         let actions = Set.ofList <| List.collect (availableActions state) goals
@@ -64,22 +71,6 @@ module Planning =
         ; Heuristic    = h goals
         }
 
-    let rec prunePlanHelper path goals =
-        let gC searchnode = unSatisfiedGoalCount goals searchnode.State
-        match path with
-        | searchNode1 :: searchNode2 :: tail when gC searchNode1 < gC searchNode2 ->
-            List.rev <| searchNode2 :: tail
-        | sn1 :: sn2 :: tail -> prunePlanHelper (sn2 :: tail) goals
-        | [sn] -> [sn]
-        | [] -> []
-
-    let prunePlan plan goals = 
-        match plan with
-        | Some {Cost = _; Path = path} -> 
-            match path with
-            | _ -> Some <| prunePlanHelper (List.rev path) goals
-        | None -> None
-
     let makePlan initstate objectives =
         let state = { initstate with LastAction = Skip }
         match objectives with
@@ -93,6 +84,9 @@ module Planning =
             let breakTest (stopwatch : Stopwatch) = stopwatch.ElapsedMilliseconds > Constants.MAX_PLANNING_TIME_MS
 
             let plan = solveSearchNodePath aStar (agentProblem state goals) (fun () -> breakTest stopwatch)
+
+            if Option.isNone plan then
+                logImportant "NO PLAN"
 
             let isSomePathValid path = 
                 not <| List.forall (fun node -> satisfiedGoalCount (goalList goalObjective node.State) node.State = 0) path
@@ -109,7 +103,7 @@ module Planning =
                 let actions = List.map (fun node -> node.Action.Value) path
                 logImportant <| sprintf "Discarded plan %A" (List.map (fun action -> action.ActionType) actions) //with objective %A" goalObjective
                 None
-            | _ ->
+            | None ->
                 logImportant <| sprintf "No plan found for intention %A" goalObjective
                 None
         | [] -> Some ([], [])
