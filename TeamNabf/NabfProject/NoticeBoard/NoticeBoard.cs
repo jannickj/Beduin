@@ -20,7 +20,7 @@ namespace NabfProject.NoticeBoardModel
         public enum JobType { Empty = 0, Occupy = 1, Repair = 2, Disrupt = 3, Attack = 4 }
         public enum Status { available, unavailable }
 
-        private const bool verbose = false;
+        private const bool verbose = true;
         //status reporting for SimMan
         public int _agentsFiredCounter = 0;
         public int _nonUniqueJobsAttemptedToBeAdded = 0;
@@ -364,7 +364,7 @@ namespace NabfProject.NoticeBoardModel
             return result;
         }
 
-        public void ConsitencyChecker()
+        public void ConsistencyChecker()
         {
             foreach (KeyValuePair<Int64, Notice> kvp in _allNotices)
             {

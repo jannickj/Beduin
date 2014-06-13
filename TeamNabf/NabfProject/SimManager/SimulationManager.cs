@@ -27,7 +27,8 @@ namespace NabfProject.SimManager
         private bool _jobsFoundForThisRound = false;
         private int _numberOfAgentsFinishedApplying = 0;
 
-        private const bool verbose = false;
+        private const bool knowledgeVerbose = false;
+        private const bool jobVerbose = true;
         private const bool reporting = true;
         //Status reporting
         private int _callsToSendKnowledge = 0;
@@ -140,7 +141,7 @@ namespace NabfProject.SimManager
             km.SendKnowledgeToManager(sentKnowledge, sender);
 
             _sentKnowledgeCounter += sentKnowledge.Count;
-            if (verbose)
+            if (knowledgeVerbose)
             {
                 if (_currentRoundNumber % 20 == 0 && _notPrintedSentKnowledgeCounterThisRound)
                 {
@@ -160,9 +161,9 @@ namespace NabfProject.SimManager
             bool ret = nb.CreateNotice(type, agentsNeeded, whichNodes, zoneNodes, agentToRepair, value);
 
             _sentJobCounter++;
-            if (verbose)
+            if (jobVerbose)
             {
-                if (_sentJobCounter % 10 == 0)
+                if (_sentJobCounter % 30 == 0)
                     Console.WriteLine("Total numbers of created jobs is: " + _sentJobCounter);
             }
 
@@ -188,7 +189,7 @@ namespace NabfProject.SimManager
             TryGetNoticeBoard(simID, out nb);
 
             _noticesRemovedCounter++;
-            if (verbose)
+            if (jobVerbose)
             {
                 if (_noticesRemovedCounter % 10 == 0)
                     Console.WriteLine("Total numbers of jobs removed is: " + _noticesRemovedCounter);
@@ -205,7 +206,7 @@ namespace NabfProject.SimManager
             TryGetNoticeBoard(simID, out nb);
 
             _updatedJobCounter++;
-            if (verbose)
+            if (jobVerbose)
             {
                 if (_updatedJobCounter % 10 == 0)
                     Console.WriteLine("Total numbers of updated jobs is: " + _updatedJobCounter);
@@ -249,9 +250,9 @@ namespace NabfProject.SimManager
                 FindJobs(simID);
 
             _applicationsReceivedCounter++;
-            if (verbose)
+            if (jobVerbose)
             {
-                if (_applicationsReceivedCounter % 100 == 0)
+                if (_applicationsReceivedCounter % 500 == 0)
                     Console.WriteLine("Total numbers of job applications received is: " + _applicationsReceivedCounter);
             }
         }
@@ -268,13 +269,13 @@ namespace NabfProject.SimManager
                 return;
 
             _unappliesReceivedCounter++;
-            if (verbose)
+            if (jobVerbose)
             {
-                if (_unappliesReceivedCounter % 100 == 0)
+                if (_unappliesReceivedCounter % 200 == 0)
                     Console.WriteLine("Total numbers of job un-applications received is: " + _unappliesReceivedCounter);
-            }
 
-            Console.WriteLine("Agent " + a.Name + " unapplied from " + notice.ToString());
+                Console.WriteLine("Agent " + a.Name + " unapplied from " + notice.ToString());
+            }
             nb.UnapplyToNotice(a, noticeId);
         }
 
@@ -310,7 +311,7 @@ namespace NabfProject.SimManager
             if (_currentRoundNumber % 5 == 0 || _currentRoundNumber < 10)
                 Console.WriteLine("-------- Simulation " + simID + ", Round: " + _currentRoundNumber + " --------");
 
-            //nb.ConsitencyChecker();
+            //nb.ConsistencyChecker();
 
             if (reporting)
             {
