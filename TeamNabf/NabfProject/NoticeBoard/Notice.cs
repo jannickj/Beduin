@@ -171,7 +171,7 @@ namespace NabfProject.NoticeBoardModel
             if (no.WhichNodes.Except<NodeKnowledge>(this.WhichNodes).Count() != 0)
                 return false;
 
-            return no.AgentsNeeded == this.AgentsNeeded && no.Value == this.Value;
+            return no.AgentsNeeded == this.AgentsNeeded;
         }
 
         //int IComparable.CompareTo(object obj)
