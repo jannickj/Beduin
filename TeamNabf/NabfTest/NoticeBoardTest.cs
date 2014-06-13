@@ -47,6 +47,8 @@ namespace NabfTest.NewNoticeBoardModelTest
         List<NodeKnowledge> DontCareNodes3 = new List<NodeKnowledge>() { new NodeKnowledge("evenmoreuniquename") };
         List<Int64> ListOfKnownIDs = new List<Int64>();
 
+        int maxDesire = 5, extremeDesire = 4, highDesire = 3, mediumDesire = 2, lowDesire = 1;
+
         public enum triggerTypes { newNotice, updatedNotice, removedNotice, firedFromjob, receivedJob }
 
         static int NewNoticeEventFiredCounter = 0;
@@ -597,7 +599,6 @@ namespace NabfTest.NewNoticeBoardModelTest
             #region init
             InitNoticeBoardInternalTesting();
             Int64 idOf2AgentJob = ListOfKnownIDs[0], idOf1AgentJob = ListOfKnownIDs[2], secondIdOf2AgentJob = ListOfKnownIDs[1];
-            int extremeDesire = 5, superDesire = 4, highDesire = 3, mediumDesire = 2, lowDesire = 1;
             List<NabfAgent> agents;
             #endregion
 
@@ -605,8 +606,8 @@ namespace NabfTest.NewNoticeBoardModelTest
             nb.ApplyToNotice(agent1, idOf2AgentJob, mediumDesire);
             nb.ApplyToNotice(agent1, secondIdOf2AgentJob, lowDesire);
 
-            nb.ApplyToNotice(agent2, idOf1AgentJob, superDesire);
-            nb.ApplyToNotice(agent2, idOf2AgentJob, extremeDesire);
+            nb.ApplyToNotice(agent2, idOf1AgentJob, extremeDesire);
+            nb.ApplyToNotice(agent2, idOf2AgentJob, maxDesire);
             nb.ApplyToNotice(agent2, secondIdOf2AgentJob, highDesire);
 
             nb.ApplyToNotice(agent3, idOf1AgentJob, highDesire);
@@ -634,13 +635,13 @@ namespace NabfTest.NewNoticeBoardModelTest
             Assert.IsTrue(agents.Count == 2);
             Assert.AreEqual(agent2.Name, agents[0].Name);
             Assert.IsTrue(agent1.Name == agents[1].Name || agent3.Name == agents[1].Name);
-            Assert.AreEqual(((extremeDesire + mediumDesire) / 2.0), avgDesireJob1);
+            Assert.AreEqual(((maxDesire + mediumDesire) / 2.0), avgDesireJob1);
 
 
             double avgDesireJob2 = nb.CalculateAverageDesireForTopContenders(jobThatNeeds1Agents, out agents);
             Assert.IsTrue(agents.Count == 1);
             Assert.AreEqual(agent2.Name, agents[0].Name);
-            Assert.AreEqual(superDesire, avgDesireJob2);
+            Assert.AreEqual(extremeDesire, avgDesireJob2);
 
             double avgDesireJob3 = nb.CalculateAverageDesireForTopContenders(secondJobThatNeeds2Agents, out agents);
             Assert.AreEqual(2, agents.Count);
@@ -660,7 +661,6 @@ namespace NabfTest.NewNoticeBoardModelTest
             #region init
             InitNoticeBoardInternalTesting();
             Int64 idOf2AgentJob = ListOfKnownIDs[0], idOf1AgentJob = ListOfKnownIDs[2], secondIdOf2AgentJob = ListOfKnownIDs[1];
-            int extremeDesire = 5, superDesire = 4, highDesire = 3, mediumDesire = 2, lowDesire = 1;
             double agentsNeeded2 = 2, agentsNeeded1 = 1;
             Notice notice1 = null, notice2 = null, notice3 = null;
             foreach (Notice n in nb.GetAllNotices())
@@ -684,8 +684,8 @@ namespace NabfTest.NewNoticeBoardModelTest
             nb.ApplyToNotice(agent1, idOf2AgentJob, mediumDesire);
             nb.ApplyToNotice(agent1, secondIdOf2AgentJob, lowDesire);
 
-            nb.ApplyToNotice(agent2, idOf1AgentJob, superDesire);
-            nb.ApplyToNotice(agent2, idOf2AgentJob, extremeDesire);
+            nb.ApplyToNotice(agent2, idOf1AgentJob, extremeDesire);
+            nb.ApplyToNotice(agent2, idOf2AgentJob, maxDesire);
             nb.ApplyToNotice(agent2, secondIdOf2AgentJob, highDesire);
 
             nb.ApplyToNotice(agent3, idOf1AgentJob, highDesire);
@@ -699,13 +699,13 @@ namespace NabfTest.NewNoticeBoardModelTest
             // ----------------------
             Queue<Notice> jobQueue = nb.CreateQueueSortedByAvgDesirability();
 
-            Assert.AreEqual(((0 + superDesire) / agentsNeeded1), jobQueue.Dequeue().AverageDesireFromTopContenders);
+            Assert.AreEqual(((0 + extremeDesire) / agentsNeeded1), jobQueue.Dequeue().AverageDesireFromTopContenders);
             Notice mostAvgDesireNotice;
             nb.TryGetNoticeById(idOf1AgentJob, out mostAvgDesireNotice);
             Assert.AreEqual(1, mostAvgDesireNotice.GetAgentProspects().Count);
             Assert.AreEqual(agent2.Name, mostAvgDesireNotice.GetAgentProspects()[0].Name);
 
-            Assert.AreEqual(((extremeDesire + mediumDesire) / 2.0), jobQueue.Dequeue().AverageDesireFromTopContenders);
+            Assert.AreEqual(((maxDesire + mediumDesire) / 2.0), jobQueue.Dequeue().AverageDesireFromTopContenders);
             Assert.AreEqual(highDesire, jobQueue.Dequeue().AverageDesireFromTopContenders);
 
             // ----------------------
@@ -753,7 +753,6 @@ namespace NabfTest.NewNoticeBoardModelTest
             #region init
             InitNoticeBoardInternalTesting();
             Int64 idOf2AgentJob = ListOfKnownIDs[0], idOf1AgentJob = ListOfKnownIDs[2], secondIdOf2AgentJob = ListOfKnownIDs[1];
-            int extremeDesire = 5, superDesire = 4, highDesire = 3, mediumDesire = 2, lowDesire = 1;
             Notice Notice2Agents, Notice1Agent, SecondNotice2Agents;
             #endregion
 
@@ -761,8 +760,8 @@ namespace NabfTest.NewNoticeBoardModelTest
             nb.ApplyToNotice(agent1, idOf2AgentJob, mediumDesire);
             nb.ApplyToNotice(agent1, secondIdOf2AgentJob, lowDesire);
 
-            nb.ApplyToNotice(agent2, idOf1AgentJob, superDesire);
-            nb.ApplyToNotice(agent2, idOf2AgentJob, extremeDesire);
+            nb.ApplyToNotice(agent2, idOf1AgentJob, extremeDesire);
+            nb.ApplyToNotice(agent2, idOf2AgentJob, maxDesire);
             nb.ApplyToNotice(agent2, secondIdOf2AgentJob, highDesire);
 
             nb.ApplyToNotice(agent3, idOf1AgentJob, highDesire);
@@ -1047,18 +1046,22 @@ namespace NabfTest.NewNoticeBoardModelTest
         public void AssignJobCausesFiringInOldJob_AgentGotOldJobButWantsNew_MsgsArrived()
         {
             SetUpTriggersAndNoticeBoard();
-            Int64 idOf3AgentJob = ListOfKnownIDs[4], idOf1AgentJob = ListOfKnownIDs[2];
+            Int64 idOf3AgentJob = ListOfKnownIDs[4], idOf2AgentJob = ListOfKnownIDs[0], idOf1AgentJob = ListOfKnownIDs[2];
 
-            nb.ApplyToNotice(agent1, idOf3AgentJob, 10);
-            nb.ApplyToNotice(agent2, idOf3AgentJob, 5);
-            nb.ApplyToNotice(agent3, idOf3AgentJob, 0);
+            nb.ApplyToNotice(agent1, idOf3AgentJob, lowDesire);
+            nb.ApplyToNotice(agent2, idOf3AgentJob, mediumDesire);
+            nb.ApplyToNotice(agent3, idOf3AgentJob, highDesire);
+
+            nb.ApplyToNotice(agent2, idOf2AgentJob, lowDesire);
+            nb.ApplyToNotice(agent3, idOf2AgentJob, lowDesire);
 
             nb.AssignJobs();
             Assert.AreEqual(3, NamesOfAgentsWhoReceivedJob.Count);
             Assert.AreEqual(3, ReceivedJobEventFiredCounter);
             ReceivedJobEventFiredCounter = 0;
+            NamesOfAgentsWhoReceivedJob.Clear();
 
-            nb.ApplyToNotice(agent1, idOf1AgentJob, 99999);
+            nb.ApplyToNotice(agent1, idOf1AgentJob, maxDesire);
 
             nb.AssignJobs();
             Assert.AreEqual(1, NamesOfAgentsWhoReceivedJob.Count);

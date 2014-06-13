@@ -260,9 +260,9 @@ namespace NabfProject.NoticeBoardModel
                 notice.Status = Status.unavailable;
                 notice.AddRangeToAgentsOnJob(notice.GetAgentProspects());
                 notice.ClearAgentProspects();
+                agentsAlsoAppearAsTopDesiresOnNextNotice = false;
                 foreach (NabfAgent agent in notice.GetAgentsOnJob())
                 {
-                    agentsAlsoAppearAsTopDesiresOnNextNotice = false;
                     agent.Raise(new ReceivedJobEvent(notice, agent));
                     if (verbose)
                         Console.WriteLine("" + agent.Name + " got " + notice.ToString());
@@ -326,7 +326,7 @@ namespace NabfProject.NoticeBoardModel
 
             for (int i = 0; i < noticeList.Count; i++)
             {
-                jobQueue.Enqueue((Notice)noticeList[i].Value);
+                jobQueue.Enqueue(noticeList[i].Value);
             }
 
             return jobQueue;
