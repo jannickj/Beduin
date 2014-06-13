@@ -213,10 +213,10 @@ module AgentTypes =
             GraphHeuristic   : (Map<VertexName*VertexName, (int*int)>* Map<VertexName,int>)
 
             ///USED FOR PLANNING ONLY DONT USE THEM IN INTENTION CHECKS
-            PlannerProbed           : VertexName Set
-            PlannerRepairedAgents   : AgentName Set
+            PlannerProbed          : VertexName Set
+            PlannerRepairedAgents  : AgentName Set
             PlannerInspectedEnemies : AgentName Set
-            PlannerDisabledEnemies  : AgentName Set
+            PlannerDisabledEnemies : AgentName Set
         }           
         member self.GetSubSet =
             { 

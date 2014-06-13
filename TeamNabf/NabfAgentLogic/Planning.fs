@@ -11,11 +11,9 @@ module Planning =
     open GoalSpecifications
     open System.Diagnostics
     open NabfAgentLogic.Search.HeuristicDijkstra
+    open GeneralLib
 
     type Plan = (ActionSpecification list) * (Objective list)
-    let test = 1
-    let flip f x y = f y x
-    let snd3 (_, a, _) = a 
 
     // Transforms objectives into a normalized form of State -> (Goal list)
     let goalFunc objective = 
@@ -43,16 +41,9 @@ module Planning =
         List.length <| List.filter (not << (flip generateGoalCondition) state) goals
 
     let h goals state cost = 
-        logImportant <| sprintf "cost: %A" cost
-        logImportant <| sprintf "distance: %A" (distance goals state cost)
-        let heu = (unSatisfiedGoalCount goals state, cost + distance goals state cost)
-        logImportant <| sprintf "heuristics %A %A %A" state.Self.Node heu state.LastAction
-        heu
+        (unSatisfiedGoalCount goals state, cost + distance goals state cost)
     
     let goalTest goals state = 
-        logImportant <| sprintf "goalTest at %A" state.Self.Node
-        logImportant <| sprintf "goals: %A" goals
-        logImportant <| sprintf "satisfied: %A" [for goal in goals -> generateGoalCondition goal state]
         List.forall (fun goal -> (generateGoalCondition goal) state) goals
 
     let applicableActions goals state =
@@ -84,9 +75,6 @@ module Planning =
             let breakTest (stopwatch : Stopwatch) = stopwatch.ElapsedMilliseconds > Constants.MAX_PLANNING_TIME_MS
 
             let plan = solveSearchNodePath aStar (agentProblem state goals) (fun () -> breakTest stopwatch)
-
-            if Option.isNone plan then
-                logImportant "NO PLAN"
 
             let isSomePathValid path = 
                 not <| List.forall (fun node -> satisfiedGoalCount (goalList goalObjective node.State) node.State = 0) path
@@ -157,7 +145,6 @@ module Planning =
             let initialState = (state, (h objective state 0), 0)
 
             let heuList = List.scan heuristics initialState plan
-
 
             let minHeu = List.minBy (fun (_, heu, _) -> heu) heuList
             let minHeuIdx = List.findIndex ((=) minHeu) heuList

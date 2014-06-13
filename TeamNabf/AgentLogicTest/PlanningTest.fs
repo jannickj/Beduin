@@ -25,9 +25,8 @@ module PlanningTest =
             let state = { buildState "a" Inspector world with EnemyData = [enemy] }
 
             let intention = spontanousInspectAgent state
-//            let intention = ("", Activity, [Requirement (Inspected "b")])
 
-            let expectedPlan = [skipAction; moveAction "b"; inspectAction (Some "b")]
+            let expectedPlan = [skipAction; moveAction "b"; inspectAction None]
 
             let actualPlan = formulatePlan state intention.Value
 

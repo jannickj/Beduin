@@ -2,6 +2,8 @@
 module GeneralLib =    
     open AgentTypes
 
+    let flip f x y = f y x
+
     let agentsHere vertex agentList =
         List.filter (fun agent -> agent.Node = vertex) agentList
 
@@ -10,3 +12,5 @@ module GeneralLib =
 
     let enemiesHere state vertex = 
         agentsHere vertex state.EnemyData
+
+    

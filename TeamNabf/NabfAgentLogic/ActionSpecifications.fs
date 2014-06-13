@@ -239,6 +239,10 @@ module ActionSpecifications =
         }
 
     let inspectAction vertexNameOption =
+        let whichVertex state = 
+            match vertexNameOption with
+            | Some vertex -> vertex
+            | None -> state.Self.Node
         let agentNames (state : State) = 
             match vertexNameOption with
             | Some vertexName -> [ vertexName ]
@@ -259,24 +263,26 @@ module ActionSpecifications =
             | [] -> []
 
         let newEnemyData state =
-            let vertex = state.Self.Node
-            let updatedEnemies = //[for enemy in (enemiesHere state vertex) -> { enemy with Role = Some Explorer }]
+            let vertex = whichVertex state
+
+            let updatedEnemies = 
                 List.map (fun enemy -> {enemy with Role = Some Explorer}) (enemiesHere state vertex)
-//            logImportant <| sprintf "enemies here (EFFECT): %A)" (enemiesHere state vertex)
-//            logImportant <| sprintf "updatedEnemies: %A" updatedEnemies
+            
             let enemiesNotHere = 
                 Set.toList <| Set.difference (Set.ofList state.EnemyData) (Set.ofList <| enemiesHere state vertex)
-//            let enemiesNotHere = List.filter (fun enemy -> not <| List.exists ((=) enemy) (enemiesHere state vertex)) state.EnemyData
+            
             enemiesNotHere @ updatedEnemies
 
 
         let updateState (state : State) = 
+            let inspectedEnemyNames = 
+                [for enemy in enemiesHere state <| whichVertex state -> enemy.Name] 
+                |> Set.ofList
             { state with 
-//                    InspectedEnemies = Set.union state.InspectedEnemies (agentNames state |> Set.ofList);
-//                    EnemyData = Set.toList <| Set.union (state.EnemyData |> Set.ofList) (buildAgents state (agentNames state) |> Set.ofList);
-                    EnemyData = newEnemyData state
-                    Self = deductEnergy Constants.ACTION_COST_EXPENSIVE state
-                    LastAction = Action.Inspect vertexNameOption
+                EnemyData = newEnemyData state
+                Self = deductEnergy Constants.ACTION_COST_EXPENSIVE state
+                LastAction = Action.Inspect vertexNameOption
+                PlannerInspectedEnemies = inspectedEnemyNames + state.PlannerInspectedEnemies
             }
 
         { ActionType    = Perform <| Inspect vertexNameOption

@@ -20,11 +20,7 @@ module GoalSpecifications =
         Option.isSome state.World.[vertex].Value
 
     let vertexInspected vertex state =
-//        if state.Self.Node = vertex then
-//            logImportant <| sprintf "enemies here (GOALTEST): %A" (enemiesHere state vertex)
-        let res = List.forall (fun enemy -> Option.isSome enemy.Role) (enemiesHere state vertex)
-        logImportant <| sprintf "GOALTEST RESULT: %A" res
-        res
+        List.forall (fun enemy -> Option.isSome enemy.Role) (enemiesHere state vertex)
 
     let parried state = 
         state.LastAction = Parry
