@@ -92,14 +92,16 @@ module Saboteur =
                                 neighbourIds
                             else
                                 List.filter ((<>) inputState.LastPosition) neighbourIds
+        let (unExplored,explored) = List.partition (fun name -> isUnexplored inputState name) neighbours
         let rand = System.Random()
-        let index = rand.Next(0, List.length neighbours)
-        let target = List.nth neighbours index
-        Some
-            (   "go to node " + target
-            ,   Activity
-            ,   [
-                    Requirement <| At target
-                ]
-            )
+        if not unExplored.IsEmpty
+        then
+            let index = rand.Next(0, List.length unExplored)
+            let target = List.nth unExplored index
+            Some ( "go to node " + target, Activity, [ Requirement <| At target ] )
+        else
+            let index = rand.Next(0, List.length explored)
+            let target = List.nth explored index
+            Some ( "go to node " + target, Activity, [ Requirement <| At target ] )
+        
 
