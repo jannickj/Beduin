@@ -58,6 +58,7 @@
     <Compile Include="GoalSpecifications.fs" />
     <Compile Include="Search\FloydWarshall.fs" />
     <Compile Include="Search\HeuristicDijkstra.fs" />
+    <Compile Include="Search\Biconnected.fs" />
     <Compile Include="Planning.fs" />
     <Compile Include="MarsCommunicator.fs" />
     <Compile Include="MasterCommunicator.fs" />
