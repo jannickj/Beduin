@@ -28,6 +28,7 @@ namespace NabfProject.NoticeBoardModel
         public int _createdAttackJob = 0;
         public int _createdRepairJob = 0;
         public int _createdDisruptJob = 0;
+        public List<Notice> _nonUniqueJobs = new List<Notice>();
 
 
 
@@ -89,6 +90,7 @@ namespace NabfProject.NoticeBoardModel
             if (!isUnique)
             {
                 _nonUniqueJobsAttemptedToBeAdded++;
+                _nonUniqueJobs.Add(n);
                 if (verbose && _nonUniqueJobsAttemptedToBeAdded % 2 == 0)
                     Console.WriteLine("Total number of received non-unique jobs: " + _nonUniqueJobsAttemptedToBeAdded);
                 return false;
@@ -203,22 +205,37 @@ namespace NabfProject.NoticeBoardModel
 
             bool agentHadJob = AgentListContainsAgent(noticeUnappliedTo.GetAgentsOnJob(), agent);
 
-            noticeUnappliedTo.Unapply(agent);
             _agentToAppliedNotices.Remove(agent.Name, noticeUnappliedTo.Id);
 
-            //if agent has the job, fire the rest recursively and resset the notice.
+            //if agent has the job, fire the rest and set status to free
             if (agentHadJob)
             {
-                foreach (NabfAgent a in noticeUnappliedTo.GetAgentsOnJob())
-                {
-                    UnapplyToNotice(a, noticeUnappliedTo.Id);
-                    a.Raise(new FiredFromJobEvent(noticeUnappliedTo, a));
-                    _agentsFiredCounter++;
-                    if (verbose && _agentsFiredCounter % 20 == 0)
-                        Console.WriteLine("Total number of fired agents: " + _agentsFiredCounter);
-                }
+                FireOtherAgentsOnNotice(agent, idToUnapplyTo);
                 noticeUnappliedTo.Status = Status.available;
                 //noticeUnappliedTo.AvgDesirabilityAmongTopDesires = -1;
+            }
+
+            noticeUnappliedTo.Unapply(agent);
+
+            return true;
+        }
+        public bool FireOtherAgentsOnNotice(NabfAgent issuedByAgent, Int64 idToUnapplyTo)
+        {
+            Notice noticeUnappliedTo;
+            bool b = TryGetNoticeById(idToUnapplyTo, out noticeUnappliedTo);
+            if (b == false)
+                return false;
+
+            foreach (NabfAgent a in noticeUnappliedTo.GetAgentsOnJob())
+            {
+                if (a.Equals(issuedByAgent))
+                    continue;
+                noticeUnappliedTo.Unapply(a);
+                a.Raise(new FiredFromJobEvent(noticeUnappliedTo, a));
+
+                _agentsFiredCounter++;
+                if (verbose && _agentsFiredCounter % 20 == 0)
+                    Console.WriteLine("Total number of fired agents: " + _agentsFiredCounter);
             }
 
             return true;
@@ -228,7 +245,7 @@ namespace NabfProject.NoticeBoardModel
         public bool AssignJobs()
         {
             Notice notice, nextNotice;
-            bool agentsAlsoAppearAsTopDesiresOnNextNotice = false;
+            bool agentsAlsoAppearAsTopDesiresOnNextNotice = false, selfNoticeRemoved = false;
             List<Int64> noticesToUnapplyFrom;            
 
             Queue<Notice> jobQueue = CreateQueueSortedByAvgDesirability();
@@ -260,11 +277,14 @@ namespace NabfProject.NoticeBoardModel
                     #endregion
 
                     noticesToUnapplyFrom = _agentToAppliedNotices[agent.Name].ToList();
-                    noticesToUnapplyFrom.Remove(notice.Id);
-                    foreach (Int64 noticeId in noticesToUnapplyFrom)
-                    {
-                        UnapplyToNotice(agent, noticeId);
-                    }
+                    selfNoticeRemoved = noticesToUnapplyFrom.Remove(notice.Id);
+                    //if (selfNoticeRemoved)
+                    //{
+                        foreach (Int64 noticeId in noticesToUnapplyFrom)
+                        {
+                            UnapplyToNotice(agent, noticeId);
+                        }
+                    //}
                 }
 
                 #region re-orders the queue if needed
@@ -342,6 +362,18 @@ namespace NabfProject.NoticeBoardModel
             notice.AverageDesireFromTopContenders = result;
 
             return result;
+        }
+
+        public void ConsitencyChecker()
+        {
+            foreach (KeyValuePair<Int64, Notice> kvp in _allNotices)
+            {
+                if (kvp.Value.Status == Status.unavailable)
+                {
+                    if (kvp.Value.GetAgentsOnJob().Count <= 0)
+                        kvp.Value.Status = Status.available;
+                }
+            }
         }
         #endregion
 

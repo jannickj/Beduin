@@ -26,7 +26,7 @@
         let SENTINEL_OCCUPYJOB_MOD = 10.0 + (STEPS_BEFORE_ROLE_DONT_MATTER_OCCUPY_TIER1 / 10.0)
         let INSPECTOR_OCCUPYJOB_MOD = 10.0
         let SABOTEUR_OCCUPYJOB_MOD = -0.0
-        let EXPLORER_OCCUPYJOB_MOD = 10.0
+        let EXPLORER_OCCUPYJOB_MOD = 5.0
 
         //don't change these. Modify the above constants as what they actually do is clearly understood
         let REPAIRER_DISRUPTJOB_MOD = -0.0
@@ -66,7 +66,7 @@
         let ACTION_COST_DISABLED = 3
        
         let OUR_TEAM = "Nabf"
-        let EXPLORE_FACTOR_LIGHT = 0.7
+        let EXPLORE_FACTOR_LIGHT = 0.9
         let MAX_PLANNING_TIME_MS = 1000L
 
         let NUMBER_OF_AGENTS = 28

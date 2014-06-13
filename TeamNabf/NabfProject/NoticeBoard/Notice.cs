@@ -107,19 +107,28 @@ namespace NabfProject.NoticeBoardModel
             {
                 a = _agentsApplied[i];
                 if (a.Name == agent.Name)
+                {
                     _agentsApplied.Remove(a);
+                    break;
+                }
             }  
             for(int i = 0; i < _agentsOnJob.Count; i++)
             {
                 a = _agentsOnJob[i];
                 if (a.Name == agent.Name)
+                {
                     _agentsOnJob.Remove(a);
+                    break;
+                }
             }
             for (int i = 0; i < _agentProspects.Count; i++)
             {
                 a = _agentProspects[i];
                 if (a.Name == agent.Name)
+                {
                     _agentProspects.Remove(a);
+                    break;
+                }
             }
         }
         public void UpdateNotice(List<NodeKnowledge> whichNodes, int agentsNeeded, int value, List<NodeKnowledge> zoneNodes, string agentToRepair)

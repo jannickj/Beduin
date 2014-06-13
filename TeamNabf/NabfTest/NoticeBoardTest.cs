@@ -10,6 +10,7 @@ using System.Reflection;
 using JSLibrary.Data;
 using NabfProject.KnowledgeManagerModel;
 using NabfProject.Events;
+using XmasEngineModel.Management;
 
 namespace NabfTest.NewNoticeBoardModelTest
 {
@@ -43,7 +44,43 @@ namespace NabfTest.NewNoticeBoardModelTest
         string DontCareString2 = "";
         List<NodeKnowledge> DontCareNodes = new List<NodeKnowledge>() { new NodeKnowledge("uniquename") };
         List<NodeKnowledge> DontCareNodes2 = new List<NodeKnowledge>() { new NodeKnowledge("moreuniquename") };
+        List<NodeKnowledge> DontCareNodes3 = new List<NodeKnowledge>() { new NodeKnowledge("evenmoreuniquename") };
         List<Int64> ListOfKnownIDs = new List<Int64>();
+
+        public enum triggerTypes { newNotice, updatedNotice, removedNotice, firedFromjob, receivedJob }
+
+        static int NewNoticeEventFiredCounter = 0;
+        Trigger<NewNoticeEvent> NewNoticeTrigger1 = new Trigger<NewNoticeEvent>(evt => { NewNoticeEventFiredCounter++; });
+        Trigger<NewNoticeEvent> NewNoticetTigger2 = new Trigger<NewNoticeEvent>(evt => { NewNoticeEventFiredCounter++; });
+        Trigger<NewNoticeEvent> NewNoticeTrigger3 = new Trigger<NewNoticeEvent>(evt => { NewNoticeEventFiredCounter++; });
+        Trigger<NewNoticeEvent> NewNoticeTrigger4 = new Trigger<NewNoticeEvent>(evt => { NewNoticeEventFiredCounter++; });
+
+        static int NoticeUpdatedEventFiredCounter = 0;
+        Trigger<NoticeUpdatedEvent> NoticeUpdatedTrigger1 = new Trigger<NoticeUpdatedEvent>(evt => { NoticeUpdatedEventFiredCounter++; });
+        Trigger<NoticeUpdatedEvent> NoticeUpdatedTrigger2 = new Trigger<NoticeUpdatedEvent>(evt => { NoticeUpdatedEventFiredCounter++; });
+        Trigger<NoticeUpdatedEvent> NoticeUpdatedTrigger3 = new Trigger<NoticeUpdatedEvent>(evt => { NoticeUpdatedEventFiredCounter++; });
+        Trigger<NoticeUpdatedEvent> NoticeUpdatedTrigger4 = new Trigger<NoticeUpdatedEvent>(evt => { NoticeUpdatedEventFiredCounter++; });
+
+        static int NoticeRemovedEventFiredCounter = 0;
+        Trigger<NoticeRemovedEvent> NoticeRemovedTrigger1 = new Trigger<NoticeRemovedEvent>(evt => { NoticeRemovedEventFiredCounter++; });
+        Trigger<NoticeRemovedEvent> NoticeRemovedTrigger2 = new Trigger<NoticeRemovedEvent>(evt => { NoticeRemovedEventFiredCounter++; });
+        Trigger<NoticeRemovedEvent> NoticeRemovedTrigger3 = new Trigger<NoticeRemovedEvent>(evt => { NoticeRemovedEventFiredCounter++; });
+        Trigger<NoticeRemovedEvent> NoticeRemovedTrigger4 = new Trigger<NoticeRemovedEvent>(evt => { NoticeRemovedEventFiredCounter++; });
+
+
+        static int FiredFromJobEventFiredCounter = 0;
+        static List<string> NamesOfAgentsWhoGotFiredEvent = new List<string>();
+        Trigger<FiredFromJobEvent> FiredFromJobTrigger1 = new Trigger<FiredFromJobEvent>(evt => { FiredFromJobEventFiredCounter++; NamesOfAgentsWhoGotFiredEvent.Add("a1"); });
+        Trigger<FiredFromJobEvent> FiredFromJobTrigger2 = new Trigger<FiredFromJobEvent>(evt => { FiredFromJobEventFiredCounter++; NamesOfAgentsWhoGotFiredEvent.Add("a2"); });
+        Trigger<FiredFromJobEvent> FiredFromJobTrigger3 = new Trigger<FiredFromJobEvent>(evt => { FiredFromJobEventFiredCounter++; NamesOfAgentsWhoGotFiredEvent.Add("a3"); });
+        Trigger<FiredFromJobEvent> FiredFromJobTrigger4 = new Trigger<FiredFromJobEvent>(evt => { FiredFromJobEventFiredCounter++; NamesOfAgentsWhoGotFiredEvent.Add("a4"); });
+
+        static int ReceivedJobEventFiredCounter = 0;
+        static List<string> NamesOfAgentsWhoReceivedJob = new List<string>();
+        Trigger<ReceivedJobEvent> ReceivedJobTrigger1 = new Trigger<ReceivedJobEvent>(evt => { ReceivedJobEventFiredCounter++; NamesOfAgentsWhoReceivedJob.Add("a1"); });
+        Trigger<ReceivedJobEvent> ReceivedJobTrigger2 = new Trigger<ReceivedJobEvent>(evt => { ReceivedJobEventFiredCounter++; NamesOfAgentsWhoReceivedJob.Add("a2"); });
+        Trigger<ReceivedJobEvent> ReceivedJobTrigger3 = new Trigger<ReceivedJobEvent>(evt => { ReceivedJobEventFiredCounter++; NamesOfAgentsWhoReceivedJob.Add("a3"); });
+        Trigger<ReceivedJobEvent> ReceivedJobTrigger4 = new Trigger<ReceivedJobEvent>(evt => { ReceivedJobEventFiredCounter++; NamesOfAgentsWhoReceivedJob.Add("a4"); });
 
 
         //called before each test
@@ -52,6 +89,7 @@ namespace NabfTest.NewNoticeBoardModelTest
         {
             nb = new NoticeBoard();
             agent1 = new NabfAgent("a1"); agent2 = new NabfAgent("a2"); agent3 = new NabfAgent("a3"); agent4 = new NabfAgent("a4");
+            ListOfKnownIDs.Clear();
         }
 
         #region CRUD for notices
@@ -192,7 +230,7 @@ namespace NabfTest.NewNoticeBoardModelTest
         public void ApplyToNotice_Simple_ApplicationAdded()
         {
             #region init
-            InitNoticeBoard();
+            InitNoticeBoardInternalTesting();
             Int64 idToApplyTo = ListOfKnownIDs[0];
             bool applySuccessful = false;
             Notice noticeAppliedTo = null;
@@ -226,7 +264,7 @@ namespace NabfTest.NewNoticeBoardModelTest
         public void ApplyToNotice_NoticeIsUnavailable_ApplicationRejected()
         {
             #region init
-            InitNoticeBoard();
+            InitNoticeBoardInternalTesting();
             Int64 idToApplyTo = ListOfKnownIDs[0];
             bool applySuccessful = false;
             Notice noticeAppliedTo = null;
@@ -257,7 +295,7 @@ namespace NabfTest.NewNoticeBoardModelTest
         public void ApplyToNotice_AgentHasAlreadyApplied_overrideApplication()
         {
             #region init
-            InitNoticeBoard();
+            InitNoticeBoardInternalTesting();
             Int64 idToApplyTo = ListOfKnownIDs[0];
             bool applySuccessful = false;
             Notice noticeAppliedTo = null;
@@ -317,7 +355,7 @@ namespace NabfTest.NewNoticeBoardModelTest
         public void UnapplyToNotice_NoOneHaveTheJob_AgentRemovedFromApplyList()
         {
             #region init
-            InitNoticeBoard();
+            InitNoticeBoardInternalTesting();
             Int64 idToApplyTo = ListOfKnownIDs[0];
             Notice noticeAppliedTo = null;
             int desireOnNotice, desireAppliedWith = 1337;
@@ -348,29 +386,27 @@ namespace NabfTest.NewNoticeBoardModelTest
         public void UnapplyToNotice_AgentDontGotTheJob_AgentRemovedFromApplyList()//I dont have the job but others do
         {
             #region init
-            InitNoticeBoard();
+            InitNoticeBoardInternalTesting();
             Int64 idToApplyTo = ListOfKnownIDs[0];
             Notice noticeAppliedTo = null;
             int desireOnNotice, empty, desireAppliedWith = 1337;
+            #endregion
+
             nb.ApplyToNotice(agent2, idToApplyTo, desireAppliedWith);
             nb.ApplyToNotice(agent1, idToApplyTo, desireAppliedWith - 1);
-            foreach (Notice n in nb.GetAllNotices())
-            {
-                if (n.Id == idToApplyTo)
-                {
-                    noticeAppliedTo = n;
-                    break;
-                }
-            }
+
+            nb.TryGetNoticeById(idToApplyTo, out noticeAppliedTo);
+
             noticeAppliedTo.AddToAgentsOnJob(agent2);
             noticeAppliedTo.Status = NoticeBoard.Status.unavailable;
-            #endregion
 
             Assert.AreEqual(2, noticeAppliedTo.GetAgentsApplied().Count);
             Assert.AreEqual(1, noticeAppliedTo.GetAgentsOnJob().Count);
             Assert.AreEqual(NoticeBoard.Status.unavailable, noticeAppliedTo.Status);
 
             bool unapplySuccessful = nb.UnapplyToNotice(agent1, idToApplyTo);
+
+            nb.TryGetNoticeById(idToApplyTo, out noticeAppliedTo);
 
             Assert.True(unapplySuccessful);
             Assert.AreEqual(1, noticeAppliedTo.GetAgentsApplied().Count);
@@ -386,7 +422,7 @@ namespace NabfTest.NewNoticeBoardModelTest
         public void UnapplyToNotice_NoticeDontExists_failure()
         {
             #region init
-            InitNoticeBoard();
+            InitNoticeBoardInternalTesting();
             Int64 idToApplyTo = ListOfKnownIDs[0];
             #endregion
 
@@ -399,7 +435,7 @@ namespace NabfTest.NewNoticeBoardModelTest
         public void UnapplyToNotice_HasTheJob_StatusSetToAvailableRestFired()
         {
             #region init
-            InitNoticeBoard();
+            InitNoticeBoardInternalTesting();
             Int64 idToApplyTo = ListOfKnownIDs[0];
             Notice noticeAppliedTo = null;
             int desireOnNotice, empty, desireAppliedWith = 1337;
@@ -442,7 +478,7 @@ namespace NabfTest.NewNoticeBoardModelTest
         public void AssignJobs_JobsExistsButWithNoApplications_NothingHappens()
         {
             #region init
-            InitNoticeBoard();
+            InitNoticeBoardInternalTesting();
             Int64 idOf2AgentJob = ListOfKnownIDs[0], idOf1AgentJob = ListOfKnownIDs[2];
             int desireAppliedWith = 1337;
             nb.ApplyToNotice(agent1, idOf2AgentJob, desireAppliedWith);
@@ -457,7 +493,7 @@ namespace NabfTest.NewNoticeBoardModelTest
         public void AssignJobs_JobsExistsWithApplications_JobsAreAssigned()
         {
             #region init
-            InitNoticeBoard();
+            InitNoticeBoardInternalTesting();
             Int64 idOf2AgentJob = ListOfKnownIDs[0], idOf1AgentJob = ListOfKnownIDs[2], secondIdOf2AgentJob = ListOfKnownIDs[1];
             int desireAppliedWith = 1337;
             Notice notice1 = null, notice2 = null, notice3 = null;
@@ -512,7 +548,7 @@ namespace NabfTest.NewNoticeBoardModelTest
         public void AssignJobs_JobsExistsWithApplicationsButSomeAreUnavailable_SomeJobsAreAssignedRestNothingHappens()
         {
             #region init
-            InitNoticeBoard();
+            InitNoticeBoardInternalTesting();
             Int64 idOf2AgentJob = ListOfKnownIDs[0], idOf1AgentJob = ListOfKnownIDs[2];
             int desireAppliedWith = 1337;
             Notice noticeWhichRequire1Agent = null, noticeWhichRequire2Agents = null;
@@ -559,7 +595,7 @@ namespace NabfTest.NewNoticeBoardModelTest
         public void CalculateAverageDesireForTopContenders()
         {
             #region init
-            InitNoticeBoard();
+            InitNoticeBoardInternalTesting();
             Int64 idOf2AgentJob = ListOfKnownIDs[0], idOf1AgentJob = ListOfKnownIDs[2], secondIdOf2AgentJob = ListOfKnownIDs[1];
             int extremeDesire = 5, superDesire = 4, highDesire = 3, mediumDesire = 2, lowDesire = 1;
             List<NabfAgent> agents;
@@ -622,7 +658,7 @@ namespace NabfTest.NewNoticeBoardModelTest
         public void CreateQueueSortedByAvgDesirability()
         {
             #region init
-            InitNoticeBoard();
+            InitNoticeBoardInternalTesting();
             Int64 idOf2AgentJob = ListOfKnownIDs[0], idOf1AgentJob = ListOfKnownIDs[2], secondIdOf2AgentJob = ListOfKnownIDs[1];
             int extremeDesire = 5, superDesire = 4, highDesire = 3, mediumDesire = 2, lowDesire = 1;
             double agentsNeeded2 = 2, agentsNeeded1 = 1;
@@ -715,7 +751,7 @@ namespace NabfTest.NewNoticeBoardModelTest
         public void AssignJobs_AgentDesiresConflict_JobsAreAssignedForMaximumOverallDesire()
         {
             #region init
-            InitNoticeBoard();
+            InitNoticeBoardInternalTesting();
             Int64 idOf2AgentJob = ListOfKnownIDs[0], idOf1AgentJob = ListOfKnownIDs[2], secondIdOf2AgentJob = ListOfKnownIDs[1];
             int extremeDesire = 5, superDesire = 4, highDesire = 3, mediumDesire = 2, lowDesire = 1;
             Notice Notice2Agents, Notice1Agent, SecondNotice2Agents;
@@ -769,7 +805,7 @@ namespace NabfTest.NewNoticeBoardModelTest
                 Assert.Fail();
         }
 
-        private void InitNoticeBoard()
+        private void InitNoticeBoardInternalTesting()
         {
             nb.Subscribe(agent1);
             nb.Subscribe(agent2);
@@ -787,6 +823,20 @@ namespace NabfTest.NewNoticeBoardModelTest
         #endregion
 
         #region Messaging
+        /* messaging TODO
+         * Create (NewNoticeEvent)
+         * Update (UpdatedNoticeEvent)
+         * Delete (RemovedNoticeEvent)
+         * 
+         * Apply
+         * Update application
+         * Unapply
+         * 
+         * Fire (FiredFromNoticeEvent)
+         * AssignJobs (ReceivedJobEvent)
+         * SendOutAllNoticesToAgent (NewNoticeEvent)
+         * 
+         */
         [Test]
         public void CreateNotice_NoDuplicateExists_MsgArrived()
         {
@@ -800,14 +850,374 @@ namespace NabfTest.NewNoticeBoardModelTest
             #endregion
 
             int eventFiredCounter = 0;
-            agent1.Register(new XmasEngineModel.Management.Trigger<NewNoticeEvent>(evt => eventFiredCounter++));
+            Trigger<NewNoticeEvent> trigger = new Trigger<NewNoticeEvent>(evt => eventFiredCounter++);
+            agent1.Register(trigger);
+            agent2.Register(trigger);
+            agent3.Register(trigger);
+            agent4.Register(trigger);
 
             nb.CreateNotice(jobType, agentsNeeded, whichNodesIsInvolvedInJob, whichNodesToStandOn, notNeededForOccupyJob, jobValue);
             Assert.AreEqual(0,eventFiredCounter);
 
             nb.Subscribe(agent1);
+            nb.Subscribe(agent2);
+            nb.Subscribe(agent3);
+            nb.Subscribe(agent4);
             nb.CreateNotice(jobType, agentsNeeded, DontCareNodes, DontCareNodes, notNeededForOccupyJob, jobValue);
-            Assert.AreEqual(1, eventFiredCounter);
+            Assert.AreEqual(4, eventFiredCounter);
+
+
+            agent1.Deregister(trigger);
+            agent2.Deregister(trigger);
+            agent3.Deregister(trigger);
+            agent4.Deregister(trigger);
+        }
+
+        [Test]
+        public void CreateNotice_DuplicateExists_MsgArrivedOnce()
+        {
+            #region init
+            int agentsNeeded = 0;
+            int jobValue = 0;
+            string notNeededForOccupyJob = "";
+            NoticeBoard.JobType jobType = NoticeBoard.JobType.Occupy;
+            List<NodeKnowledge> whichNodesIsInvolvedInJob = new List<NodeKnowledge>() { };
+            List<NodeKnowledge> whichNodesToStandOn = new List<NodeKnowledge>() { };
+            #endregion
+            SetUpTriggers();
+
+            nb.Subscribe(agent1);
+            nb.Subscribe(agent2);
+            nb.Subscribe(agent3);
+            nb.Subscribe(agent4);
+
+
+            nb.CreateNotice(jobType, agentsNeeded, whichNodesIsInvolvedInJob, whichNodesToStandOn, notNeededForOccupyJob, jobValue);
+            Assert.AreEqual(4, NewNoticeEventFiredCounter);
+            nb.CreateNotice(jobType, agentsNeeded, whichNodesIsInvolvedInJob, whichNodesToStandOn, notNeededForOccupyJob, jobValue);
+            Assert.AreEqual(4, NewNoticeEventFiredCounter);
+            nb.CreateNotice(jobType, agentsNeeded, whichNodesIsInvolvedInJob, whichNodesToStandOn, notNeededForOccupyJob, jobValue);
+            Assert.AreEqual(4, NewNoticeEventFiredCounter);
+
+            nb.CreateNotice(jobType, agentsNeeded, DontCareNodes, DontCareNodes, notNeededForOccupyJob, jobValue);
+            Assert.AreEqual(8, NewNoticeEventFiredCounter);
+            nb.CreateNotice(jobType, agentsNeeded, DontCareNodes, DontCareNodes, notNeededForOccupyJob, jobValue);
+            Assert.AreEqual(8, NewNoticeEventFiredCounter);
+            nb.CreateNotice(jobType, agentsNeeded, DontCareNodes, DontCareNodes, notNeededForOccupyJob, jobValue);
+            Assert.AreEqual(8, NewNoticeEventFiredCounter);
+
+
+            Assert.True(OnlyTheseTriggersFired(new List<triggerTypes>() { triggerTypes.newNotice }));
+
+            CleanUpTriggers();
+        }
+
+        [Test]
+        public void UpdateNotice_NoticeExists_MsgArrived()
+        {
+            SetUpTriggersAndNoticeBoard();
+
+            nb.UpdateNotice(ListOfKnownIDs[0], DontCareNodes, DontCareNodes, DontCareInt, DontCareInt, DontCareString);
+
+            Assert.AreEqual(4, NoticeUpdatedEventFiredCounter);
+
+            nb.UpdateNotice(ListOfKnownIDs[1], DontCareNodes, DontCareNodes, DontCareInt, DontCareInt, DontCareString);
+
+            Assert.AreEqual(8, NoticeUpdatedEventFiredCounter);
+
+            Assert.True(OnlyTheseTriggersFired(new List<triggerTypes> { triggerTypes.updatedNotice }));
+
+            CleanUpTriggers();
+        }
+
+        [Test]
+        public void UpdateNotice_NoticeDontExists_NoMsg()
+        {
+            SetUpTriggersAndNoticeBoard();
+
+            nb.UpdateNotice(666, DontCareNodes, DontCareNodes, DontCareInt, DontCareInt, DontCareString);
+
+            Assert.AreEqual(0, NoticeUpdatedEventFiredCounter);
+
+            nb.UpdateNotice(999, DontCareNodes, DontCareNodes, DontCareInt, DontCareInt, DontCareString);
+
+            Assert.AreEqual(0, NoticeUpdatedEventFiredCounter);
+            
+            Assert.True(OnlyTheseTriggersFired(new List<triggerTypes>{ triggerTypes.updatedNotice }));
+
+            CleanUpTriggers();
+        }
+        
+        [Test]
+        public void DeleteNotice_NoticeExists_MsgArrived()
+        {
+            SetUpTriggersAndNoticeBoard();
+
+            nb.DeleteNotice(ListOfKnownIDs[0]);
+
+            Assert.AreEqual(4, NoticeRemovedEventFiredCounter);
+
+            nb.DeleteNotice(ListOfKnownIDs[1]);
+
+            Assert.AreEqual(8, NoticeRemovedEventFiredCounter);
+
+            nb.DeleteNotice(ListOfKnownIDs[1]);
+
+            Assert.AreEqual(8, NoticeRemovedEventFiredCounter);
+
+            Assert.True(OnlyTheseTriggersFired(new List<triggerTypes> { triggerTypes.removedNotice }));
+
+            CleanUpTriggers();
+        }
+
+        [Test]
+        public void DeleteNotice_NoticeDontExists_NoMsg()
+        {
+            SetUpTriggersAndNoticeBoard();
+
+            nb.DeleteNotice(666);
+
+            Assert.AreEqual(0, NoticeRemovedEventFiredCounter);
+
+            nb.DeleteNotice(999);
+
+            Assert.AreEqual(0, NoticeRemovedEventFiredCounter);
+
+            Assert.True(OnlyTheseTriggersFired(new List<triggerTypes> { triggerTypes.removedNotice }));
+
+            CleanUpTriggers();
+        }
+
+        [Test]
+        public void UnapplyToNotice_NoticeDontExists_NoMsg()
+        {
+            SetUpTriggersAndNoticeBoard();
+
+            nb.ApplyToNotice(agent1, 999, 0);
+            nb.ApplyToNotice(agent2, 999, 0);
+
+            nb.AssignJobs();
+
+            Assert.True(OnlyTheseTriggersFired(new List<triggerTypes> { }));
+
+            CleanUpTriggers();
+        }
+
+        [Test]
+        public void UnapplyToNoticeCausesFiring_NoticeExists_MsgsArrived()
+        {
+            SetUpTriggersAndNoticeBoard();
+            Int64 idOf3AgentJob = ListOfKnownIDs[4];
+            Notice n;
+            nb.TryGetNoticeById(idOf3AgentJob, out n);
+
+            Assert.AreEqual(3, n.AgentsNeeded);
+
+            nb.ApplyToNotice(agent1, idOf3AgentJob, 10);
+            nb.ApplyToNotice(agent2, idOf3AgentJob, 5);
+            nb.ApplyToNotice(agent3, idOf3AgentJob, 0);
+
+            nb.AssignJobs();
+            Assert.AreEqual(3, NamesOfAgentsWhoReceivedJob.Count);
+            Assert.AreEqual(agent1.Name, NamesOfAgentsWhoReceivedJob[0]);
+            Assert.AreEqual(agent2.Name, NamesOfAgentsWhoReceivedJob[1]);
+            Assert.AreEqual(agent3.Name, NamesOfAgentsWhoReceivedJob[2]);
+            Assert.AreEqual(3, ReceivedJobEventFiredCounter);
+            Assert.True(OnlyTheseTriggersFired(new List<triggerTypes> { triggerTypes.receivedJob }));
+
+            ReceivedJobEventFiredCounter = 0;
+
+            nb.UnapplyToNotice(agent1, idOf3AgentJob);
+            Assert.AreEqual(2, FiredFromJobEventFiredCounter);
+            Assert.AreEqual(2, NamesOfAgentsWhoGotFiredEvent.Count);
+            if (NamesOfAgentsWhoGotFiredEvent[0] == agent2.Name)
+                Assert.AreEqual(agent3.Name, NamesOfAgentsWhoGotFiredEvent[1]);
+            else
+            {
+                Assert.AreEqual(agent3.Name, NamesOfAgentsWhoGotFiredEvent[0]);
+                Assert.AreEqual(agent2.Name, NamesOfAgentsWhoGotFiredEvent[1]);
+            }
+            Assert.True(OnlyTheseTriggersFired(new List<triggerTypes> { triggerTypes.firedFromjob }));
+
+
+            CleanUpTriggers();
+        }
+        
+        [Test]
+        public void AssignJobCausesFiringInOldJob_AgentGotOldJobButWantsNew_MsgsArrived()
+        {
+            SetUpTriggersAndNoticeBoard();
+            Int64 idOf3AgentJob = ListOfKnownIDs[4], idOf1AgentJob = ListOfKnownIDs[2];
+
+            nb.ApplyToNotice(agent1, idOf3AgentJob, 10);
+            nb.ApplyToNotice(agent2, idOf3AgentJob, 5);
+            nb.ApplyToNotice(agent3, idOf3AgentJob, 0);
+
+            nb.AssignJobs();
+            Assert.AreEqual(3, NamesOfAgentsWhoReceivedJob.Count);
+            Assert.AreEqual(3, ReceivedJobEventFiredCounter);
+            ReceivedJobEventFiredCounter = 0;
+
+            nb.ApplyToNotice(agent1, idOf1AgentJob, 99999);
+
+            nb.AssignJobs();
+            Assert.AreEqual(1, NamesOfAgentsWhoReceivedJob.Count);
+            Assert.AreEqual(agent1.Name, NamesOfAgentsWhoReceivedJob[0]);
+            Assert.AreEqual(1, ReceivedJobEventFiredCounter);
+            Assert.True(OnlyTheseTriggersFired(new List<triggerTypes> { triggerTypes.receivedJob, triggerTypes.firedFromjob }));
+            Assert.AreEqual(2, FiredFromJobEventFiredCounter);
+            Assert.AreEqual(2, NamesOfAgentsWhoGotFiredEvent.Count);
+            if (NamesOfAgentsWhoGotFiredEvent[0] == agent2.Name)
+                Assert.AreEqual(agent3.Name, NamesOfAgentsWhoGotFiredEvent[1]);
+            else
+            {
+                Assert.AreEqual(agent3.Name, NamesOfAgentsWhoGotFiredEvent[0]);
+                Assert.AreEqual(agent2.Name, NamesOfAgentsWhoGotFiredEvent[1]);
+            }
+
+
+            CleanUpTriggers();
+        }
+
+
+
+        private void SetUpTriggersAndNoticeBoard()
+        {
+            SetUpTriggers();
+
+            InitNoticeBoardMsgTesting();
+
+            nb.Subscribe(agent1);
+            nb.Subscribe(agent2);
+            nb.Subscribe(agent3);
+            nb.Subscribe(agent4);
+        }
+        private void InitNoticeBoardMsgTesting()
+        {
+            nb.CreateNotice(NoticeBoard.JobType.Occupy, 2, DontCareNodes, DontCareNodes, DontCareString, DontCareInt);
+            nb.CreateNotice(NoticeBoard.JobType.Occupy, 2, DontCareNodes2, DontCareNodes2, DontCareString, DontCareInt);
+            nb.CreateNotice(NoticeBoard.JobType.Repair, 1, DontCareNodes, DontCareNodes, DontCareString, DontCareInt);
+            nb.CreateNotice(NoticeBoard.JobType.Repair, 1, DontCareNodes2, DontCareNodes2, DontCareString2, DontCareInt);
+            nb.CreateNotice(NoticeBoard.JobType.Occupy, 3, DontCareNodes3, DontCareNodes3, DontCareString2, DontCareInt);
+            ListOfKnownIDs.Add(0);
+            ListOfKnownIDs.Add(1);
+            ListOfKnownIDs.Add(2);
+            ListOfKnownIDs.Add(3);
+            ListOfKnownIDs.Add(4);
+        }
+        private void SetUpTriggers()
+        {
+            NewNoticeEventFiredCounter = 0;
+            agent1.Register(NewNoticeTrigger1);
+            agent2.Register(NewNoticetTigger2);
+            agent3.Register(NewNoticeTrigger3);
+            agent4.Register(NewNoticeTrigger4);
+
+            NoticeUpdatedEventFiredCounter = 0;
+            agent1.Register(NoticeUpdatedTrigger1);
+            agent2.Register(NoticeUpdatedTrigger2);
+            agent3.Register(NoticeUpdatedTrigger3);
+            agent4.Register(NoticeUpdatedTrigger4);
+
+            NoticeRemovedEventFiredCounter = 0;
+            agent1.Register(NoticeRemovedTrigger1);
+            agent2.Register(NoticeRemovedTrigger2);
+            agent3.Register(NoticeRemovedTrigger3);
+            agent4.Register(NoticeRemovedTrigger4);
+
+            FiredFromJobEventFiredCounter = 0;
+            NamesOfAgentsWhoGotFiredEvent.Clear();
+            agent1.Register(FiredFromJobTrigger1);
+            agent2.Register(FiredFromJobTrigger2);
+            agent3.Register(FiredFromJobTrigger3);
+            agent4.Register(FiredFromJobTrigger4); 
+
+            ReceivedJobEventFiredCounter = 0;
+            NamesOfAgentsWhoReceivedJob.Clear();
+            agent1.Register(ReceivedJobTrigger1);
+            agent2.Register(ReceivedJobTrigger2);
+            agent3.Register(ReceivedJobTrigger3);
+            agent4.Register(ReceivedJobTrigger4);
+        }
+        private void CleanUpTriggers()
+        {
+            NewNoticeEventFiredCounter = 0;
+            agent1.Deregister(NewNoticeTrigger1);
+            agent2.Deregister(NewNoticetTigger2);
+            agent3.Deregister(NewNoticeTrigger3);
+            agent4.Deregister(NewNoticeTrigger4);
+
+            NoticeUpdatedEventFiredCounter = 0;
+            agent1.Deregister(NoticeUpdatedTrigger1);
+            agent2.Deregister(NoticeUpdatedTrigger2);
+            agent3.Deregister(NoticeUpdatedTrigger3);
+            agent4.Deregister(NoticeUpdatedTrigger4);
+
+            NoticeRemovedEventFiredCounter = 0;
+            agent1.Deregister(NoticeRemovedTrigger1);
+            agent2.Deregister(NoticeRemovedTrigger2);
+            agent3.Deregister(NoticeRemovedTrigger3);
+            agent4.Deregister(NoticeRemovedTrigger4);
+
+            FiredFromJobEventFiredCounter = 0;
+            NamesOfAgentsWhoGotFiredEvent.Clear();
+            agent1.Deregister(FiredFromJobTrigger1);
+            agent2.Deregister(FiredFromJobTrigger2);
+            agent3.Deregister(FiredFromJobTrigger3);
+            agent4.Deregister(FiredFromJobTrigger4);
+
+            ReceivedJobEventFiredCounter = 0;
+            NamesOfAgentsWhoReceivedJob.Clear();
+            agent1.Deregister(ReceivedJobTrigger1);
+            agent2.Deregister(ReceivedJobTrigger2);
+            agent3.Deregister(ReceivedJobTrigger3);
+            agent4.Deregister(ReceivedJobTrigger4);
+        }
+        private bool OnlyTheseTriggersFired(List<triggerTypes> dontCheckTheseTypes)
+        {
+            int maxValueTriggerType = (int)(Enum.GetValues(typeof(triggerTypes)).Cast<triggerTypes>().Last());
+            bool skipThis, result = true;
+            triggerTypes currentType;
+
+
+            for (int i = 0; i <= maxValueTriggerType; i++)
+            {
+                skipThis = false;
+                foreach (triggerTypes t in dontCheckTheseTypes)
+                {
+                    if (((int)t) == i)
+                        skipThis = true;
+                }
+                if (skipThis)
+                    continue;
+                currentType = (triggerTypes)i;
+                switch (currentType)
+                {
+                    case triggerTypes.firedFromjob:
+                        if (FiredFromJobEventFiredCounter > 0)
+                            result = false;
+                        break;
+                    case triggerTypes.newNotice:
+                        if (NewNoticeEventFiredCounter > 0)
+                            result = false;
+                        break;
+                    case triggerTypes.removedNotice:
+                        if (NoticeRemovedEventFiredCounter > 0)
+                            result = false;
+                        break;
+                    case triggerTypes.updatedNotice:
+                        if (NoticeUpdatedEventFiredCounter > 0)
+                            result = false;
+                        break;
+                    case triggerTypes.receivedJob:
+                        if (ReceivedJobEventFiredCounter > 0)
+                            result = false;
+                        break;
+                        
+                }
+            }
+
+            return result;
         }
         #endregion
 
@@ -816,6 +1226,8 @@ namespace NabfTest.NewNoticeBoardModelTest
         //random spam through simman test
         //random spam through simman test
         //random spam through simman test
+
+        //husk at teste uden consistency checker
         #endregion
 
 

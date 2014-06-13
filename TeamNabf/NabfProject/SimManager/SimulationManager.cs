@@ -275,7 +275,6 @@ namespace NabfProject.SimManager
             }
 
             Console.WriteLine("Agent " + a.Name + " unapplied from " + notice.ToString());
-            //return; //disabling unapply
             nb.UnapplyToNotice(a, noticeId);
         }
 
@@ -310,6 +309,8 @@ namespace NabfProject.SimManager
 
             if (_currentRoundNumber % 5 == 0 || _currentRoundNumber < 10)
                 Console.WriteLine("-------- Simulation " + simID + ", Round: " + _currentRoundNumber + " --------");
+
+            nb.ConsitencyChecker();
 
             if (reporting)
             {
@@ -368,6 +369,17 @@ namespace NabfProject.SimManager
                         }
                         Console.WriteLine("  ");
                     }
+                    Console.WriteLine(" --- Non-unique jobs --- ");
+                    foreach (Notice n in nb._nonUniqueJobs)
+                    {
+                        Console.WriteLine("" + n.ToString());
+                    }
+                    Console.WriteLine(" --- Unique jobs --- ");
+                    foreach (Notice n in nb.GetAllNotices())
+                    {
+                        Console.WriteLine("" + n.ToString());
+                    }
+                    
                 }
                 #endregion
             }
