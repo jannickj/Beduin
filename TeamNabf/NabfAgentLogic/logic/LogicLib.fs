@@ -166,30 +166,6 @@ module LogicLib =
             Some <| snd (List.head <| List.rev solution.Path)
         | None -> None
 
-//    let planRouteTo target (state:State) = 
-//        findNode (fun vertexName -> vertexName = target) state
-        
-//    let findAndDo startNode condition actionList actionString findNextBest (inputState:State) =
-//        let targetOpt = 
-//            match findNextBest with
-//            | true -> findTargetNode startNode condition inputState
-//            | false -> findNextBestNode startNode condition inputState
-//        
-//        match targetOpt with
-//        | None -> None
-//        | Some target ->
-//               Some
-//                    (   "go to node " + target + " and " + actionString
-//                    ,   Activity
-//                    ,   [ Plan <| planRouteTo target
-//                        ; Requirement ( fun state -> not <| condition state target             
-//                                      , None
-//                                      , actionList
-//                                      )
-//                        ]
-//                    )
-
-
     let myRankIsGreatest myName (other:Agent List) =
         let qq = List.filter (fun a -> a.Name > myName) other
         qq.IsEmpty
@@ -208,7 +184,7 @@ module LogicLib =
         let friendliesOnNode = List.filter (fun a -> a.Node = node) inputState.FriendlyData
         if (friendliesOnNode.Length = 1) then //is it me standing on the node?
             friendliesOnNode.Head.Name = inputState.Self.Name
-        elif (friendliesOnNode.Length = 0) then //no one is standing on the
+        elif (friendliesOnNode.Length = 0) then //no one is standing on the node
             true
         else //more than 1 is standing on the node, including myself, so don't want
             false

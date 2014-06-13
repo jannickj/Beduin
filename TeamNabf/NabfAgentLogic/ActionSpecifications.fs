@@ -345,8 +345,7 @@ module ActionSpecifications =
         let agentsHere = agentsAt state.Self.Node state.EnemyData
         if List.exists ((=) agent) agentsHere then
             [inspectAction None]
-        else
-            logImportant <| sprintf "No agent found" 
+        else 
             []
 
     let parryActions state = [parryAction]
