@@ -267,4 +267,14 @@ module AgentTypes =
         | Requirement of Goal
         | MultiGoal of (State -> Goal list)
 
-    type Intention = string*IntentionType*(Objective list)
+    //type Intention = string*IntentionType*(Objective list)
+
+    type Intention = 
+        {
+            Label  : string
+            Type   : IntentionType
+            Objectives : Objective list
+            ChangeStateBefore : (State -> State) option
+            ChangeStateAfter  : (State -> State) option
+        } 
+

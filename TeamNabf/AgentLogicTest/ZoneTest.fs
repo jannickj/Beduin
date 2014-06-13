@@ -71,7 +71,8 @@ module ZoneTest =
                                     ; ("b", { Identifier = "b"; Value = None; Edges = [(None, "a")] |> Set.ofList })
                                     ] |> Map.ofList
                 let state = buildState "a" Explorer initialGraph
-                let (Some (_,_,goals)) = findNewZone state
+                let (Some (intA)) = findNewZone state
+                let goals = intA.Objectives
                 let plan = makePlan state goals
                 Assert.IsTrue (plan.IsSome)
                 ()
@@ -112,7 +113,8 @@ module ZoneTest =
                                     ; ("t", { Identifier = "t"; Value = Some 10; Edges = [(None, "o");(None, "s")] |> Set.ofList })
                                     ] |> Map.ofList
                 let state = buildState "t" Explorer initialGraph
-                let (Some (_,_,goals)) = findNewZone state
+                let (Some (intA)) = findNewZone state
+                let goals = intA.Objectives
                 let plan = makePlan state [goals.Head]
                 Assert.IsTrue (plan.IsSome)
                 ()
@@ -153,7 +155,8 @@ module ZoneTest =
                                     ; ("t", { Identifier = "t"; Value = Some 10; Edges = [(None, "o");(None, "s")] |> Set.ofList })
                                     ] |> Map.ofList
                 let state = buildState "t" Explorer initialGraph
-                let (Some (_,_,goals)) = findNewZone state
+                let (Some (intA)) = findNewZone state
+                let goals = intA.Objectives
                 let plan = makePlan state goals
                 let (_,newgoals) = plan.Value
                 let newplan = makePlan state newgoals.Tail
@@ -179,7 +182,8 @@ module ZoneTest =
                                     ; ("t", { Identifier = "t"; Value = Some 10; Edges = [(None, "o");(None, "s")] |> Set.ofList })
                                     ] |> Map.ofList
                 let state = buildState "t" Explorer initialGraph
-                let (Some (_,_,goals)) = findNewZone state
+                let (Some (intA)) = findNewZone state
+                let goals = intA.Objectives
                 let plan = makePlan state goals
                 Assert.IsTrue (plan.IsSome)
                 ()
@@ -199,7 +203,8 @@ module ZoneTest =
                                     ] |> Map.ofList
                 let state = buildState "a" Explorer initialGraph
                
-                let (Some (_,_,goals)) = findNewZone state
+                let (Some (intA)) = findNewZone state
+                let goals = intA.Objectives
                 let plan = makePlan state (goals)
 
                 Assert.IsTrue (plan.IsSome)
@@ -216,7 +221,8 @@ module ZoneTest =
                                     ] |> Map.ofList
                 let state = buildState "a" Explorer initialGraph
                 
-                let (Some (_,_,goal::goals)) = findNewZone state
+                let (Some (intA)) = findNewZone state
+                let goals = intA.Objectives
                 let plan = makePlan state goals
                 Assert.IsTrue (plan.IsSome)
                 ()

@@ -38,7 +38,7 @@ module Repairer =
         match nearbyDamagedAgent with
         | [] -> None
         | head::tail ->     
-            Some(
+            Some <| normalIntention (
                     "repair agent " + head.Name
                     , Activity
                     , [Requirement (Repaired head.Name)]
@@ -46,7 +46,7 @@ module Repairer =
 
     let applyToRepairJob (inputState:State) = 
         let applicationList = createApplicationList inputState JobType.RepairJob calculateDesireRepairJob
-        Some(
+        Some <| normalIntention (
                 "apply to all repair jobs"
                 , Communication
                 , [Plan (fun state -> Some applicationList)]
@@ -59,9 +59,9 @@ module Repairer =
         | ((id,_,_,_),_)::_ -> 
             let (jobid,node) = List.find (fun (jid,_) -> id.Value = jid) inputState.MyJobs
             let (_,RepairJob(_,agent)) = (getJobFromJobID inputState jobid) : Job
-            Some
-                ( "repair agent " + agent + " on node " + node
-                , Activity
-                , [Requirement (Repaired agent)]
-                )
+            Some <| normalIntention 
+                    ( "repair agent " + agent + " on node " + node
+                    , Activity
+                    , [Requirement (Repaired agent)]
+                    )
         | [] -> None

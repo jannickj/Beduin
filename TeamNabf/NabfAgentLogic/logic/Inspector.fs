@@ -44,7 +44,7 @@ module Inspector =
         match uninspectedNearbyEnemies with
         | [] -> None
         | head::tail ->     
-            Some(
+            Some <| normalIntention (
                     "inspect agent " + head.Name
                     , Activity
                     , [Requirement (Inspected head.Name)]
@@ -72,8 +72,8 @@ module Inspector =
         let rand = System.Random()
         let index = rand.Next(0, List.length neighbours)
         let target = List.nth neighbours index
-        Some
-            (   "go to node " +  target
-            ,   Activity
-            ,   [Requirement (At target)]
-            )
+        Some <| normalIntention 
+                    (   "go to node " +  target
+                    ,   Activity
+                    ,   [Requirement (At target)]
+                    )

@@ -11,6 +11,15 @@ module LogicLib =
 
     let flip f x y = f y x
 
+    let normalIntention (label,intentionType,objectives) =
+        {
+            Label = label;
+            Type = intentionType;
+            Objectives = objectives;
+            ChangeStateAfter = None
+            ChangeStateBefore = None
+        }
+
     let nodeListContains n (nl:string list) =
         (List.tryFind (fun s -> s = n) nl).IsSome
 

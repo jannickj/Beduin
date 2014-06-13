@@ -253,8 +253,9 @@ module Planning =
         class
             interface Planner<State, AgentAction, Intention, Plan> with 
                 member self.FormulatePlan (state, intent) = 
+                    let oldintent = (intent.Label,intent.Type,intent.Objectives)
                     let plan = 
-                        try formulatePlan state intent with
+                        try formulatePlan state oldintent with
                         | exn -> logError <| sprintf "Error encountered in formulatePlan: %A at %A" exn.Message exn.TargetSite
                                  None
                     plan
@@ -283,8 +284,9 @@ module Planning =
                     action
 
                 member self.UpdateStateBeforePlanning (state, intent) = 
+                    let oldintent = (intent.Label,intent.Type,intent.Objectives)
                     let newState = 
-                        try updateStateBeforePlanning state intent with
+                        try updateStateBeforePlanning state oldintent with
                         | exn -> logError <| sprintf "Error encountered in updateStateBeforePlanning: %A at %A" exn.Message exn.TargetSite
                                  state
                     newState

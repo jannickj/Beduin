@@ -37,7 +37,7 @@ module Saboteur =
 
     let applyToAttackJob (inputState:State) = 
         let applicationList = createApplicationList inputState JobType.AttackJob calculateDesireAttackJob
-        Some(
+        Some <| normalIntention (
                 "apply to all attack jobs"
                 , Communication
                 , [Plan(fun state -> Some applicationList)]
@@ -48,7 +48,7 @@ module Saboteur =
         match enemiesNearby with
         | [] -> None
         | head::tail ->     
-            Some(
+            Some <| normalIntention (
                     "attack agent " + head.Name
                     , Activity
                     , [Requirement <| Attacked head.Name]
@@ -60,7 +60,7 @@ module Saboteur =
         match myAttackJobs with
         | ((Some id,_,_,_),_)::_ -> 
             let (_,node) = List.find (fun (jid,_) -> id = jid) inputState.MyJobs
-            Some
+            Some <| normalIntention 
                 (   "attack agent on node " + node
                 ,   Activity
                 ,   [ Requirement <| At node 
@@ -74,7 +74,7 @@ module Saboteur =
         match enemiesNearby with
         | [] -> None
         | head::tail ->     
-            Some(
+            Some <| normalIntention (
                     "attack agent " + head.Name
                     , Activity
                     , [Requirement (Attacked head.Name)] 
@@ -98,10 +98,10 @@ module Saboteur =
         then
             let index = rand.Next(0, List.length unExplored)
             let target = List.nth unExplored index
-            Some ( "go to node " + target, Activity, [ Requirement <| At target ] )
+            Some <| normalIntention ( "go to node " + target, Activity, [ Requirement <| At target ] )
         else
             let index = rand.Next(0, List.length explored)
             let target = List.nth explored index
-            Some ( "go to node " + target, Activity, [ Requirement <| At target ] )
+            Some <| normalIntention ( "go to node " + target, Activity, [ Requirement <| At target ] )
         
 
