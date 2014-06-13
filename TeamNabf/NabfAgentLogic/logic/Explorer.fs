@@ -248,10 +248,22 @@ module Explorer =
 
     let findNodeToProbe (inputState:State) =
         let nearestUnprobed = nearestVertexSatisfying inputState nodeIsUnprobed
-        //logImportant <| sprintf "Distance to 66 is: %A" (distanceBetweenNodes "v58" "v66" inputState)
-        //logImportant <| sprintf "Distance to 99 is: %A" (distanceBetweenNodes "v58" "v99" inputState)
-        //logImportant <| sprintf "Distance to 1 is: %A" (distanceBetweenNodes "v1" "v58" inputState)
-        match nearestUnprobed with
-        | Some unprobed ->
-            Some("probe one more node.", Activity, [Requirement (Probed unprobed)])
-        | _ -> None
+        if(nodeHasNoOtherFriendlyAgentsOnIt inputState inputState.Self.Node)
+        then
+            match nearestUnprobed with
+            | Some unprobed ->
+                Some("probe one more node.", Activity, [Requirement (Probed unprobed)])
+            | _ -> None
+        else
+            let otherAgentsOnMyNode = List.filter (fun a -> a.Node = inputState.Self.Node && not(a.Name = inputState.Self.Name)) inputState.FriendlyData
+            if (myRankIsGreatest inputState.Self.Name otherAgentsOnMyNode)
+            then
+                let nextBest = findNextBestUnprobed inputState
+                match nextBest with
+                        | Some vertex -> Some("leave the group and probe a node.", Activity, [Requirement (Probed vertex)])
+                        | None -> Some("wait for the others to leave.", Activity, [Plan (fun _ -> Some [Perform(Recharge)])])
+            else
+                match nearestUnprobed with
+                | Some unprobed ->
+                    Some("probe one more node.", Activity, [Requirement (Probed unprobed)])
+                | _ -> None

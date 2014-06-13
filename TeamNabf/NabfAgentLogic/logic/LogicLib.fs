@@ -166,8 +166,46 @@ module LogicLib =
             Some <| snd (List.head <| List.rev solution.Path)
         | None -> None
 
+    let findNextBestUnprobed state =
+        let isVertexUnprobed vertex = state.World.ContainsKey(vertex) && state.World.[vertex].Value.IsNone
+
+        let definiteCost cost = 
+            match cost with 
+            | Some c -> c
+            | None -> Constants.MINIMUM_EDGE_COST
+
+        let goalTest statePair = 
+            match statePair with
+            | (Some oldVertex, newVertex) when oldVertex <> newVertex -> 
+                isVertexUnprobed newVertex
+            | _ -> false
+
+        let result (oldVertex, _) (_, resultVertex) =
+            match oldVertex with
+            | Some vertex -> (Some vertex, resultVertex)
+            | None ->
+                if isVertexUnprobed resultVertex then
+                    (Some resultVertex, resultVertex)
+                else
+                    (None, resultVertex)
+
+        let pathProblem = 
+            { InitialState = (None, state.World.[state.Self.Node].Identifier)
+            ; GoalTest = goalTest
+            ; Actions = fun (_, vertex) -> Set.toList state.World.[vertex].Edges
+            ; Result = result
+            ; StepCost = fun _ (cost, _) -> definiteCost cost
+            ; Heuristic = fun _ cost -> cost
+            }
+        
+        let solution = Astar.solve Astar.aStar pathProblem (fun () -> false)
+        match solution with
+        | Some solution -> 
+            Some <| snd (List.head <| List.rev solution.Path)
+        | None -> None
+
     let myRankIsGreatest myName (other:Agent List) =
-        let qq = List.filter (fun a -> a.Name > myName) other
+        let qq = List.filter (fun a -> a.Name < myName) other
         qq.IsEmpty
 
 
