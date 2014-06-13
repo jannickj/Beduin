@@ -8,7 +8,7 @@ using NabfProject.KnowledgeManagerModel;
 
 namespace NabfProject.NewNoticeBoardModel
 {
-    public abstract class NewNotice : IEquatable<NewNotice>, IComparable, IEqualityComparer<NewNotice>
+    public abstract class NewNotice : IEquatable<NewNotice>, IEqualityComparer<NewNotice>//, IComparable
     {
         public List<NodeKnowledge> WhichNodes { get; protected set; }
         public int AgentsNeeded { get; protected set; }
@@ -16,13 +16,16 @@ namespace NabfProject.NewNoticeBoardModel
         public int Value { get; protected set; }
         public NewNoticeBoard.Status Status = NewNoticeBoard.Status.available;
 
-        private int _avgDesirabilityAmongTopDesires = -1;
-        public int AvgDesirabilityAmongTopDesires { get { return _avgDesirabilityAmongTopDesires; } set { _avgDesirabilityAmongTopDesires = value; } }
+        //private int _avgDesirabilityAmongTopDesires = -1;
+        //public int AvgDesirabilityAmongTopDesires { get { return _avgDesirabilityAmongTopDesires; } set { _avgDesirabilityAmongTopDesires = value; } }
 
         private List<NabfAgent> _agentsApplied = new List<NabfAgent>();
         private List<NabfAgent> _agentsOnJob = new List<NabfAgent>();
+        private List<NabfAgent> _agentProspects = new List<NabfAgent>();
         private Dictionary<string, int> _agentNameToDesirability = new Dictionary<string, int>();
         public abstract NewNoticeBoard.JobType GetNoticeType();
+
+        public double AverageDesireFromTopContenders = 0;
 
 
         public NewNotice(Int64 id)
@@ -44,13 +47,30 @@ namespace NabfProject.NewNoticeBoardModel
         {
             return this._agentsOnJob.ToList();
         }
+        public void ClearAgentsOnJob()
+        {
+            _agentsOnJob.Clear();
+        }
         public List<NabfAgent> GetAgentsApplied()
         {
             return _agentsApplied.ToList();
         }
-        public void ClearAgentsOnJob()
+        public void AddToAgentProspects(NabfAgent toAdd)
         {
-            _agentsOnJob.Clear();
+            _agentProspects.Add(toAdd);
+        }
+        public void AddRangeToAgentProspects(ICollection<NabfAgent> toAdd)
+        {
+            foreach (NabfAgent a in toAdd)
+                AddToAgentProspects(a);
+        }
+        public List<NabfAgent> GetAgentProspects()
+        {
+            return _agentProspects.ToList();
+        }
+        public void ClearAgentProspects()
+        {
+            _agentProspects.Clear();
         }
 
         public bool TryGetDesirabilityOfAgent(NabfAgent agent, out int desire)
@@ -94,6 +114,12 @@ namespace NabfProject.NewNoticeBoardModel
                 a = _agentsOnJob[i];
                 if (a.Name == agent.Name)
                     _agentsOnJob.Remove(a);
+            }
+            for (int i = 0; i < _agentProspects.Count; i++)
+            {
+                a = _agentProspects[i];
+                if (a.Name == agent.Name)
+                    _agentProspects.Remove(a);
             }
         }
         public void UpdateNotice(List<NodeKnowledge> whichNodes, int agentsNeeded, int value, List<NodeKnowledge> zoneNodes, string agentToRepair)
@@ -139,20 +165,20 @@ namespace NabfProject.NewNoticeBoardModel
             return no.AgentsNeeded == this.AgentsNeeded && no.Value == this.Value;
         }
 
-        int IComparable.CompareTo(object obj)
-        {
-            if (obj == null)
-                throw new ArgumentException("Input of CompareTo of " + this.GetType().Name + " is null");
-            else if (obj is NewNotice)
-                if (((NewNotice)obj).AvgDesirabilityAmongTopDesires < AvgDesirabilityAmongTopDesires)
-                    return -1;
-                else if (((NewNotice)obj).AvgDesirabilityAmongTopDesires > AvgDesirabilityAmongTopDesires)
-                    return 1;
-                else
-                    return 0;
-            else
-                throw new ArgumentException("Object : " + obj.GetType().Name + " of CompareTo is not of type Notice");
-        }
+        //int IComparable.CompareTo(object obj)
+        //{
+        //    if (obj == null)
+        //        throw new ArgumentException("Input of CompareTo of " + this.GetType().Name + " is null");
+        //    else if (obj is NewNotice)
+        //        if (((NewNotice)obj).AvgDesirabilityAmongTopDesires < AvgDesirabilityAmongTopDesires)
+        //            return -1;
+        //        else if (((NewNotice)obj).AvgDesirabilityAmongTopDesires > AvgDesirabilityAmongTopDesires)
+        //            return 1;
+        //        else
+        //            return 0;
+        //    else
+        //        throw new ArgumentException("Object : " + obj.GetType().Name + " of CompareTo is not of type Notice");
+        //}
 
         public override bool Equals(object obj)
         {

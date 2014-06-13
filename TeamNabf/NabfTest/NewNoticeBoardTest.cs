@@ -278,7 +278,8 @@ namespace NabfTest.NewNoticeBoardModelTest
         [Test]
         public void ApplyToNotice_AgentAlreadyHasJob_ApplicationAdded()
         {
-            Assert.Pass("Test not relevant. Agents cannot apply to jobs which is taken as they are unavailable");
+            Assert.True(true);
+            //Assert.Pass("Test not relevant. Agents cannot apply to jobs which is taken as they are unavailable");
         }
 
         [Test]
@@ -523,12 +524,67 @@ namespace NabfTest.NewNoticeBoardModelTest
         }
 
         [Test]
-        public void AssignJobs_AgentDesiresConflict_JobsAreAssignedForMaximumOverallDesire()
+        public void CalculateAverageDesireForTopContenders()
         {
             #region init
             InitNoticeBoard();
             Int64 idOf2AgentJob = ListOfKnownIDs[0], idOf1AgentJob = ListOfKnownIDs[2], secondIdOf2AgentJob = ListOfKnownIDs[1];
-            int superDesire = 999999, extremeDesire = superDesire*2, highDesire = 1337, mediumDesire = 42, lowDesire = -1;
+            int extremeDesire = 5, superDesire = 4, highDesire = 3, mediumDesire = 2, lowDesire = 1;
+            List<NabfAgent> agents;
+            #endregion
+
+            nb.ApplyToNotice(agent1, idOf1AgentJob, lowDesire);
+            nb.ApplyToNotice(agent1, idOf2AgentJob, mediumDesire);
+            nb.ApplyToNotice(agent1, secondIdOf2AgentJob, lowDesire);
+
+            nb.ApplyToNotice(agent2, idOf1AgentJob, superDesire);
+            nb.ApplyToNotice(agent2, idOf2AgentJob, extremeDesire);
+            nb.ApplyToNotice(agent2, secondIdOf2AgentJob, highDesire);
+
+            nb.ApplyToNotice(agent3, idOf1AgentJob, highDesire);
+            nb.ApplyToNotice(agent3, idOf2AgentJob, mediumDesire);
+            nb.ApplyToNotice(agent3, secondIdOf2AgentJob, mediumDesire);
+
+            nb.ApplyToNotice(agent4, idOf1AgentJob, mediumDesire);
+            nb.ApplyToNotice(agent4, idOf2AgentJob, lowDesire);
+            nb.ApplyToNotice(agent4, secondIdOf2AgentJob, highDesire);
+
+            OccupyJob jobThatNeeds2Agents = (OccupyJob)nb.GetNoticeById(idOf2AgentJob);
+            RepairJob jobThatNeeds1Agents = (RepairJob)nb.GetNoticeById(idOf1AgentJob);
+            OccupyJob secondJobThatNeeds2Agents = (OccupyJob)nb.GetNoticeById(secondIdOf2AgentJob);
+
+            double avgDesireJob1 = nb.CalculateAverageDesireForTopContenders(jobThatNeeds2Agents, out agents);
+            Assert.IsTrue(agents.Count == 2);
+            Assert.AreEqual(agent2.Name, agents[0].Name);
+            Assert.IsTrue(agent1.Name == agents[1].Name || agent3.Name == agents[1].Name);
+            Assert.AreEqual(((extremeDesire + mediumDesire) / 2.0), avgDesireJob1);
+
+
+            double avgDesireJob2 = nb.CalculateAverageDesireForTopContenders(jobThatNeeds1Agents, out agents);
+            Assert.IsTrue(agents.Count == 1);
+            Assert.AreEqual(agent2.Name, agents[0].Name);
+            Assert.AreEqual(superDesire, avgDesireJob2);
+
+            double avgDesireJob3 = nb.CalculateAverageDesireForTopContenders(secondJobThatNeeds2Agents, out agents);
+            Assert.AreEqual(2, agents.Count);
+            if (agent2.Name == agents[0].Name)
+                Assert.AreEqual(agent4.Name, agents[1].Name);
+            else
+            {
+                Assert.AreEqual(agent4.Name, agents[0].Name);
+                Assert.AreEqual(agent2.Name, agents[1].Name);
+            }
+            Assert.AreEqual(highDesire, avgDesireJob3);
+        }
+
+        [Test]
+        public void CreateQueueSortedByAvgDesirability()
+        {
+            #region init
+            InitNoticeBoard();
+            Int64 idOf2AgentJob = ListOfKnownIDs[0], idOf1AgentJob = ListOfKnownIDs[2], secondIdOf2AgentJob = ListOfKnownIDs[1];
+            int extremeDesire = 5, superDesire = 4, highDesire = 3, mediumDesire = 2, lowDesire = 1;
+            double agentsNeeded2 = 2, agentsNeeded1 = 1;
             NewNotice notice1 = null, notice2 = null, notice3 = null;
             foreach (NewNotice n in nb.GetAllNotices())
             {
@@ -563,32 +619,108 @@ namespace NabfTest.NewNoticeBoardModelTest
             nb.ApplyToNotice(agent4, idOf2AgentJob, lowDesire);
             nb.ApplyToNotice(agent4, secondIdOf2AgentJob, highDesire);
 
+            // ----------------------
+            Queue<NewNotice> jobQueue = nb.CreateQueueSortedByAvgDesirability();
+
+            Assert.AreEqual(((0 + superDesire) / agentsNeeded1), jobQueue.Dequeue().AverageDesireFromTopContenders);
+            NewNotice mostAvgDesireNotice = nb.GetNoticeById(idOf1AgentJob);
+            Assert.AreEqual(1, mostAvgDesireNotice.GetAgentProspects().Count);
+            Assert.AreEqual(agent2.Name, mostAvgDesireNotice.GetAgentProspects()[0].Name);
+
+            Assert.AreEqual(((extremeDesire + mediumDesire) / 2.0), jobQueue.Dequeue().AverageDesireFromTopContenders);
+            Assert.AreEqual(highDesire, jobQueue.Dequeue().AverageDesireFromTopContenders);
+
+            // ----------------------
+
+            nb.UnapplyToNotice(agent2, idOf2AgentJob);
+            nb.UnapplyToNotice(agent2, secondIdOf2AgentJob);
+            mostAvgDesireNotice.Status = NewNoticeBoard.Status.unavailable;
+
+            jobQueue = nb.CreateQueueSortedByAvgDesirability();
+
+            Assert.AreEqual(((highDesire + mediumDesire) / agentsNeeded2), jobQueue.Dequeue().AverageDesireFromTopContenders);
+            mostAvgDesireNotice = nb.GetNoticeById(secondIdOf2AgentJob);
+            Assert.AreEqual(2, mostAvgDesireNotice.GetAgentProspects().Count);
+            if (agent4.Name == mostAvgDesireNotice.GetAgentProspects()[0].Name)
+                Assert.AreEqual(agent3.Name, mostAvgDesireNotice.GetAgentProspects()[1].Name);
+            else
+            {
+                Assert.AreEqual(agent3.Name, mostAvgDesireNotice.GetAgentProspects()[0].Name);
+                Assert.AreEqual(agent4.Name, mostAvgDesireNotice.GetAgentProspects()[1].Name);
+            }
+
+            Assert.AreEqual(mediumDesire, jobQueue.Dequeue().AverageDesireFromTopContenders);
+
+            // ----------------------
+
+            nb.UnapplyToNotice(agent3, idOf2AgentJob);
+            nb.UnapplyToNotice(agent4, idOf2AgentJob);
+            mostAvgDesireNotice.Status = NewNoticeBoard.Status.unavailable;
+
+            jobQueue = nb.CreateQueueSortedByAvgDesirability();
+
+            try
+            {
+                jobQueue.Dequeue();
+                Assert.Fail();//this fails the test if the queue is not empty which it should be as there are no more notices with enough applications which are available
+            }
+            catch (InvalidOperationException e)
+            {
+            }
+        }
+        
+        [Test]
+        public void AssignJobs_AgentDesiresConflict_JobsAreAssignedForMaximumOverallDesire()
+        {
+            #region init
+            InitNoticeBoard();
+            Int64 idOf2AgentJob = ListOfKnownIDs[0], idOf1AgentJob = ListOfKnownIDs[2], secondIdOf2AgentJob = ListOfKnownIDs[1];
+            int extremeDesire = 5, superDesire = 4, highDesire = 3, mediumDesire = 2, lowDesire = 1;
+            NewNotice Notice2Agents, Notice1Agent, SecondNotice2Agents;
+            #endregion
+
+            nb.ApplyToNotice(agent1, idOf1AgentJob, lowDesire);
+            nb.ApplyToNotice(agent1, idOf2AgentJob, mediumDesire);
+            nb.ApplyToNotice(agent1, secondIdOf2AgentJob, lowDesire);
+
+            nb.ApplyToNotice(agent2, idOf1AgentJob, superDesire);
+            nb.ApplyToNotice(agent2, idOf2AgentJob, extremeDesire);
+            nb.ApplyToNotice(agent2, secondIdOf2AgentJob, highDesire);
+
+            nb.ApplyToNotice(agent3, idOf1AgentJob, highDesire);
+            nb.ApplyToNotice(agent3, idOf2AgentJob, mediumDesire);
+            nb.ApplyToNotice(agent3, secondIdOf2AgentJob, mediumDesire);
+
+            nb.ApplyToNotice(agent4, idOf1AgentJob, mediumDesire);
+            nb.ApplyToNotice(agent4, idOf2AgentJob, lowDesire);
+            nb.ApplyToNotice(agent4, secondIdOf2AgentJob, highDesire);
+
             //see document for explanation of optimal placement
 
             bool success = nb.AssignJobs();
 
             Assert.True(success);
 
-            Assert.AreEqual(NewNoticeBoard.Status.unavailable, notice1.Status);
-            Assert.AreEqual(NewNoticeBoard.Status.available, notice2.Status);
-            Assert.AreEqual(NewNoticeBoard.Status.unavailable, notice3.Status);
+            Assert.AreEqual(NewNoticeBoard.Status.unavailable, (Notice1Agent = nb.GetNoticeById(idOf1AgentJob)).Status);
+            Assert.AreEqual(NewNoticeBoard.Status.available, (Notice2Agents = nb.GetNoticeById(idOf2AgentJob)).Status);
+            Assert.AreEqual(NewNoticeBoard.Status.unavailable, (SecondNotice2Agents = nb.GetNoticeById(secondIdOf2AgentJob)).Status);
 
-            Assert.AreEqual(2, notice1.GetAgentsApplied().Count);
-            Assert.AreEqual(1, notice1.GetAgentsOnJob().Count);
+            Assert.AreEqual(2, nb.GetNoticeById(idOf1AgentJob).GetAgentsApplied().Count);
+            Assert.AreEqual(1, nb.GetNoticeById(idOf1AgentJob).GetAgentsOnJob().Count);
 
-            Assert.AreEqual(1, notice2.GetAgentsApplied().Count);
-            Assert.AreEqual(0, notice2.GetAgentsOnJob().Count);
+            Assert.AreEqual(1, nb.GetNoticeById(idOf2AgentJob).GetAgentsApplied().Count);
+            Assert.AreEqual(0, nb.GetNoticeById(idOf2AgentJob).GetAgentsOnJob().Count);
 
-            Assert.AreEqual(3, notice3.GetAgentsApplied().Count);
-            Assert.AreEqual(2, notice3.GetAgentsOnJob().Count);
+            Assert.AreEqual(3, nb.GetNoticeById(secondIdOf2AgentJob).GetAgentsApplied().Count);
+            Assert.AreEqual(2, nb.GetNoticeById(secondIdOf2AgentJob).GetAgentsOnJob().Count);
 
 
-            Assert.AreEqual(agent2.Name, notice1.GetAgentsOnJob()[0].Name);
+            Assert.AreEqual(agent2.Name, nb.GetNoticeById(idOf1AgentJob).GetAgentsOnJob()[0].Name);
 
-            if (agent3.Name == notice3.GetAgentsOnJob()[0].Name)
-                Assert.AreEqual(agent4.Name, notice3.GetAgentsOnJob()[1].Name);
-            else if (agent3.Name == notice3.GetAgentsOnJob()[1].Name)
-                Assert.AreEqual(agent4.Name, notice3.GetAgentsOnJob()[0].Name);
+            if (agent3.Name == nb.GetNoticeById(secondIdOf2AgentJob).GetAgentsOnJob()[0].Name)
+                Assert.AreEqual(agent4.Name, nb.GetNoticeById(secondIdOf2AgentJob).GetAgentsOnJob()[1].Name);
+            else if (agent3.Name == nb.GetNoticeById(secondIdOf2AgentJob).GetAgentsOnJob()[1].Name)
+                Assert.AreEqual(agent4.Name, nb.GetNoticeById(secondIdOf2AgentJob).GetAgentsOnJob()[0].Name);
             else
                 Assert.Fail();
         }

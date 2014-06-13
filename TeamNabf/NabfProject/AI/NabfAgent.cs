@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace NabfProject.AI
 {
-    public class NabfAgent : XmasEngineModel.EntityLib.Agent
+    public class NabfAgent : XmasEngineModel.EntityLib.Agent, IEqualityComparer<NabfAgent>, IEquatable<NabfAgent>
     {
         public long Id { get; private set; }
 
@@ -27,6 +27,10 @@ namespace NabfProject.AI
             }
         }
 
+        /// <summary>
+        /// Compares two agents using their (unique) names
+        /// </summary>
+        /// <param name="obj">agent to compare with. If null or not of type NabfAgent this will return false. </param>
         public override bool Equals(object obj)
         {
             if (obj == null)
@@ -39,6 +43,21 @@ namespace NabfProject.AI
         public override string ToString()
         {
             return Name;
+        }
+
+        bool IEqualityComparer<NabfAgent>.Equals(NabfAgent x, NabfAgent y)
+        {
+            return x.Name == y.Name;
+        }
+
+        int IEqualityComparer<NabfAgent>.GetHashCode(NabfAgent obj)
+        {
+            return obj.Name.GetHashCode();
+        }
+
+        bool IEquatable<NabfAgent>.Equals(NabfAgent other)
+        {
+            return this.Name == other.Name;
         }
     }
 }
