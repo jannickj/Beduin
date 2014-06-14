@@ -223,10 +223,10 @@ module HandlePercepts =
                     let updatedNK = List.filter (fun p -> not <| List.exists ((=) p) pl) state.NewKnowledge
                     //logImportant <| sprintf "Clearing knowledge sent. We sent %A knowledge" pl.Length
                     { state with NewKnowledge = updatedNK } 
-                | UnapplyJob jid -> 
-                    let removeMyJob jobID = List.filter (fst >> ((=) jobID)) state.MyJobs
-                    let existingJobRemoved = removeMyJob jid
-                    { state with MyJobs =  existingJobRemoved }
+                | UnapplyJob jid -> state
+//                    let removeMyJob jobID = List.filter (fst >> ((=) jobID)) state.MyJobs
+//                    let existingJobRemoved = removeMyJob jid
+//                    { state with MyJobs =  existingJobRemoved }
                 | _ -> state
 
             | unhandled -> logError (sprintf "Unhandled percept: %A" unhandled) 

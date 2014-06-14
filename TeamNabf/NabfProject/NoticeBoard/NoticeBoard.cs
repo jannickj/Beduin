@@ -240,51 +240,90 @@ namespace NabfProject.NoticeBoardModel
 
             return true;
         }
+        public bool FireAllAgentsOnNotice(Int64 idToFireFrom)
+        {
+            Notice noticeFireFrom;
+            bool b = TryGetNoticeById(idToFireFrom, out noticeFireFrom);
+            if (b == false)
+                return false;
+
+            foreach (NabfAgent a in noticeFireFrom.GetAgentsOnJob())
+            {
+                noticeFireFrom.Unapply(a);
+                a.Raise(new FiredFromJobEvent(noticeFireFrom, a));
+
+                _agentsFiredCounter++;
+                if (verbose && _agentsFiredCounter % 20 == 0)
+                    Console.WriteLine("Total number of fired agents: " + _agentsFiredCounter);
+            }
+
+            return true;
+        }
+
+        public bool AgentGotAnyJob(NabfAgent agent)
+        {
+            foreach (NabfAgent a in _sharingList)
+            {
+                if (a.Equals(agent))
+                    return a.GotJobThisRound;
+            }
+
+            return true; //returning true, so that an agent not subscribed to the noticeboard will not be considered available for other jobs
+        }
 
         #region AssignJobs
         public bool AssignJobs()
         {
             Notice notice, nextNotice;
             bool agentsAlsoAppearAsTopDesiresOnNextNotice = false, selfNoticeRemoved = false;
-            List<Int64> noticesToUnapplyFrom;            
+            List<Int64> noticesToUnapplyFrom;
+            List<KeyValuePair<NabfAgent, Notice>> listOfAgentJobPairs = new List<KeyValuePair<NabfAgent, Notice>>();
 
+            foreach (NabfAgent a in _sharingList)
+            {
+                a.GotJobThisRound = false;
+            }
             Queue<Notice> jobQueue = CreateQueueSortedByAvgDesirability();
 
-            if (jobQueue.Count <= 0)
+            if (jobQueue.Count == 0)
                 return false;
             //Console.WriteLine("starting AssignJob");
             while(jobQueue.Count > 0)
             {
                 notice = jobQueue.Dequeue();
 
-                notice.Status = Status.unavailable;
+                //notice.Status = Status.unavailable;
                 notice.AddRangeToAgentsOnJob(notice.GetAgentProspects());
                 notice.ClearAgentProspects();
                 agentsAlsoAppearAsTopDesiresOnNextNotice = false;
                 foreach (NabfAgent agent in notice.GetAgentsOnJob())
                 {
-                    agent.Raise(new ReceivedJobEvent(notice, agent));
-                    if (verbose)
-                        Console.WriteLine("" + agent.Name + " got " + notice.ToString());
+                    agent.GotJobThisRound = true;
+                    listOfAgentJobPairs.Add(new KeyValuePair<NabfAgent, Notice>(agent, notice));
 
                     #region checks if queue needs re-ordering
                     if (jobQueue.Count > 0)
                     {
-                        nextNotice = jobQueue.Peek();
-                        if (nextNotice.GetAgentProspects().Contains<NabfAgent>(agent))
+                        //nextNotice = jobQueue.Peek();
+                        //if (nextNotice.GetAgentProspects().Contains<NabfAgent>(agent))
+                            //agentsAlsoAppearAsTopDesiresOnNextNotice = true;
+                        if (_agentToAppliedNotices[agent.Name].Count > 1)
                             agentsAlsoAppearAsTopDesiresOnNextNotice = true;
                     }
                     #endregion
 
-                    noticesToUnapplyFrom = _agentToAppliedNotices[agent.Name].ToList();
-                    selfNoticeRemoved = noticesToUnapplyFrom.Remove(notice.Id);
+                    //noticesToUnapplyFrom = _agentToAppliedNotices[agent.Name].ToList();
+                    //selfNoticeRemoved = noticesToUnapplyFrom.Remove(notice.Id);
                     //if (selfNoticeRemoved)
                     //{
-                        foreach (Int64 noticeId in noticesToUnapplyFrom)
-                        {
-                            UnapplyToNotice(agent, noticeId);
-                        }
+                        //foreach (Int64 noticeId in noticesToUnapplyFrom)
+                        //{
+                        //    FireAllAgentsOnNotice(noticeId);
+                        //}
                     //}
+                    //agent.Raise(new ReceivedJobEvent(notice, agent));
+                    //if (verbose)
+                    //    Console.WriteLine("" + agent.Name + " got " + notice.ToString());
                 }
 
                 #region re-orders the queue if needed
@@ -294,6 +333,41 @@ namespace NabfProject.NoticeBoardModel
                 }
                 #endregion
             }
+            NabfAgent agentToAssign;
+            Notice noticeToFireFrom, noticeToReceive;
+            bool jobStillExists;
+            foreach (KeyValuePair<NabfAgent, Notice> kvp in listOfAgentJobPairs)
+            {
+                agentToAssign = kvp.Key;
+                noticeToReceive = kvp.Value;
+                if (agentToAssign.IdOfLastJob != noticeToReceive.Id)
+                {
+                    jobStillExists = TryGetNoticeById(agentToAssign.IdOfLastJob, out noticeToFireFrom);
+                    if (jobStillExists) //if the job has been removed they are already fired
+                    {
+                        agentToAssign.Raise(new FiredFromJobEvent(noticeToFireFrom, agentToAssign));
+                    }stor fejl kilde!!! hvad sker der med de resterende agents som havde noticeToFireFrom??? dette skal blive fanget tidligere!! da selv hvis man fyrede alle agents her, så ville det have fucket med jobQueue allerede
+                    
+
+
+
+                    ---algo skal være således:
+                    find bedste job.
+                    fyr alle agents i de notices som agenter til bedste job kom fra
+                    repeat
+
+                    ----brute force måden:
+                    fyr (direkte fire, altså fjern fra jobbet og send FiredFromJobEvent) alle agents i starten af hver runde. og find så jobs på ny.
+
+
+
+
+                    agentToAssign.Raise(new ReceivedJobEvent(noticeToReceive, agentToAssign));
+                    Console.WriteLine("" + agentToAssign.Name + " got " + noticeToReceive.ToString());
+                    agentToAssign.IdOfLastJob = noticeToReceive.Id;
+                }
+            }
+
             //Console.WriteLine("ending AssignJob");
             return true;
         }
@@ -316,7 +390,7 @@ namespace NabfProject.NoticeBoardModel
 
             foreach (Notice notice in GetAllNotices())
             {
-                if (notice.GetAgentsApplied().Count >= notice.AgentsNeeded && notice.Status == Status.available)
+                if (notice.AgentsAppliedContainsEnoughAvailableAgents() && notice.GetAgentsOnJob().Count == 0)
                 {
                     noticeList.Add(new KeyValuePair<double, Notice>(CalculateAverageDesireForTopContenders(notice, out namesOfTopContenders), notice));
                     notice.AddRangeToAgentProspects(namesOfTopContenders);
@@ -343,6 +417,8 @@ namespace NabfProject.NoticeBoardModel
 
             foreach (NabfAgent agent in notice.GetAgentsApplied())
             {
+                if (agent.GotJobThisRound)
+                    continue;
                 desireFound = notice.TryGetDesirabilityOfAgent(agent, out desire);
                 if (desireFound)
                 {
@@ -367,12 +443,25 @@ namespace NabfProject.NoticeBoardModel
 
         public void ConsistencyChecker()
         {
+            DictionaryList<NabfAgent, Int64> whichNoticesDoesAgentsHave = new DictionaryList<NabfAgent,Int64>();
             foreach (KeyValuePair<Int64, Notice> kvp in _allNotices)
             {
-                if (kvp.Value.Status == Status.unavailable)
+                //if (kvp.Value.Status == Status.unavailable)
+                //{
+                //    if (kvp.Value.GetAgentsOnJob().Count <= 0)
+                //        kvp.Value.Status = Status.available;
+                //}
+                if (kvp.Value.GetAgentsOnJob().Count > 0)
                 {
-                    if (kvp.Value.GetAgentsOnJob().Count <= 0)
-                        kvp.Value.Status = Status.available;
+                    foreach (NabfAgent a in kvp.Value.GetAgentsOnJob())
+                    {
+                        whichNoticesDoesAgentsHave.Add(a, kvp.Value.Id);
+                        if (whichNoticesDoesAgentsHave[a].Count > 1)
+                        {
+                            FireAllAgentsOnNotice(whichNoticesDoesAgentsHave[a].First());
+                            whichNoticesDoesAgentsHave.Remove(a, whichNoticesDoesAgentsHave[a].First());
+                        }
+                    }                    
                 }
             }
         }
@@ -399,7 +488,7 @@ namespace NabfProject.NoticeBoardModel
 
             foreach (KeyValuePair<Int64, Notice> kvp in _allNotices)
             {
-                if (kvp.Value.Status == Status.unavailable)
+                if (kvp.Value.Status == Status.unavailable || kvp.Value.AgentsNeeded <= kvp.Value.GetAgentsOnJob().Count)
                     result.Add(kvp.Value);
             }
 
@@ -411,7 +500,7 @@ namespace NabfProject.NoticeBoardModel
 
             foreach (KeyValuePair<Int64, Notice> kvp in _allNotices)
             {
-                if (kvp.Value.Status == Status.unavailable && kvp.Value.GetNoticeType() == type)
+                if ((kvp.Value.Status == Status.unavailable || kvp.Value.AgentsNeeded <= kvp.Value.GetAgentsOnJob().Count) && kvp.Value.GetNoticeType() == type)
                     result.Add(kvp.Value);
             }
 

@@ -26,16 +26,16 @@ namespace NabfProject.Actions
 
             bool newRound = simMan.TryGoNextRound(SimId, RoundNumber);
 
-            if (newRound)
-            {
-                TimedAction ta = this.Factory.CreateTimer(() =>
-                    {
-                        simMan.FindJobs(SimId);
-                    }
-                    );
-                ta.SetSingle(simMan.TimeBeforeApplyCloses);
-                this.RunAction(ta);
-            }
+            //if (newRound)
+            //{
+            //    TimedAction ta = this.Factory.CreateTimer(() =>
+            //        {
+            //            simMan.FindJobs(SimId);
+            //        }
+            //        );
+            //    ta.SetSingle(simMan.TimeBeforeApplyCloses);
+            //    this.RunAction(ta);
+            //}
         }
     }
 }

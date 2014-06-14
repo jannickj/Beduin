@@ -359,120 +359,128 @@ namespace NabfTest.NewNoticeBoardModelTest
             //Assert.Pass("Test not relevant. Agents cannot apply to jobs which is taken as they are unavailable");
         }
 
-        [Test]
-        public void UnapplyToNotice_NoOneHaveTheJob_AgentRemovedFromApplyList()
-        {
-            #region init
-            InitNoticeBoardInternalTesting();
-            Int64 idToApplyTo = ListOfKnownIDs[0];
-            Notice noticeAppliedTo = null;
-            int desireOnNotice, desireAppliedWith = 1337;
-            nb.ApplyToNotice(agent1, idToApplyTo, desireAppliedWith);
-            foreach (Notice n in nb.GetAllNotices())
-            {
-                if (n.Id == idToApplyTo)
-                {
-                    noticeAppliedTo = n;
-                    break;
-                }
-            }
-            #endregion
+        //Test not needed with new communication system
 
-            Assert.AreEqual(1, noticeAppliedTo.GetAgentsApplied().Count);
-            Assert.AreEqual(NoticeBoard.Status.available, noticeAppliedTo.Status);
+        //[Test] 
+        //public void UnapplyToNotice_NoOneHaveTheJob_AgentRemovedFromApplyList()
+        //{
+        //    #region init
+        //    InitNoticeBoardInternalTesting();
+        //    Int64 idToApplyTo = ListOfKnownIDs[0];
+        //    Notice noticeAppliedTo = null;
+        //    int desireOnNotice, desireAppliedWith = 1337;
+        //    nb.ApplyToNotice(agent1, idToApplyTo, desireAppliedWith);
+        //    foreach (Notice n in nb.GetAllNotices())
+        //    {
+        //        if (n.Id == idToApplyTo)
+        //        {
+        //            noticeAppliedTo = n;
+        //            break;
+        //        }
+        //    }
+        //    #endregion
 
-            bool unapplySuccessful = nb.UnapplyToNotice(agent1, idToApplyTo);
+        //    Assert.AreEqual(1, noticeAppliedTo.GetAgentsApplied().Count);
+        //    Assert.AreEqual(NoticeBoard.Status.available, noticeAppliedTo.Status);
 
-            Assert.True(unapplySuccessful);
-            Assert.AreEqual(0, noticeAppliedTo.GetAgentsApplied().Count);
-            bool agentRemovedFromDesirabilityMap = noticeAppliedTo.TryGetDesirabilityOfAgent(agent1, out desireOnNotice);
-            Assert.False(agentRemovedFromDesirabilityMap);
-            Assert.AreEqual(NoticeBoard.Status.available, noticeAppliedTo.Status);
-        }
-        
-        [Test]
-        public void UnapplyToNotice_AgentDontGotTheJob_AgentRemovedFromApplyList()//I dont have the job but others do
-        {
-            #region init
-            InitNoticeBoardInternalTesting();
-            Int64 idToApplyTo = ListOfKnownIDs[0];
-            Notice noticeAppliedTo = null;
-            int desireOnNotice, empty, desireAppliedWith = 1337;
-            #endregion
+        //    bool unapplySuccessful = nb.UnapplyToNotice(agent1, idToApplyTo);
 
-            nb.ApplyToNotice(agent2, idToApplyTo, desireAppliedWith);
-            nb.ApplyToNotice(agent1, idToApplyTo, desireAppliedWith - 1);
+        //    Assert.True(unapplySuccessful);
+        //    Assert.AreEqual(0, noticeAppliedTo.GetAgentsApplied().Count);
+        //    bool agentRemovedFromDesirabilityMap = noticeAppliedTo.TryGetDesirabilityOfAgent(agent1, out desireOnNotice);
+        //    Assert.False(agentRemovedFromDesirabilityMap);
+        //    Assert.AreEqual(NoticeBoard.Status.available, noticeAppliedTo.Status);
+        //}
 
-            nb.TryGetNoticeById(idToApplyTo, out noticeAppliedTo);
+        //Test not needed with new communication system
 
-            noticeAppliedTo.AddToAgentsOnJob(agent2);
-            noticeAppliedTo.Status = NoticeBoard.Status.unavailable;
+        //[Test] 
+        //public void UnapplyToNotice_AgentDontGotTheJob_AgentRemovedFromApplyList()
+        //{//I dont have the job but others do
+        //    #region init
+        //    InitNoticeBoardInternalTesting();
+        //    Int64 idToApplyTo = ListOfKnownIDs[0];
+        //    Notice noticeAppliedTo = null;
+        //    int desireOnNotice, empty, desireAppliedWith = 1337;
+        //    #endregion
 
-            Assert.AreEqual(2, noticeAppliedTo.GetAgentsApplied().Count);
-            Assert.AreEqual(1, noticeAppliedTo.GetAgentsOnJob().Count);
-            Assert.AreEqual(NoticeBoard.Status.unavailable, noticeAppliedTo.Status);
+        //    nb.ApplyToNotice(agent2, idToApplyTo, desireAppliedWith);
+        //    nb.ApplyToNotice(agent1, idToApplyTo, desireAppliedWith - 1);
 
-            bool unapplySuccessful = nb.UnapplyToNotice(agent1, idToApplyTo);
+        //    nb.TryGetNoticeById(idToApplyTo, out noticeAppliedTo);
 
-            nb.TryGetNoticeById(idToApplyTo, out noticeAppliedTo);
+        //    noticeAppliedTo.AddToAgentsOnJob(agent2);
+        //    noticeAppliedTo.Status = NoticeBoard.Status.unavailable;
 
-            Assert.True(unapplySuccessful);
-            Assert.AreEqual(1, noticeAppliedTo.GetAgentsApplied().Count);
-            Assert.AreEqual(1, noticeAppliedTo.GetAgentsOnJob().Count);
-            noticeAppliedTo.TryGetDesirabilityOfAgent(agent2, out desireOnNotice);
-            bool removed = noticeAppliedTo.TryGetDesirabilityOfAgent(agent1, out empty);
-            Assert.False(removed);
-            Assert.AreEqual(desireAppliedWith, desireOnNotice);
-            Assert.AreEqual(NoticeBoard.Status.unavailable, noticeAppliedTo.Status);
-        }
+        //    Assert.AreEqual(2, noticeAppliedTo.GetAgentsApplied().Count);
+        //    Assert.AreEqual(1, noticeAppliedTo.GetAgentsOnJob().Count);
+        //    Assert.AreEqual(NoticeBoard.Status.unavailable, noticeAppliedTo.Status);
 
-        [Test]
-        public void UnapplyToNotice_NoticeDontExists_failure()
-        {
-            #region init
-            InitNoticeBoardInternalTesting();
-            Int64 idToApplyTo = ListOfKnownIDs[0];
-            #endregion
+        //    bool unapplySuccessful = nb.UnapplyToNotice(agent1, idToApplyTo);
 
-            bool unapplySuccessful = nb.UnapplyToNotice(agent1, idToApplyTo);
+        //    nb.TryGetNoticeById(idToApplyTo, out noticeAppliedTo);
 
-            Assert.False(unapplySuccessful);
-        }
+        //    Assert.True(unapplySuccessful);
+        //    Assert.AreEqual(1, noticeAppliedTo.GetAgentsApplied().Count);
+        //    Assert.AreEqual(1, noticeAppliedTo.GetAgentsOnJob().Count);
+        //    noticeAppliedTo.TryGetDesirabilityOfAgent(agent2, out desireOnNotice);
+        //    bool removed = noticeAppliedTo.TryGetDesirabilityOfAgent(agent1, out empty);
+        //    Assert.False(removed);
+        //    Assert.AreEqual(desireAppliedWith, desireOnNotice);
+        //    Assert.AreEqual(NoticeBoard.Status.unavailable, noticeAppliedTo.Status);
+        //}
 
-        [Test]
-        public void UnapplyToNotice_HasTheJob_StatusSetToAvailableRestFired()
-        {
-            #region init
-            InitNoticeBoardInternalTesting();
-            Int64 idToApplyTo = ListOfKnownIDs[0];
-            Notice noticeAppliedTo = null;
-            int desireOnNotice, empty, desireAppliedWith = 1337;
-            nb.ApplyToNotice(agent2, idToApplyTo, desireAppliedWith);
-            nb.ApplyToNotice(agent1, idToApplyTo, desireAppliedWith - 1);
-            foreach (Notice n in nb.GetAllNotices())
-            {
-                if (n.Id == idToApplyTo)
-                {
-                    noticeAppliedTo = n;
-                    break;
-                }
-            }
-            noticeAppliedTo.AddToAgentsOnJob(agent2);
-            noticeAppliedTo.AddToAgentsOnJob(agent1);
-            noticeAppliedTo.Status = NoticeBoard.Status.unavailable;
-            #endregion
+        //Test not needed with new communication system
 
-            Assert.AreEqual(2, noticeAppliedTo.GetAgentsApplied().Count);
-            Assert.AreEqual(2, noticeAppliedTo.GetAgentsOnJob().Count);
-            Assert.AreEqual(NoticeBoard.Status.unavailable, noticeAppliedTo.Status);
+        //[Test] 
+        //public void UnapplyToNotice_NoticeDontExists_failure()
+        //{
+        //    #region init
+        //    InitNoticeBoardInternalTesting();
+        //    Int64 idToApplyTo = ListOfKnownIDs[0];
+        //    #endregion
 
-            bool unapplySuccessful = nb.UnapplyToNotice(agent1, idToApplyTo);
+        //    bool unapplySuccessful = nb.UnapplyToNotice(agent1, idToApplyTo);
 
-            Assert.True(unapplySuccessful);
-            Assert.AreEqual(0, noticeAppliedTo.GetAgentsApplied().Count);
-            Assert.AreEqual(0, noticeAppliedTo.GetAgentsOnJob().Count);
-            Assert.AreEqual(NoticeBoard.Status.available, noticeAppliedTo.Status);
-        }
+        //    Assert.False(unapplySuccessful);
+        //}
+
+        //Test not needed with new communication system
+
+        //[Test] 
+        //public void UnapplyToNotice_HasTheJob_StatusSetToAvailableRestFired()
+        //{
+        //    #region init
+        //    InitNoticeBoardInternalTesting();
+        //    Int64 idToApplyTo = ListOfKnownIDs[0];
+        //    Notice noticeAppliedTo = null;
+        //    int desireOnNotice, empty, desireAppliedWith = 1337;
+        //    nb.ApplyToNotice(agent2, idToApplyTo, desireAppliedWith);
+        //    nb.ApplyToNotice(agent1, idToApplyTo, desireAppliedWith - 1);
+        //    foreach (Notice n in nb.GetAllNotices())
+        //    {
+        //        if (n.Id == idToApplyTo)
+        //        {
+        //            noticeAppliedTo = n;
+        //            break;
+        //        }
+        //    }
+        //    noticeAppliedTo.AddToAgentsOnJob(agent2);
+        //    noticeAppliedTo.AddToAgentsOnJob(agent1);
+        //    noticeAppliedTo.Status = NoticeBoard.Status.unavailable;
+        //    #endregion
+
+        //    Assert.AreEqual(2, noticeAppliedTo.GetAgentsApplied().Count);
+        //    Assert.AreEqual(2, noticeAppliedTo.GetAgentsOnJob().Count);
+        //    Assert.AreEqual(NoticeBoard.Status.unavailable, noticeAppliedTo.Status);
+
+        //    bool unapplySuccessful = nb.UnapplyToNotice(agent1, idToApplyTo);
+
+        //    Assert.True(unapplySuccessful);
+        //    Assert.AreEqual(0, noticeAppliedTo.GetAgentsApplied().Count);
+        //    Assert.AreEqual(0, noticeAppliedTo.GetAgentsOnJob().Count);
+        //    Assert.AreEqual(NoticeBoard.Status.available, noticeAppliedTo.Status);
+        //}
 
         [Test]
         public void AssignJobs_NoJobs_NothingHappens()
@@ -504,20 +512,20 @@ namespace NabfTest.NewNoticeBoardModelTest
             InitNoticeBoardInternalTesting();
             Int64 idOf2AgentJob = ListOfKnownIDs[0], idOf1AgentJob = ListOfKnownIDs[2], secondIdOf2AgentJob = ListOfKnownIDs[1];
             int desireAppliedWith = 1337;
-            Notice notice1 = null, notice2 = null, notice3 = null;
+            Notice notice1Agent = null, notice2Agent = null, noticeSecond2Agent = null;
             foreach (Notice n in nb.GetAllNotices())
             {
                 if (n.Id == idOf2AgentJob)
                 {
-                    notice2 = n;
+                    notice2Agent = n;
                 }
                 if (n.Id == idOf1AgentJob)
                 {
-                    notice1 = n;
+                    notice1Agent = n;
                 }
                 if (n.Id == secondIdOf2AgentJob)
                 {
-                    notice3 = n;
+                    noticeSecond2Agent = n;
                 }
             }
             #endregion
@@ -531,73 +539,75 @@ namespace NabfTest.NewNoticeBoardModelTest
 
             Assert.True(success);
 
-            Assert.AreEqual(NoticeBoard.Status.unavailable, notice1.Status);
-            Assert.AreEqual(NoticeBoard.Status.unavailable, notice2.Status);
-            Assert.AreEqual(NoticeBoard.Status.available, notice3.Status);
+            //Assert.AreEqual(NoticeBoard.Status.unavailable, notice1.Status);
+            //Assert.AreEqual(NoticeBoard.Status.unavailable, notice2.Status);
+            //Assert.AreEqual(NoticeBoard.Status.available, notice3.Status);
 
-            Assert.AreEqual(1, notice1.GetAgentsApplied().Count);
-            Assert.AreEqual(1, notice1.GetAgentsOnJob().Count);
+            Assert.AreEqual(1, notice1Agent.GetAgentsApplied().Count);
+            Assert.AreEqual(1, notice1Agent.GetAgentsOnJob().Count);
 
-            Assert.AreEqual(2, notice2.GetAgentsApplied().Count);
-            Assert.AreEqual(2, notice2.GetAgentsOnJob().Count);
+            Assert.AreEqual(2, notice2Agent.GetAgentsApplied().Count);
+            Assert.AreEqual(2, notice2Agent.GetAgentsOnJob().Count);
 
-            Assert.AreEqual(1, notice3.GetAgentsApplied().Count);
-            Assert.AreEqual(0, notice3.GetAgentsOnJob().Count);
+            Assert.AreEqual(1, noticeSecond2Agent.GetAgentsApplied().Count);
+            Assert.AreEqual(0, noticeSecond2Agent.GetAgentsOnJob().Count);
 
-            if (agent1.Name == notice2.GetAgentsOnJob()[0].Name)
-                Assert.IsTrue(agent2.Name == notice2.GetAgentsOnJob()[1].Name);
-            else if (agent1.Name == notice2.GetAgentsOnJob()[1].Name)
-                Assert.IsTrue(agent2.Name == notice2.GetAgentsOnJob()[0].Name);
+            if (agent1.Name == notice2Agent.GetAgentsOnJob()[0].Name)
+                Assert.IsTrue(agent2.Name == notice2Agent.GetAgentsOnJob()[1].Name);
+            else if (agent1.Name == notice2Agent.GetAgentsOnJob()[1].Name)
+                Assert.IsTrue(agent2.Name == notice2Agent.GetAgentsOnJob()[0].Name);
             else
                 Assert.Fail();
         }
 
-        [Test]
-        public void AssignJobs_JobsExistsWithApplicationsButSomeAreUnavailable_SomeJobsAreAssignedRestNothingHappens()
-        {
-            #region init
-            InitNoticeBoardInternalTesting();
-            Int64 idOf2AgentJob = ListOfKnownIDs[0], idOf1AgentJob = ListOfKnownIDs[2];
-            int desireAppliedWith = 1337;
-            Notice noticeWhichRequire1Agent = null, noticeWhichRequire2Agents = null;
-            foreach (Notice n in nb.GetAllNotices())
-            {
-                if (n.Id == idOf2AgentJob)
-                {
-                    noticeWhichRequire2Agents = n;
-                }
-                if (n.Id == idOf1AgentJob)
-                {
-                    noticeWhichRequire1Agent = n;
-                }
-            }
-            #endregion
+        //Test not needed with new communication system
 
-            //this job will be considered in use
-            //but no agents are added to it in this test, hence the later asserts for notice1
+        //[Test] 
+        //public void AssignJobs_JobsExistsWithApplicationsButSomeAreUnavailable_SomeJobsAreAssignedRestNothingHappens()
+        //{
+        //    #region init
+        //    InitNoticeBoardInternalTesting();
+        //    Int64 idOf2AgentJob = ListOfKnownIDs[0], idOf1AgentJob = ListOfKnownIDs[2];
+        //    int desireAppliedWith = 1337;
+        //    Notice noticeWhichRequire1Agent = null, noticeWhichRequire2Agents = null;
+        //    foreach (Notice n in nb.GetAllNotices())
+        //    {
+        //        if (n.Id == idOf2AgentJob)
+        //        {
+        //            noticeWhichRequire2Agents = n;
+        //        }
+        //        if (n.Id == idOf1AgentJob)
+        //        {
+        //            noticeWhichRequire1Agent = n;
+        //        }
+        //    }
+        //    #endregion
 
-            nb.ApplyToNotice(agent1, idOf2AgentJob, desireAppliedWith);
-            nb.ApplyToNotice(agent2, idOf2AgentJob, desireAppliedWith);
-            nb.ApplyToNotice(agent3, idOf1AgentJob, desireAppliedWith);
-            noticeWhichRequire1Agent.Status = NoticeBoard.Status.unavailable;
+        //    //this job will be considered in use
+        //    //but no agents are added to it in this test, hence the later asserts for notice1
 
-            Assert.AreEqual(NoticeBoard.Status.unavailable, noticeWhichRequire1Agent.Status);
-            Assert.AreEqual(0, noticeWhichRequire1Agent.GetAgentsOnJob().Count);
-            Assert.AreEqual(1, noticeWhichRequire1Agent.GetAgentsApplied().Count);
+        //    nb.ApplyToNotice(agent1, idOf2AgentJob, desireAppliedWith);
+        //    nb.ApplyToNotice(agent2, idOf2AgentJob, desireAppliedWith);
+        //    nb.ApplyToNotice(agent3, idOf1AgentJob, desireAppliedWith);
+        //    //noticeWhichRequire1Agent.Status = NoticeBoard.Status.unavailable;
 
-            bool success = nb.AssignJobs();
+        //    Assert.AreEqual(NoticeBoard.Status.unavailable, noticeWhichRequire1Agent.Status);
+        //    Assert.AreEqual(0, noticeWhichRequire1Agent.GetAgentsOnJob().Count);
+        //    Assert.AreEqual(1, noticeWhichRequire1Agent.GetAgentsApplied().Count);
 
-            Assert.True(success);
+        //    bool success = nb.AssignJobs();
 
-            Assert.AreEqual(NoticeBoard.Status.unavailable, noticeWhichRequire1Agent.Status);
-            Assert.AreEqual(NoticeBoard.Status.unavailable, noticeWhichRequire2Agents.Status);
+        //    Assert.True(success);
 
-            Assert.AreEqual(1, noticeWhichRequire1Agent.GetAgentsApplied().Count);
-            Assert.AreEqual(0, noticeWhichRequire1Agent.GetAgentsOnJob().Count);
+        //    //Assert.AreEqual(NoticeBoard.Status.unavailable, noticeWhichRequire1Agent.Status);
+        //    //Assert.AreEqual(NoticeBoard.Status.unavailable, noticeWhichRequire2Agents.Status);
 
-            Assert.AreEqual(2, noticeWhichRequire2Agents.GetAgentsApplied().Count);
-            Assert.AreEqual(2, noticeWhichRequire2Agents.GetAgentsOnJob().Count);
-        }
+        //    Assert.AreEqual(1, noticeWhichRequire1Agent.GetAgentsApplied().Count);
+        //    Assert.AreEqual(0, noticeWhichRequire1Agent.GetAgentsOnJob().Count);
+
+        //    Assert.AreEqual(2, noticeWhichRequire2Agents.GetAgentsApplied().Count);
+        //    Assert.AreEqual(2, noticeWhichRequire2Agents.GetAgentsOnJob().Count);
+        //}
 
         [Test]
         public void CalculateAverageDesireForTopContenders()
@@ -716,9 +726,12 @@ namespace NabfTest.NewNoticeBoardModelTest
 
             // ----------------------
 
-            nb.UnapplyToNotice(agent2, idOf2AgentJob);
-            nb.UnapplyToNotice(agent2, secondIdOf2AgentJob);
-            mostAvgDesireNotice.Status = NoticeBoard.Status.unavailable;
+            //nb.UnapplyToNotice(agent2, idOf2AgentJob);
+            //nb.UnapplyToNotice(agent2, secondIdOf2AgentJob);
+            //mostAvgDesireNotice.Status = NoticeBoard.Status.unavailable;
+            agent2.GotJobThisRound = true;
+            agent2.IdOfLastJob = idOf1AgentJob;
+            mostAvgDesireNotice.AddToAgentsOnJob(agent2);
 
             jobQueue = nb.CreateQueueSortedByAvgDesirability();
 
@@ -737,9 +750,13 @@ namespace NabfTest.NewNoticeBoardModelTest
 
             // ----------------------
 
-            nb.UnapplyToNotice(agent3, idOf2AgentJob);
-            nb.UnapplyToNotice(agent4, idOf2AgentJob);
-            mostAvgDesireNotice.Status = NoticeBoard.Status.unavailable;
+            //nb.UnapplyToNotice(agent3, idOf2AgentJob);
+            //nb.UnapplyToNotice(agent4, idOf2AgentJob);
+            //mostAvgDesireNotice.Status = NoticeBoard.Status.unavailable;
+            agent3.GotJobThisRound = true;
+            agent4.GotJobThisRound = true;
+            mostAvgDesireNotice.AddToAgentsOnJob(agent3);
+            mostAvgDesireNotice.AddToAgentsOnJob(agent4);
 
             jobQueue = nb.CreateQueueSortedByAvgDesirability();
 
@@ -786,17 +803,21 @@ namespace NabfTest.NewNoticeBoardModelTest
             nb.TryGetNoticeById(idOf1AgentJob, out Notice1Agent);
             nb.TryGetNoticeById(idOf2AgentJob, out Notice2Agents);
             nb.TryGetNoticeById(secondIdOf2AgentJob, out SecondNotice2Agents);
-            Assert.AreEqual(NoticeBoard.Status.unavailable, Notice1Agent.Status);
-            Assert.AreEqual(NoticeBoard.Status.available, Notice2Agents.Status);
-            Assert.AreEqual(NoticeBoard.Status.unavailable, SecondNotice2Agents.Status);
+            Assert.False(agent1.GotJobThisRound);
+            Assert.True(agent2.GotJobThisRound);
+            Assert.True(agent3.GotJobThisRound);
+            Assert.True(agent4.GotJobThisRound);
+            //Assert.AreEqual(NoticeBoard.Status.unavailable, Notice1Agent.Status);
+            //Assert.AreEqual(NoticeBoard.Status.available, Notice2Agents.Status);
+            //Assert.AreEqual(NoticeBoard.Status.unavailable, SecondNotice2Agents.Status);
 
-            Assert.AreEqual(2, Notice1Agent.GetAgentsApplied().Count);
+            Assert.AreEqual(4, Notice1Agent.GetAgentsApplied().Count);
             Assert.AreEqual(1, Notice1Agent.GetAgentsOnJob().Count);
 
-            Assert.AreEqual(1, Notice2Agents.GetAgentsApplied().Count);
+            Assert.AreEqual(4, Notice2Agents.GetAgentsApplied().Count);
             Assert.AreEqual(0, Notice2Agents.GetAgentsOnJob().Count);
 
-            Assert.AreEqual(3, SecondNotice2Agents.GetAgentsApplied().Count);
+            Assert.AreEqual(4, SecondNotice2Agents.GetAgentsApplied().Count);
             Assert.AreEqual(2, SecondNotice2Agents.GetAgentsOnJob().Count);
 
 
@@ -1170,8 +1191,6 @@ namespace NabfTest.NewNoticeBoardModelTest
             nb.ApplyToNotice(agent2, idOf2AgentJob, lowDesire);
             nb.ApplyToNotice(agent3, idOf2AgentJob, lowDesire);
 
-            nb.AssignJobs();//arbitary number of call to assignjobs
-            nb.AssignJobs();
             nb.AssignJobs();
             Assert.AreEqual(3, NamesOfAgentsWhoReceivedJob.Count);
             Assert.AreEqual(3, ReceivedJobEventFiredCounter);
@@ -1184,25 +1203,40 @@ namespace NabfTest.NewNoticeBoardModelTest
             nb.ApplyToNotice(agent1, idOf1AgentJob, maxDesire);
             nb.ApplyToNotice(agent2, idOf1AgentJob, highDesire);
 
-            nb.AssignJobs();//arbitary number of call to assignjobs
             nb.AssignJobs();
-            Assert.AreEqual(1, NamesOfAgentsWhoReceivedJob.Count);
+            Assert.AreEqual(3, NamesOfAgentsWhoReceivedJob.Count);
             Assert.AreEqual(agent1.Name, NamesOfAgentsWhoReceivedJob[0]);
-            Assert.AreEqual(1, ReceivedJobEventFiredCounter);
+            Assert.AreEqual(3, ReceivedJobEventFiredCounter);
             NameToNoticesReceived.TryGetValues(agent1.Name, out noticesFromEvent);
             nb.TryGetNoticeById(idOf1AgentJob, out noticeInternal);
             Assert.AreEqual(1, noticesFromEvent.Count);
             Assert.IsTrue(noticeInternal.ContentIsEqualTo(noticesFromEvent.ToList()[0]));
 
             Assert.True(OnlyTheseTriggersFired(new List<triggerTypes> { triggerTypes.receivedJob, triggerTypes.firedFromjob }));
-            Assert.AreEqual(2, FiredFromJobEventFiredCounter);
-            Assert.AreEqual(2, NamesOfAgentsWhoGotFiredEvent.Count);
-            if (NamesOfAgentsWhoGotFiredEvent[0] == agent2.Name)
+            Assert.AreEqual(3, FiredFromJobEventFiredCounter);
+            Assert.AreEqual(3, NamesOfAgentsWhoGotFiredEvent.Count);
+            if (NamesOfAgentsWhoGotFiredEvent[0] == agent1.Name)
+            {
+                if (NamesOfAgentsWhoGotFiredEvent[1] == agent2.Name)
+                {
+                    Assert.AreEqual(agent3.Name, NamesOfAgentsWhoGotFiredEvent[2]);
+                }
+                else
+                {
+                    Assert.AreEqual(agent3.Name, NamesOfAgentsWhoGotFiredEvent[1]);
+                    Assert.AreEqual(agent2.Name, NamesOfAgentsWhoGotFiredEvent[2]);
+                }
+            }
+            else if (NamesOfAgentsWhoGotFiredEvent[0] == agent2.Name)
+            {
                 Assert.AreEqual(agent3.Name, NamesOfAgentsWhoGotFiredEvent[1]);
+                Assert.AreEqual(agent1.Name, NamesOfAgentsWhoGotFiredEvent[2]);
+            }
             else
             {
                 Assert.AreEqual(agent3.Name, NamesOfAgentsWhoGotFiredEvent[0]);
                 Assert.AreEqual(agent2.Name, NamesOfAgentsWhoGotFiredEvent[1]);
+                Assert.AreEqual(agent1.Name, NamesOfAgentsWhoGotFiredEvent[2]);
             }
 
             NameToNoticesFired.TryGetValues(agent2.Name, out noticesFromEvent);

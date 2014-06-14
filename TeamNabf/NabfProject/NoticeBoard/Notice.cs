@@ -55,6 +55,17 @@ namespace NabfProject.NoticeBoardModel
         {
             return _agentsApplied.ToList();
         }
+        public bool AgentsAppliedContainsEnoughAvailableAgents()
+        {
+            int availableAgents = 0;
+            foreach (NabfAgent a in _agentsApplied)
+            {
+                if (a.GotJobThisRound == false)
+                    availableAgents++;
+            }
+
+            return availableAgents >= AgentsNeeded;
+        }
         public void AddToAgentProspects(NabfAgent toAdd)
         {
             _agentProspects.Add(toAdd);
@@ -101,17 +112,17 @@ namespace NabfProject.NoticeBoardModel
         public void Unapply(NabfAgent agent)
         {
             NabfAgent a;
-            _agentNameToDesirability.Remove(agent.Name);   
+            //_agentNameToDesirability.Remove(agent.Name);   
 
-            for (int i = 0; i < _agentsApplied.Count; i++)
-            {
-                a = _agentsApplied[i];
-                if (a.Name == agent.Name)
-                {
-                    _agentsApplied.Remove(a);
-                    break;
-                }
-            }  
+            //for (int i = 0; i < _agentsApplied.Count; i++)
+            //{
+            //    a = _agentsApplied[i];
+            //    if (a.Name == agent.Name)
+            //    {
+            //        _agentsApplied.Remove(a);
+            //        break;
+            //    }
+            //}  
             for(int i = 0; i < _agentsOnJob.Count; i++)
             {
                 a = _agentsOnJob[i];

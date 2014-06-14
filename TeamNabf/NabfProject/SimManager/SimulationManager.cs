@@ -246,8 +246,8 @@ namespace NabfProject.SimManager
 
             int numberOfAgents = nb.GetSubscribedAgents().Count;
 
-            if (_numberOfAgentsFinishedApplying >= numberOfAgents)
-                FindJobs(simID);
+            //if (_numberOfAgentsFinishedApplying >= numberOfAgents)
+            //    FindJobs(simID);
 
             _applicationsReceivedCounter++;
             if (jobVerbose)
@@ -258,6 +258,7 @@ namespace NabfProject.SimManager
         }
         public void UnApplyToNotice(int simID, Int64 noticeId, NabfAgent a)
         {
+            return;
             if (_currentID != simID)
                 return;
 
@@ -311,7 +312,8 @@ namespace NabfProject.SimManager
             if (_currentRoundNumber % 5 == 0 || _currentRoundNumber < 10)
                 Console.WriteLine("-------- Simulation " + simID + ", Round: " + _currentRoundNumber + " --------");
 
-            //nb.ConsistencyChecker();
+            nb.AssignJobs();
+            nb.ConsistencyChecker();
 
             if (reporting)
             {
@@ -356,12 +358,12 @@ namespace NabfProject.SimManager
                     foreach (NabfAgent a in nb.GetSubscribedAgents())
                     {
                         Console.WriteLine(" ---- " + a.Name + " ---- ");
-                        Console.WriteLine("Applications :");
-                        foreach (Notice n in nb.GetAllNotices())
-                        {
-                            if (NoticeBoardHelpers.AgentListContainsAgent(n.GetAgentsApplied(), a))
-                                Console.WriteLine(""+n.ToString());
-                        }
+                        //Console.WriteLine("Applications :");
+                        //foreach (Notice n in nb.GetAllNotices())
+                        //{
+                        //    if (NoticeBoardHelpers.AgentListContainsAgent(n.GetAgentsApplied(), a))
+                        //        Console.WriteLine(""+n.ToString());
+                        //}
                         Console.WriteLine("Got jobs :");
                         foreach (Notice n in nb.GetUnavailableNotices())
                         {
@@ -380,7 +382,6 @@ namespace NabfProject.SimManager
                     {
                         Console.WriteLine("" + n.ToString());
                     }
-                    
                 }
                 #endregion
             }

@@ -10,6 +10,8 @@ namespace NabfProject.AI
     public class NabfAgent : XmasEngineModel.EntityLib.Agent, IEqualityComparer<NabfAgent>, IEquatable<NabfAgent>
     {
         public long Id { get; private set; }
+        public bool GotJobThisRound = false;
+        public Int64 IdOfLastJob = -1;
 
         public NabfAgent(string s)
             : base(s)

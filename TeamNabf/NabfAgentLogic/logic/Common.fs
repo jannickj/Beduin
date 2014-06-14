@@ -52,21 +52,23 @@ module Common =
 
     //An agent always wants to have exactly one goal
     let onlyOneJob (inputState:State) =
-        logImportant <| sprintf "My jobs are: %A" inputState.MyJobs
-        if (inputState.MyJobs.Length > 1) then 
-            Some(
-                    "have at most 1 job"
-                    , Communication
-                    , [Plan(fun state -> 
-                                            match state.MyJobs with
-                                            | [] -> None
-                                            | _ :: tail -> 
-                                                Some <| List.map (fun (id,_) -> Communicate (UnapplyJob id)) tail                                       
-                            )
-                      ]
-                )
-        else
-            None
+        None
+//        logInfo <| sprintf "My jobs are: %A" inputState.MyJobs
+//        Logging.logInfo <| sprintf  "I know of these job ids: %A" (List.map (fun ((id,_,_,_),_) -> id) inputState.Jobs)
+//        if (inputState.MyJobs.Length > 1) then 
+//            Some(
+//                    "have at most 1 job"
+//                    , Communication
+//                    , [Plan(fun state -> 
+//                                            match state.MyJobs with
+//                                            | [] -> None
+//                                            | _ :: tail -> 
+//                                                Some <| List.map (fun (id,_) -> Communicate (UnapplyJob id)) tail                                       
+//                            )
+//                      ]
+//                )
+//        else
+//            None
 
     //Try to make it so the agent has explored one more node
     let exploreMap (inputState:State) = 
@@ -182,7 +184,7 @@ module Common =
     
 
     let workOnOccupyJob (inputState:State) =
-        Logging.logImportant <| sprintf  "my jobs are: %A" (List.map fst inputState.MyJobs)//delete this line. no longer needed
+        Logging.logInfo <| sprintf  "My jobs are: %A" (List.map fst inputState.MyJobs)
         let myJobs = List.map (fun (id,_) -> getJobFromJobID inputState id) inputState.MyJobs
         let myOccupyJobs = getJobsByType JobType.OccupyJob myJobs
         match myOccupyJobs with
