@@ -828,19 +828,6 @@ namespace NabfTest.NewNoticeBoardModelTest
         #endregion
 
         #region Messaging
-        /* messaging TODO
-         * Create (NewNoticeEvent)
-         * Update (UpdatedNoticeEvent)
-         * Delete (RemovedNoticeEvent)
-         * 
-         * Apply
-         * Unapply
-         * 
-         * Fire (FiredFromNoticeEvent)
-         * AssignJobs (ReceivedJobEvent)
-         * SendOutAllNoticesToAgent (NewNoticeEvent)
-         * 
-         */
         [Test]
         public void CreateNotice_NoDuplicateExists_NewMsgArrived()
         {
@@ -1021,14 +1008,13 @@ namespace NabfTest.NewNoticeBoardModelTest
         }
 
         [Test]
-        public void UnapplyToNotice_NoticeDontExists_NoMsg()//not done yet
+        public void UnapplyToNotice_NoticeDontExists_NoMsg()
         {
             SetUpTriggersAndNoticeBoard();
 
-            nb.ApplyToNotice(agent1, 999, 0);
-            nb.ApplyToNotice(agent2, 999, 0);
+            nb.UnapplyToNotice(agent1, 999);
 
-
+            Assert.True(OnlyTheseTriggersFired(new List<triggerTypes> { }));
 
             nb.AssignJobs();
 
@@ -1038,18 +1024,65 @@ namespace NabfTest.NewNoticeBoardModelTest
         }
 
         [Test]
-        public void UnapplyToNotice_AgentHaventApplied_NoMsg()//not done yet
+        public void UnapplyToNotice_AgentHaventApplied_NoMsg()
         {
+            SetUpTriggersAndNoticeBoard();
+
+            nb.UnapplyToNotice(agent1, ListOfKnownIDs[0]);
+
+            Assert.True(OnlyTheseTriggersFired(new List<triggerTypes> { }));
+
+            nb.AssignJobs();
+
+            Assert.True(OnlyTheseTriggersFired(new List<triggerTypes> { }));
+
+            CleanUpTriggers();
         }
 
         [Test]
-        public void UnapplyToNotice_NoOneHasTheJob_NoMsg()//not done yet
+        public void UnapplyToNotice_NoOneHasTheJob_NoMsg()
         {
+            SetUpTriggersAndNoticeBoard();
+            Int64 idOf2AgentJob = ListOfKnownIDs[0];
+
+            nb.ApplyToNotice(agent1, idOf2AgentJob, 999);
+            Assert.True(OnlyTheseTriggersFired(new List<triggerTypes> { }));
+
+            nb.AssignJobs();
+            Assert.True(OnlyTheseTriggersFired(new List<triggerTypes> { }));
+
+            nb.UnapplyToNotice(agent1, idOf2AgentJob);
+            Assert.True(OnlyTheseTriggersFired(new List<triggerTypes> { }));
+
+            nb.AssignJobs();
+            Assert.True(OnlyTheseTriggersFired(new List<triggerTypes> { }));
+
+            CleanUpTriggers();
         }
 
         [Test]
-        public void UnapplyToNotice_SomeoneElseHasTheJob_NoMsg()//not done yet
+        public void UnapplyToNotice_SomeoneElseHasTheJob_NoMsg()
         {
+            SetUpTriggersAndNoticeBoard();
+            Int64 idOf2AgentJob = ListOfKnownIDs[0];
+
+            nb.ApplyToNotice(agent1, idOf2AgentJob, 0);
+            nb.ApplyToNotice(agent2, idOf2AgentJob, 2);
+            nb.ApplyToNotice(agent3, idOf2AgentJob, 3);
+            Assert.True(OnlyTheseTriggersFired(new List<triggerTypes> { }));
+
+            nb.AssignJobs();
+            Assert.True(OnlyTheseTriggersFired(new List<triggerTypes> { triggerTypes.receivedJob }));
+
+            ReceivedJobEventFiredCounter = 0;
+
+            nb.UnapplyToNotice(agent1, idOf2AgentJob);
+            Assert.True(OnlyTheseTriggersFired(new List<triggerTypes> { }));
+
+            nb.AssignJobs();
+            Assert.True(OnlyTheseTriggersFired(new List<triggerTypes> { }));
+
+            CleanUpTriggers();
         }
 
         [Test]
@@ -1431,8 +1464,8 @@ namespace NabfTest.NewNoticeBoardModelTest
         #region Scenarios
         //multiple rounds test
         //random spam through simman test
-        //random spam through simman test
-        //random spam through simman test
+        //random spam through simman test (copy of above)
+        //random spam through simman test (copy of above)
         #endregion
 
 

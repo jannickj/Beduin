@@ -252,7 +252,7 @@ namespace NabfProject.NoticeBoardModel
 
             if (jobQueue.Count <= 0)
                 return false;
-
+            //Console.WriteLine("starting AssignJob");
             while(jobQueue.Count > 0)
             {
                 notice = jobQueue.Dequeue();
@@ -294,6 +294,7 @@ namespace NabfProject.NoticeBoardModel
                 }
                 #endregion
             }
+            //Console.WriteLine("ending AssignJob");
             return true;
         }
 
