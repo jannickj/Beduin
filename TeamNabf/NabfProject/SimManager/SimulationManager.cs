@@ -259,25 +259,25 @@ namespace NabfProject.SimManager
         public void UnApplyToNotice(int simID, Int64 noticeId, NabfAgent a)
         {
             return;
-            if (_currentID != simID)
-                return;
+            //if (_currentID != simID)
+            //    return;
 
-            NoticeBoard nb;
-            Notice notice;
-            TryGetNoticeBoard(simID, out nb);
-            bool b = nb.TryGetNoticeById(noticeId, out notice);
-            if (b == false)
-                return;
+            //NoticeBoard nb;
+            //Notice notice;
+            //TryGetNoticeBoard(simID, out nb);
+            //bool b = nb.TryGetNoticeById(noticeId, out notice);
+            //if (b == false)
+            //    return;
 
-            _unappliesReceivedCounter++;
-            if (jobVerbose)
-            {
-                if (_unappliesReceivedCounter % 200 == 0)
-                    Console.WriteLine("Total numbers of job un-applications received is: " + _unappliesReceivedCounter);
+            //_unappliesReceivedCounter++;
+            //if (jobVerbose)
+            //{
+            //    if (_unappliesReceivedCounter % 200 == 0)
+            //        Console.WriteLine("Total numbers of job un-applications received is: " + _unappliesReceivedCounter);
 
-                Console.WriteLine("Agent " + a.Name + " unapplied from " + notice.ToString());
-            }
-            nb.UnapplyToNotice(a, noticeId);
+            //    Console.WriteLine("Agent " + a.Name + " unapplied from " + notice.ToString());
+            //}
+            //nb.UnapplyToNotice(a, noticeId);
         }
 
         private void FindJobsForAgents(int simID)
@@ -362,7 +362,7 @@ namespace NabfProject.SimManager
                         //foreach (Notice n in nb.GetAllNotices())
                         //{
                         //    if (NoticeBoardHelpers.AgentListContainsAgent(n.GetAgentsApplied(), a))
-                        //        Console.WriteLine(""+n.ToString());
+                        //        Console.WriteLine("" + n.ToString());
                         //}
                         Console.WriteLine("Got jobs :");
                         foreach (Notice n in nb.GetAllNotices())

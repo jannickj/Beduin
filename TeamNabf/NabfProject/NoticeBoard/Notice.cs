@@ -26,6 +26,7 @@ namespace NabfProject.NoticeBoardModel
         public abstract NoticeBoard.JobType GetNoticeType();
 
         public double AverageDesireFromTopContenders = 0;
+        public bool WasAssignedThisRound = false;
 
 
         public Notice(Int64 id)
