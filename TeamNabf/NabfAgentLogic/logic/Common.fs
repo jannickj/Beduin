@@ -52,6 +52,7 @@ module Common =
 
     //An agent always wants to have exactly one goal
     let onlyOneJob (inputState:State) =
+        logError <| sprintf "My jobs are: %A" inputState.MyJobs
         None
 //        logInfo <| sprintf "My jobs are: %A" inputState.MyJobs
 //        Logging.logInfo <| sprintf  "I know of these job ids: %A" (List.map (fun ((id,_,_,_),_) -> id) inputState.Jobs)

@@ -1541,41 +1541,43 @@ namespace NabfTest.NewNoticeBoardModelTest
 
                 nb.AssignJobs();
 
-                Assert.AreEqual(3, NamesOfAgentsWhoReceivedJob.Count);
-                Assert.AreEqual(3, ReceivedJobEventFiredCounter);
+                if (i == 1)
+                {
+                    Assert.AreEqual(3, NamesOfAgentsWhoReceivedJob.Count);
+                    Assert.AreEqual(3, ReceivedJobEventFiredCounter);
 
-                NameToNoticeIdsReceived.TryGetValues(agent1.Name, out idsOfNoticesForAgent1);
-                NameToNoticesReceived.TryGetValues(agent1.Name, out noticesForAgent1);
-                Assert.AreEqual(null, idsOfNoticesForAgent1);
-                Assert.AreEqual(null, noticesForAgent1);
+                    NameToNoticeIdsReceived.TryGetValues(agent1.Name, out idsOfNoticesForAgent1);
+                    NameToNoticesReceived.TryGetValues(agent1.Name, out noticesForAgent1);
+                    Assert.AreEqual(null, idsOfNoticesForAgent1);
+                    Assert.AreEqual(null, noticesForAgent1);
 
-                //checking if the agent has received the correct job with the correct ID and nothing else
-                NameToNoticeIdsReceived.TryGetValues(agent2.Name, out idsOfNoticesForAgent2);
-                NameToNoticesReceived.TryGetValues(agent2.Name, out noticesForAgent2);
-                Assert.AreEqual(1, idsOfNoticesForAgent2.Count);
-                Assert.AreEqual(idOf1AgentJob, idsOfNoticesForAgent2.ToList()[0]);
-                nb.TryGetNoticeById(idOf1AgentJob, out Notice1Agent);
-                Assert.AreEqual(1, noticesForAgent2.Count);
-                Assert.IsTrue(Notice1Agent.ContentIsEqualTo(noticesForAgent2.ToList()[0]));
-
-
-                NameToNoticeIdsReceived.TryGetValues(agent3.Name, out idsOfNoticesForAgent3);
-                NameToNoticesReceived.TryGetValues(agent3.Name, out noticesForAgent3);
-                Assert.AreEqual(1, idsOfNoticesForAgent3.Count);
-                Assert.AreEqual(secondIdOf2AgentJob, idsOfNoticesForAgent3.ToList()[0]);
-                nb.TryGetNoticeById(secondIdOf2AgentJob, out SecondNotice2Agents);
-                Assert.AreEqual(1, noticesForAgent3.Count);
-                Assert.IsTrue(SecondNotice2Agents.ContentIsEqualTo(noticesForAgent3.ToList()[0]));
+                    //checking if the agent has received the correct job with the correct ID and nothing else
+                    NameToNoticeIdsReceived.TryGetValues(agent2.Name, out idsOfNoticesForAgent2);
+                    NameToNoticesReceived.TryGetValues(agent2.Name, out noticesForAgent2);
+                    Assert.AreEqual(1, idsOfNoticesForAgent2.Count);
+                    Assert.AreEqual(idOf1AgentJob, idsOfNoticesForAgent2.ToList()[0]);
+                    nb.TryGetNoticeById(idOf1AgentJob, out Notice1Agent);
+                    Assert.AreEqual(1, noticesForAgent2.Count);
+                    Assert.IsTrue(Notice1Agent.ContentIsEqualTo(noticesForAgent2.ToList()[0]));
 
 
-                NameToNoticeIdsReceived.TryGetValues(agent4.Name, out idsOfNoticesForAgent4);
-                NameToNoticesReceived.TryGetValues(agent4.Name, out noticesForAgent4);
-                Assert.AreEqual(1, idsOfNoticesForAgent4.Count);
-                Assert.AreEqual(secondIdOf2AgentJob, idsOfNoticesForAgent4.ToList()[0]);
-                nb.TryGetNoticeById(secondIdOf2AgentJob, out SecondNotice2Agents);
-                Assert.AreEqual(1, noticesForAgent4.Count);
-                Assert.IsTrue(SecondNotice2Agents.ContentIsEqualTo(noticesForAgent4.ToList()[0]));
+                    NameToNoticeIdsReceived.TryGetValues(agent3.Name, out idsOfNoticesForAgent3);
+                    NameToNoticesReceived.TryGetValues(agent3.Name, out noticesForAgent3);
+                    Assert.AreEqual(1, idsOfNoticesForAgent3.Count);
+                    Assert.AreEqual(secondIdOf2AgentJob, idsOfNoticesForAgent3.ToList()[0]);
+                    nb.TryGetNoticeById(secondIdOf2AgentJob, out SecondNotice2Agents);
+                    Assert.AreEqual(1, noticesForAgent3.Count);
+                    Assert.IsTrue(SecondNotice2Agents.ContentIsEqualTo(noticesForAgent3.ToList()[0]));
 
+
+                    NameToNoticeIdsReceived.TryGetValues(agent4.Name, out idsOfNoticesForAgent4);
+                    NameToNoticesReceived.TryGetValues(agent4.Name, out noticesForAgent4);
+                    Assert.AreEqual(1, idsOfNoticesForAgent4.Count);
+                    Assert.AreEqual(secondIdOf2AgentJob, idsOfNoticesForAgent4.ToList()[0]);
+                    nb.TryGetNoticeById(secondIdOf2AgentJob, out SecondNotice2Agents);
+                    Assert.AreEqual(1, noticesForAgent4.Count);
+                    Assert.IsTrue(SecondNotice2Agents.ContentIsEqualTo(noticesForAgent4.ToList()[0]));
+                }
 
                 idsOfNoticesForAgent1 = null;
                 idsOfNoticesForAgent2 = null;

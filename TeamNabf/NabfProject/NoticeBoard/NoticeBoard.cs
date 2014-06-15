@@ -409,8 +409,13 @@ namespace NabfProject.NoticeBoardModel
             {
                 foreach (NabfAgent agentToGiveNoticeTo in mostDesiredNotice.GetAgentProspects())
                 {
-                    //if (mostDesiredNotice.Id == agentToGiveNoticeTo.IdOfLastJob)
-                    //    continue;
+                    if (mostDesiredNotice.Id == agentToGiveNoticeTo.IdOfLastJob)
+                    {
+                        agentToGiveNoticeTo.IdOfLastJob = mostDesiredNotice.Id;
+                        agentToGiveNoticeTo.GotJobThisRound = true;
+                        mostDesiredNotice.WasAssignedThisRound = true;
+                        continue;
+                    }
                     FireAgentFromAllNoticeIfNeeded(agentToGiveNoticeTo);
 
                     GiveNoticeToAgent(mostDesiredNotice, agentToGiveNoticeTo);
@@ -425,7 +430,7 @@ namespace NabfProject.NoticeBoardModel
                     allJobsNotAssigned = false;
             }
 
-            foreach (NabfAgent a in _sharingList)
+            foreach (NabfAgent a in _sharingList)//firing agents who didn't get a job this round. Agents that got a job was fired if it was a job they didn't had last round
             {
                 if (a.GotJobThisRound == false)
                     FireAgentFromAllNoticeIfNeeded(a);
@@ -531,6 +536,8 @@ namespace NabfProject.NoticeBoardModel
                 if (AgentListContainsAgent(n.GetAgentsOnJob(), agent))
                 {
                     agent.Raise(new FiredFromJobEvent(n, agent));
+                    if (verbose)
+                        Console.WriteLine("" + agent.Name + " got fired from" + n.ToString());
                     n.RemoveAgentFromJob(agent);
                     agent.IdOfLastJob = -1;
                 }
@@ -541,6 +548,8 @@ namespace NabfProject.NoticeBoardModel
             agent.IdOfLastJob = notice.Id;
             agent.GotJobThisRound = true;
             agent.Raise(new ReceivedJobEvent(notice, agent));
+            if (verbose)
+                Console.WriteLine("" + agent.Name + " got " + notice.ToString());
             notice.AddToAgentsOnJob(agent);
             notice.WasAssignedThisRound = true;
         }

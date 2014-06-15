@@ -195,7 +195,7 @@ module HandlePercepts =
                     { state with Jobs =  existingJobRemoved }
 
                 | AcceptedJob (jobID, vertexName) ->
-                    //logImportant <| sprintf "Added job w. id %A to myjobs. Round is %A" jobID state.SimulationStep
+                    logError <| sprintf "Added job w. id %A to myjobs. Round is %A" jobID state.SimulationStep
                     if not <| List.exists ((=) (jobID,vertexName)) state.MyJobs 
                     then
                         { state with MyJobs = (jobID, vertexName)::state.MyJobs }
@@ -203,6 +203,7 @@ module HandlePercepts =
                         state
 
                 | FiredFrom jobID -> 
+                    logError <| sprintf "Fired from job w. id %A. Round is %A" jobID state.SimulationStep
                     let existingJobRemoved = removeMyJob jobID
 
                     { state with MyJobs =  existingJobRemoved }
