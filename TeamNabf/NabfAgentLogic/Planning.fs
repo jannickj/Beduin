@@ -26,7 +26,7 @@ module Planning =
 
     let wrappedGoalTest goalTest state = 
         try goalTest state with
-        | ex -> logError <| sprintf "goal test: %A \nfailed with:\n %A" goalTest ex
+        | ex -> logStateError state Planning <| sprintf "goal test: %A \nfailed with:\n %A" goalTest ex
                 false
 
     let distance (goals : Goal list) state cost =
@@ -81,18 +81,18 @@ module Planning =
 
             match plan with
             | Some {Cost = _; Path = []} -> 
-                logImportant <| sprintf "Found empty plan for goals %A" goals
+                logStateImportant state Planning <| sprintf "Found empty plan for goals %A" goals
                 Some ([], objectives)
             | Some {Cost = _; Path = path} when isSomePathValid path -> 
                 let actions = List.map (fun node -> node.Action.Value) path
-                logImportant (sprintf "Found plan: %A" <| List.map (fun action -> action.ActionType) actions)
+                logStateImportant state Planning (sprintf "Found plan: %A" <| List.map (fun action -> action.ActionType) actions)
                 Some (actions, objectives)
             | Some {Cost = _; Path = path} ->
                 let actions = List.map (fun node -> node.Action.Value) path
-                logImportant <| sprintf "Discarded plan %A" (List.map (fun action -> action.ActionType) actions) //with objective %A" goalObjective
+                logStateImportant state Planning <| sprintf "Discarded plan %A" (List.map (fun action -> action.ActionType) actions) //with objective %A" goalObjective
                 None
             | None ->
-                logImportant <| sprintf "No plan found for intention %A" goalObjective
+                logStateImportant state Planning <| sprintf "No plan found for intention %A" goalObjective
                 None
         | [] -> Some ([], [])
 
@@ -101,7 +101,7 @@ module Planning =
 //        logImportant <| sprintf "last action: %A (%A)" state.LastAction state.LastActionResult
         match state.LastActionResult with
         | Successful | FailedRandom -> ()
-        | err -> logError <| sprintf "Last action result was %A, trying to repair plan anyway" err
+        | err -> logStateError state Planning <| sprintf "Last action result was %A, trying to repair plan anyway" err
 
         let tmpPlan = 
             match originalPlan with
@@ -120,7 +120,7 @@ module Planning =
                 (rechargeAction :: action :: rest, objectives)
             | _ -> tmpPlan
 
-        logInfo <| sprintf "repairing plan %A" (List.map (fun action -> action.ActionType) (fst plan))
+        logStateInfo state Planning <| sprintf "repairing plan %A" (List.map (fun action -> action.ActionType) (fst plan))
 
         let rechargedState (state : State) = {state with Self = {state.Self with Energy = state.Self.MaxEnergy}}
 
@@ -177,9 +177,9 @@ module Planning =
         let (name, inttype, goals) = intent
         match inttype with
         | Communication -> 
-            logInfo ("Sending message " + name)
+            logStateInfo state Planning ("Sending message " + name)
         | Activity ->
-            logImportant ("Planning to " + name)
+            logStateImportant state Planning ("Planning to " + name)
         | _ -> ()
 
 //        makePlan state goals
@@ -237,7 +237,7 @@ module Planning =
                     let oldintent = (intent.Label,intent.Type,intent.Objectives)
                     let plan = 
                         try formulatePlan state oldintent with
-                        | exn -> logError <| sprintf "Error encountered in formulatePlan: %A at %A" exn.Message exn.TargetSite
+                        | exn -> logStateError state Planning <| sprintf "Error encountered in formulatePlan: %A at %A" exn.Message exn.TargetSite
                                  None
                     plan
                 member self.RepairPlan (state, intent, solution) =
@@ -246,21 +246,21 @@ module Planning =
                         | (_, Plan _ :: _) -> Some solution
                         | _ -> 
                             try repairPlan state intent solution with
-                            | exn -> logError <| sprintf "Error encountered in repairPlan: %A at %A" exn.Message exn.TargetSite
+                            | exn -> logStateError state Planning <| sprintf "Error encountered in repairPlan: %A at %A" exn.Message exn.TargetSite
                                      None
                     plan
                     
                 member self.SolutionFinished (state, intent, solution) = 
                     let result = 
                         try solutionFinished state intent solution with
-                        | exn -> logError <| sprintf "Error encountered in solutionFinished: %A at %A" exn.Message exn.TargetSite
+                        | exn -> logStateError state Planning <| sprintf "Error encountered in solutionFinished: %A at %A" exn.Message exn.TargetSite
                                  false
                     result
                     
                 member self.NextAction (state, intent, solution) = 
                     let action = 
                         try nextAction state intent solution with
-                        | exn -> logError <| sprintf "Error encountered in nextAction: %A at %A" exn.Message exn.TargetSite
+                        | exn -> logStateError state Planning <| sprintf "Error encountered in nextAction: %A at %A" exn.Message exn.TargetSite
                                  None
                     action
 
@@ -268,14 +268,14 @@ module Planning =
                     let oldintent = (intent.Label,intent.Type,intent.Objectives)
                     let newState = 
                         try updateStateBeforePlanning state oldintent with
-                        | exn -> logError <| sprintf "Error encountered in updateStateBeforePlanning: %A at %A" exn.Message exn.TargetSite
+                        | exn -> logStateError state Planning <| sprintf "Error encountered in updateStateBeforePlanning: %A at %A" exn.Message exn.TargetSite
                                  state
                     newState
                 
                 member self.UpdateStateOnSolutionFinished (state, intent, solution) = 
                     let newState = 
                         try updateStateOnSolutionFinished state intent solution with
-                        | exn -> logError <| sprintf "Error encountered in updateStateOnSolutionFinished: %A at %A" exn.Message exn.TargetSite
+                        | exn -> logStateError state Planning <| sprintf "Error encountered in updateStateOnSolutionFinished: %A at %A" exn.Message exn.TargetSite
                                  state
                     newState
                     

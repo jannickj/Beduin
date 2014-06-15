@@ -55,7 +55,7 @@
                 | :? ThreadAbortException as e -> raise e
                 | e -> 
                     let s = sprintf "%A" e.StackTrace
-                    logError (name + " crashed with: " + e.Message + "\n" + s)
+                    logError Agent (name + " crashed with: " + e.Message + "\n" + s)
                     returnedOnError()
 
         interface IAgentLogic with

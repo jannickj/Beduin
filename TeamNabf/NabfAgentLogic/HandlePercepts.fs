@@ -229,7 +229,7 @@ module HandlePercepts =
                     { state with MyJobs =  existingJobRemoved }
                 | _ -> state
 
-            | unhandled -> logError (sprintf "Unhandled percept: %A" unhandled) 
+            | unhandled -> logStateError state Perception (sprintf "Unhandled percept: %A" unhandled) 
                            state //fix this later by handling remaining percepts
 
             
