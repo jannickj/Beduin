@@ -53,20 +53,21 @@ module Common =
     //An agent always wants to have exactly one goal
     let onlyOneJob (inputState:State) =
         logImportant <| sprintf "My jobs are: %A" inputState.MyJobs
-        if (inputState.MyJobs.Length > 1) then 
-            Some(
-                    "have at most 1 job"
-                    , Communication
-                    , [Plan(fun state -> 
-                                            match state.MyJobs with
-                                            | [] -> None
-                                            | _ :: tail -> 
-                                                Some <| List.map (fun (id,_) -> Communicate (UnapplyJob id)) tail                                       
-                            )
-                      ]
-                )
-        else
-            None
+        None
+//        if (inputState.MyJobs.Length > 1) then 
+//            Some(
+//                    "have at most 1 job"
+//                    , Communication
+//                    , [Plan(fun state -> 
+//                                            match state.MyJobs with
+//                                            | [] -> None
+//                                            | _ :: tail -> 
+//                                                Some <| List.map (fun (id,_) -> Communicate (UnapplyJob id)) tail                                       
+//                            )
+//                      ]
+//                )
+//        else
+//            None
 
     //Try to make it so the agent has explored one more node
     let exploreMap (inputState:State) = 

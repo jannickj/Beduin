@@ -351,17 +351,17 @@ namespace NabfProject.SimManager
                         Console.WriteLine("WARNING! there is only " + km.GetSubscribedAgentsCount() + " agents connected to Knowledge Manager");
                     Console.WriteLine("  ");
                 }
-                if (_currentRoundNumber % 500 == 0 && _currentRoundNumber > 1)
+                if ((_currentRoundNumber % 200 == 0 || _currentRoundNumber % 300 == 0 || _currentRoundNumber % 400 == 0 || _currentRoundNumber % 500 == 0) && _currentRoundNumber > 1)
                 {
                     foreach (NabfAgent a in nb.GetSubscribedAgents())
                     {
                         Console.WriteLine(" ---- " + a.Name + " ---- ");
-                        Console.WriteLine("Applications :");
-                        foreach (Notice n in nb.GetAllNotices())
-                        {
-                            if (NoticeBoardHelpers.AgentListContainsAgent(n.GetAgentsApplied(), a))
-                                Console.WriteLine(""+n.ToString());
-                        }
+                        //Console.WriteLine("Applications :");
+                        //foreach (Notice n in nb.GetAllNotices())
+                        //{
+                        //    if (NoticeBoardHelpers.AgentListContainsAgent(n.GetAgentsApplied(), a))
+                        //        Console.WriteLine(""+n.ToString());
+                        //}
                         Console.WriteLine("Got jobs :");
                         foreach (Notice n in nb.GetUnavailableNotices())
                         {
