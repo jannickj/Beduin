@@ -12,7 +12,7 @@ module PlanningTest =
     open NabfAgentLogic.Inspector
 
     [<TestFixture>]
-    type IntentionPlanTests () =
+    type IntentionBuildingTests () =
         
         [<Test>]
         member self.FormulatePlanInspector_IntentToInspectVertex_PlanToInspectVertex () =
@@ -53,7 +53,7 @@ module PlanningTest =
              *    \/
              *    c
              *  
-             *  Inspector at 'a'. Two unknown enemies at 'b'. Two known and one known enemy at 'c'.
+             *  Inspector at 'a'. Two unknown enemies at 'b'. Two known and one unknown enemy at 'c'.
              *  We want to inspect 'c'.
              *
              *)
@@ -65,15 +65,14 @@ module PlanningTest =
 
             let enemy1 = buildEnemyWithRole "enemy1" "b" (Some Explorer)
             let knownRole = Some Explorer
-            let enemies = 
-                [ ("enemy1", "b", None)
-                ; ("enemy2", "b", None)
-                ; ("enemy3", "c", knownRole)
-                ; ("enemy4", "c", knownRole)
-                ; ("enemy5", "c", None)
+            let enemyData = 
+                [ buildEnemyWithRole "enemy1" "b" None
+                ; buildEnemyWithRole "enemy2" "b" None
+                ; buildEnemyWithRole "enemy3" "c" knownRole
+                ; buildEnemyWithRole "enemy4" "c" knownRole
+                ; buildEnemyWithRole "enemy5" "c" None
                 ]
 
-            let enemyData = [for data in enemies -> buildEnemyWithRole <||| data]
             let state = 
                 { buildState "a" Inspector world with EnemyData = enemyData }
 
