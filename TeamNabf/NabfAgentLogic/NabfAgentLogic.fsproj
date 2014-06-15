@@ -39,6 +39,7 @@
     <Compile Include="Graphing\Graph.fsi" />
     <Compile Include="Graphing\Graph.fs" />
     <Compile Include="AgentTypes.fs" />
+    <Compile Include="GeneralLib.fs" />
     <Compile Include="ActionSpecifications.fs" />
     <Compile Include="IiLang\IiLang.fs" />
     <Compile Include="IiLang\IilTranslator.fs" />
@@ -69,7 +70,6 @@
     <Compile Include="AgentLogicClient.fs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="FSharp.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -83,6 +83,7 @@
       <Project>{06CC68A7-84B7-4352-8700-FD9F79DAA71B}</Project>
       <Name>FsPlanning</Name>
     </ProjectReference>
+    <Reference Include="FSharp.Core" />
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -11,11 +11,9 @@ module Planning =
     open GoalSpecifications
     open System.Diagnostics
     open NabfAgentLogic.Search.HeuristicDijkstra
+    open GeneralLib
 
     type Plan = (ActionSpecification list) * (Objective list)
-    let test = 1
-    let flip f x y = f y x
-    let snd3 (_, a, _) = a 
 
     // Transforms objectives into a normalized form of State -> (Goal list)
     let goalFunc objective = 
@@ -46,7 +44,7 @@ module Planning =
         (unSatisfiedGoalCount goals state, cost + distance goals state cost)
     
     let goalTest goals state = 
-        List.forall (fun goal -> generateGoalCondition goal state) goals
+        List.forall (fun goal -> (generateGoalCondition goal) state) goals
 
     let applicableActions goals state =
         let actions = Set.ofList <| List.collect (availableActions state) goals
@@ -63,22 +61,6 @@ module Planning =
         ; StepCost     = fun state action -> action.Cost state
         ; Heuristic    = h goals
         }
-
-    let rec prunePlanHelper path goals =
-        let gC searchnode = unSatisfiedGoalCount goals searchnode.State
-        match path with
-        | searchNode1 :: searchNode2 :: tail when gC searchNode1 < gC searchNode2 ->
-            List.rev <| searchNode2 :: tail
-        | sn1 :: sn2 :: tail -> prunePlanHelper (sn2 :: tail) goals
-        | [sn] -> [sn]
-        | [] -> []
-
-    let prunePlan plan goals = 
-        match plan with
-        | Some {Cost = _; Path = path} -> 
-            match path with
-            | _ -> Some <| prunePlanHelper (List.rev path) goals
-        | None -> None
 
     let makePlan initstate objectives =
         let state = { initstate with LastAction = Skip }
@@ -109,7 +91,7 @@ module Planning =
                 let actions = List.map (fun node -> node.Action.Value) path
                 logImportant <| sprintf "Discarded plan %A" (List.map (fun action -> action.ActionType) actions) //with objective %A" goalObjective
                 None
-            | _ ->
+            | None ->
                 logImportant <| sprintf "No plan found for intention %A" goalObjective
                 None
         | [] -> Some ([], [])
@@ -163,7 +145,6 @@ module Planning =
             let initialState = (state, (h objective state 0), 0)
 
             let heuList = List.scan heuristics initialState plan
-
 
             let minHeu = List.minBy (fun (_, heu, _) -> heu) heuList
             let minHeuIdx = List.findIndex ((=) minHeu) heuList

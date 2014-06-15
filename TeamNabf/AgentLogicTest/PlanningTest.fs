@@ -9,6 +9,34 @@ module PlanningTest =
     open NabfAgentLogic.Planning
     open NabfAgentLogic.ActionSpecifications
     open FsPlanning.Search
+    open NabfAgentLogic.Inspector
+
+    [<TestFixture>]
+    type IntentionPlanTests () =
+        
+        [<Test>]
+        member self.FormulatePlanForInspect_IntentToInspectVertex_PlanToInspectVertex () =
+            let world = 
+                [ ("a", {Identifier = "a"; Value = None; Edges = [(None, "b")] |> Set.ofList})
+                ; ("b", {Identifier = "b"; Value = None; Edges = [(None, "a")] |> Set.ofList})
+                ] |> Map.ofList
+            
+            let enemy = buildEnemy "enemy" "b"
+            let state = { buildState "a" Inspector world with EnemyData = [enemy] }
+
+            let intention = spontanousInspectAgent state
+            let intentionTuple = (intention.Value.Label, intention.Value.Type, intention.Value.Objectives)
+
+            let expectedPlan = [skipAction; moveAction "b"; inspectAction None]
+
+            let actualPlan = formulatePlan state intentionTuple
+
+            let assertion = 
+                match actualPlan with
+                | Some (plan, _) -> plan = expectedPlan
+                | None -> false
+
+            Assert.IsTrue (assertion)
 
     [<TestFixture>]
     type RepairTest() =
