@@ -177,11 +177,14 @@ module Common =
     
     
     let applyToOccupyJob  modifier (inputState:State) = 
-        let applicationList = createApplicationList inputState JobType.OccupyJob (calculateDesireOccupyJob modifier)
-        Some ( "apply to all occupy jobs"
-             , Communication
-             , [Plan (fun state -> Some applicationList)]
-             )
+        if (inputState.SimulationStep % 2 = 0) then
+            None
+        else
+            let applicationList = createApplicationList inputState JobType.OccupyJob (calculateDesireOccupyJob modifier)
+            Some ( "apply to all occupy jobs"
+                 , Communication
+                 , [Plan (fun state -> Some applicationList)]
+                 )
     
 
     let workOnOccupyJob (inputState:State) =
