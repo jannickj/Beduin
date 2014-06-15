@@ -312,7 +312,8 @@ namespace NabfProject.SimManager
             if (_currentRoundNumber % 5 == 0 || _currentRoundNumber < 10)
                 Console.WriteLine("-------- Simulation " + simID + ", Round: " + _currentRoundNumber + " --------");
 
-            nb.AssignJobs();
+            if (_currentRoundNumber % 20 == 0)
+                nb.AssignJobs();
             //nb.ConsistencyChecker();
 
             if (reporting)
