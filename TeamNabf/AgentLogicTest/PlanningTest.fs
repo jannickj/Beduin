@@ -15,7 +15,14 @@ module PlanningTest =
     type IntentionPlanTests () =
         
         [<Test>]
-        member self.FormulatePlanForInspect_IntentToInspectVertex_PlanToInspectVertex () =
+        member self.FormulatePlanInspector_IntentToInspectVertex_PlanToInspectVertex () =
+        (*
+         *  a --- b
+         *  
+         *  Inspector at node 'a'. Enemy with unknown role at 'b'. Plan to move to 'b' and inspect.
+         *
+         *)
+
             let world = 
                 [ ("a", {Identifier = "a"; Value = None; Edges = [(None, "b")] |> Set.ofList})
                 ; ("b", {Identifier = "b"; Value = None; Edges = [(None, "a")] |> Set.ofList})
@@ -35,6 +42,50 @@ module PlanningTest =
                 match actualPlan with
                 | Some (plan, _) -> plan = expectedPlan
                 | None -> false
+
+            Assert.IsTrue (assertion)
+
+        [<Test>]
+        member self.SpontaneoulsyInspectVertex_TwoNeighbourVerticesWithAgents_IntentToInspectVertexWithMostUnknownEnemies () =
+            (*
+             *  a -- b
+             *   \  /
+             *    \/
+             *    c
+             *  
+             *  Inspector at 'a'. Two unknown enemies at 'b'. Two known and one known enemy at 'c'.
+             *  We want to inspect 'c'.
+             *
+             *)
+            let world = 
+                [ ("a", {Identifier = "a"; Value = None; Edges = [(None, "b"); (None, "c")] |> Set.ofList})
+                ; ("b", {Identifier = "b"; Value = None; Edges = [(None, "a")] |> Set.ofList})
+                ; ("c", {Identifier = "c"; Value = None; Edges = [(None, "a")] |> Set.ofList})
+                ] |> Map.ofList
+
+            let enemy1 = buildEnemyWithRole "enemy1" "b" (Some Explorer)
+            let knownRole = Some Explorer
+            let enemies = 
+                [ ("enemy1", "b", None)
+                ; ("enemy2", "b", None)
+                ; ("enemy3", "c", knownRole)
+                ; ("enemy4", "c", knownRole)
+                ; ("enemy5", "c", None)
+                ]
+
+            let enemyData = [for data in enemies -> buildEnemyWithRole <||| data]
+            let state = 
+                { buildState "a" Inspector world with EnemyData = enemyData }
+
+            let intention = spontanousInspectAgent state
+
+            let actual = 
+                match intention with
+                | Some intent -> Some <| List.collect (fun obj -> goalList obj state) intent.Objectives
+                | None -> None
+            
+            let expected = Some <| [Inspected "b"]
+            let assertion = expected = actual
 
             Assert.IsTrue (assertion)
 
