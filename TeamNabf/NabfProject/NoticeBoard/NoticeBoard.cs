@@ -12,7 +12,7 @@ namespace NabfProject.NoticeBoardModel
 {
     public class NoticeBoard : NoticeBoardHelpers
     {
-        private Int64 _freeID = 0;
+        private Int64 _freeID = 1;
         private HashSet<NabfAgent> _sharingList = new HashSet<NabfAgent>();
         private Dictionary<Int64, Notice> _allNotices = new Dictionary<Int64, Notice>();
         private DictionaryList<string, Int64> _agentToAppliedNotices = new DictionaryList<string, Int64>();
@@ -291,7 +291,16 @@ namespace NabfProject.NoticeBoardModel
             while(jobQueue.Count > 0)
             {
                 notice = jobQueue.Dequeue();
-
+                if (notice.GetAgentsOnJob().Count > notice.AgentsNeeded)
+                {
+                    Console.WriteLine("ERROR!!! MORE AGENTS ON JOB THAN NEEDED");
+                    Console.WriteLine("ERROR!!! MORE AGENTS ON JOB THAN NEEDED");
+                    Console.WriteLine("ERROR!!! MORE AGENTS ON JOB THAN NEEDED");
+                    Console.WriteLine("ERROR!!! MORE AGENTS ON JOB THAN NEEDED");
+                    Console.WriteLine("ERROR!!! MORE AGENTS ON JOB THAN NEEDED");
+                    Console.WriteLine("ERROR!!! MORE AGENTS ON JOB THAN NEEDED");
+                    Console.WriteLine("ERROR!!! MORE AGENTS ON JOB THAN NEEDED");
+                }
                 //notice.Status = Status.unavailable;
                 notice.AddRangeToAgentsOnJob(notice.GetAgentProspects());
                 notice.ClearAgentProspects();
@@ -326,12 +335,13 @@ namespace NabfProject.NoticeBoardModel
                     //    Console.WriteLine("" + agent.Name + " got " + notice.ToString());
                 }
 
-                #region re-orders the queue if needed
-                if (agentsAlsoAppearAsTopDesiresOnNextNotice)
-                {
-                    jobQueue = CreateQueueSortedByAvgDesirability();
-                }
-                #endregion
+                jobQueue = CreateQueueSortedByAvgDesirability();
+                //#region re-orders the queue if needed
+                //if (agentsAlsoAppearAsTopDesiresOnNextNotice)
+                //{
+                //    jobQueue = CreateQueueSortedByAvgDesirability();
+                //}
+                //#endregion
             }
             NabfAgent agentToAssign;
             Notice noticeToFireFrom, noticeToReceive;
@@ -345,19 +355,23 @@ namespace NabfProject.NoticeBoardModel
                     jobStillExists = TryGetNoticeById(agentToAssign.IdOfLastJob, out noticeToFireFrom);
                     if (jobStillExists) //if the job has been removed they are already fired
                     {
-                        agentToAssign.Raise(new FiredFromJobEvent(noticeToFireFrom, agentToAssign));
-                    }stor fejl kilde!!! hvad sker der med de resterende agents som havde noticeToFireFrom??? dette skal blive fanget tidligere!! da selv hvis man fyrede alle agents her, så ville det have fucket med jobQueue allerede
+                        foreach (NabfAgent agentToFire in noticeToFireFrom.GetAgentsOnJob())
+                        {
+                            _agentsFiredCounter++;
+                            agentToFire.Raise(new FiredFromJobEvent(noticeToFireFrom, agentToFire));
+                        }
+                        noticeToFireFrom.ClearAgentsOnJob();
+                    }
+                    //stor fejl kilde!!! hvad sker der med de resterende agents som havde noticeToFireFrom??? dette skal blive fanget tidligere!! da selv hvis man fyrede alle agents her, så ville det have fucket med jobQueue allerede
                     
 
 
 
-                    ---algo skal være således:
-                    find bedste job.
-                    fyr alle agents i de notices som agenter til bedste job kom fra
-                    repeat
+                    //---algo skal være således:
+                    //find det bedste job
+                    //fyr alle agents som får det bedste job i de notices de havde før
+                    //repeat
 
-                    ----brute force måden:
-                    fyr (direkte fire, altså fjern fra jobbet og send FiredFromJobEvent) alle agents i starten af hver runde. og find så jobs på ny.
 
 
 

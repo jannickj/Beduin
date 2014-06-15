@@ -163,7 +163,7 @@ namespace NabfTest.NewNoticeBoardModelTest
             Assert.AreEqual(agentsNeeded, nb.GetAllNotices().ToList()[0].AgentsNeeded);
             Assert.AreEqual(jobValue, nb.GetAllNotices().ToList()[0].Value);
 
-            bool updateSuccess = nb.UpdateNotice(0, whichNodesIsInvolvedInJob, whichNodesToStandOn, agentsNeededUpdated, jobValueUpdated, notNeededForOccupyJob);
+            bool updateSuccess = nb.UpdateNotice(1, whichNodesIsInvolvedInJob, whichNodesToStandOn, agentsNeededUpdated, jobValueUpdated, notNeededForOccupyJob);//id of first notice created
 
             Assert.True(updateSuccess);
             Assert.AreEqual(agentsNeededUpdated, nb.GetAllNotices().ToList()[0].AgentsNeeded);
@@ -204,7 +204,7 @@ namespace NabfTest.NewNoticeBoardModelTest
 
             Assert.AreEqual(1, nb.GetAllNotices().Count);
 
-            bool deleteSuccess = nb.DeleteNotice(0);
+            bool deleteSuccess = nb.DeleteNotice(1);//id of first notice created
 
             Assert.True(deleteSuccess);
             Assert.AreEqual(0, nb.GetAllNotices().Count);
@@ -226,7 +226,7 @@ namespace NabfTest.NewNoticeBoardModelTest
            
             Assert.AreEqual(1, nb.GetAllNotices().Count);
 
-            bool deleteSuccess = nb.DeleteNotice(1);//none-existing ID
+            bool deleteSuccess = nb.DeleteNotice(999);//none-existing ID
 
             Assert.False(deleteSuccess);
             Assert.AreEqual(1, nb.GetAllNotices().Count);
@@ -755,6 +755,8 @@ namespace NabfTest.NewNoticeBoardModelTest
             //mostAvgDesireNotice.Status = NoticeBoard.Status.unavailable;
             agent3.GotJobThisRound = true;
             agent4.GotJobThisRound = true;
+            agent3.IdOfLastJob = secondIdOf2AgentJob;
+            agent4.IdOfLastJob = secondIdOf2AgentJob;
             mostAvgDesireNotice.AddToAgentsOnJob(agent3);
             mostAvgDesireNotice.AddToAgentsOnJob(agent4);
 
@@ -807,6 +809,10 @@ namespace NabfTest.NewNoticeBoardModelTest
             Assert.True(agent2.GotJobThisRound);
             Assert.True(agent3.GotJobThisRound);
             Assert.True(agent4.GotJobThisRound);
+            Assert.AreEqual(-1, agent1.IdOfLastJob);
+            Assert.AreEqual(idOf1AgentJob, agent2.IdOfLastJob);
+            Assert.AreEqual(secondIdOf2AgentJob, agent3.IdOfLastJob);
+            Assert.AreEqual(secondIdOf2AgentJob, agent4.IdOfLastJob);
             //Assert.AreEqual(NoticeBoard.Status.unavailable, Notice1Agent.Status);
             //Assert.AreEqual(NoticeBoard.Status.available, Notice2Agents.Status);
             //Assert.AreEqual(NoticeBoard.Status.unavailable, SecondNotice2Agents.Status);
@@ -841,10 +847,10 @@ namespace NabfTest.NewNoticeBoardModelTest
             nb.CreateNotice(NoticeBoard.JobType.Occupy, 2, DontCareNodes2, DontCareNodes2, DontCareString, DontCareInt);
             nb.CreateNotice(NoticeBoard.JobType.Repair, 1, DontCareNodes, DontCareNodes, DontCareString, DontCareInt);
             nb.CreateNotice(NoticeBoard.JobType.Repair, 1, DontCareNodes2, DontCareNodes2, DontCareString2, DontCareInt);
-            ListOfKnownIDs.Add(0);
             ListOfKnownIDs.Add(1);
             ListOfKnownIDs.Add(2);
             ListOfKnownIDs.Add(3);
+            ListOfKnownIDs.Add(4);
         }
         #endregion
 
@@ -906,7 +912,7 @@ namespace NabfTest.NewNoticeBoardModelTest
             nb.Subscribe(agent3);
             nb.Subscribe(agent4);
 
-            Int64 idOfFirstJob = 0, idOfSecondJob;
+            Int64 idOfFirstJob = 1, idOfSecondJob;
             nb.CreateNotice(jobType, agentsNeeded, whichNodesIsInvolvedInJob, whichNodesToStandOn, notNeededForOccupyJob, jobValue);
             Assert.AreEqual(4, NewNoticeEventFiredCounter);
             nb.CreateNotice(jobType, agentsNeeded, whichNodesIsInvolvedInJob, whichNodesToStandOn, notNeededForOccupyJob, jobValue);
@@ -926,7 +932,7 @@ namespace NabfTest.NewNoticeBoardModelTest
             nb.CreateNotice(jobType, agentsNeeded, DontCareNodes, DontCareNodes, notNeededForOccupyJob, jobValue);
             Assert.AreEqual(8, NewNoticeEventFiredCounter);
 
-            idOfSecondJob = 3; //even if a job is rejected the ID counter is incremented, hence the ID of the second successfull job in this case is 3 as the id of the first is 0
+            idOfSecondJob = 4; //even if a job is rejected the ID counter is incremented, hence the ID of the second successfull job in this case is 4 instead of 2
             NameToNoticesNew.TryGetValues(agent3.Name, out noticesFromEvent);
             nb.TryGetNoticeById(idOfSecondJob, out noticeInternal);
             Assert.AreEqual(2, noticesFromEvent.Count);
@@ -1367,11 +1373,11 @@ namespace NabfTest.NewNoticeBoardModelTest
             nb.CreateNotice(NoticeBoard.JobType.Repair, 1, DontCareNodes, DontCareNodes, DontCareString, DontCareInt);
             nb.CreateNotice(NoticeBoard.JobType.Repair, 1, DontCareNodes2, DontCareNodes2, DontCareString2, DontCareInt);
             nb.CreateNotice(NoticeBoard.JobType.Occupy, 3, DontCareNodes3, DontCareNodes3, DontCareString2, DontCareInt);
-            ListOfKnownIDs.Add(0);
             ListOfKnownIDs.Add(1);
             ListOfKnownIDs.Add(2);
             ListOfKnownIDs.Add(3);
             ListOfKnownIDs.Add(4);
+            ListOfKnownIDs.Add(5);
         }
         private void SetUpTriggers()
         {

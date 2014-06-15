@@ -51,6 +51,23 @@ namespace NabfProject.NoticeBoardModel
         {
             _agentsOnJob.Clear();
         }
+        internal bool RemoveAgentFromJob(NabfAgent agentToRemove)
+        {
+            int indexToRemove = -1, indexCounter = 0;
+            foreach (NabfAgent a in _agentsOnJob)
+            {
+                if (a.Equals(agentToRemove))
+                {
+                    indexToRemove = indexCounter;
+                    break;
+                }
+                indexCounter++;
+            }
+            if (indexToRemove == -1)
+                return false;
+            _agentsOnJob.RemoveAt(indexToRemove);
+            return true;
+        }
         public List<NabfAgent> GetAgentsApplied()
         {
             return _agentsApplied.ToList();
@@ -103,7 +120,10 @@ namespace NabfProject.NoticeBoardModel
             {
                 a = _agentsApplied[i];
                 if (a.Name == agent.Name)
+                {
                     _agentsApplied.Remove(a);
+                    break;
+                }
             } 
 
             _agentsApplied.Add(agent);

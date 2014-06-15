@@ -313,7 +313,7 @@ namespace NabfProject.SimManager
                 Console.WriteLine("-------- Simulation " + simID + ", Round: " + _currentRoundNumber + " --------");
 
             nb.AssignJobs();
-            nb.ConsistencyChecker();
+            //nb.ConsistencyChecker();
 
             if (reporting)
             {
@@ -353,7 +353,7 @@ namespace NabfProject.SimManager
                         Console.WriteLine("WARNING! there is only " + km.GetSubscribedAgentsCount() + " agents connected to Knowledge Manager");
                     Console.WriteLine("  ");
                 }
-                if (_currentRoundNumber % 500 == 0 && _currentRoundNumber > 1)
+                if ((_currentRoundNumber % 300 == 0 || _currentRoundNumber % 400 == 0 || _currentRoundNumber % 500 == 0) && _currentRoundNumber > 1)
                 {
                     foreach (NabfAgent a in nb.GetSubscribedAgents())
                     {
@@ -365,10 +365,16 @@ namespace NabfProject.SimManager
                         //        Console.WriteLine(""+n.ToString());
                         //}
                         Console.WriteLine("Got jobs :");
-                        foreach (Notice n in nb.GetUnavailableNotices())
+                        foreach (Notice n in nb.GetAllNotices())
                         {
                             if (NoticeBoardHelpers.AgentListContainsAgent(n.GetAgentsOnJob(), a))
-                                Console.WriteLine("" + n.ToString());
+                            {
+                                Console.Write("" + n.ToString());
+                                if (n.AgentsNeeded > n.GetAgentsOnJob().Count)
+                                    Console.WriteLine(" but JOB WAS NOT FULL");
+                                else
+                                    Console.WriteLine("");
+                            }
                         }
                         Console.WriteLine("  ");
                     }
