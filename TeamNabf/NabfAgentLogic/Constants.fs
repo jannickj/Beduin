@@ -12,7 +12,7 @@
 
         //lower means distance between agent and job matters less
         let DISTANCE_TO_OCCUPY_JOB_MOD = 0.7
-        let DISTANCE_TO_REPAIR_JOB_MOD = 0.7
+        let DISTANCE_TO_REPAIR_JOB_MOD = 2.0
         let DISTANCE_TO_DISRUPT_JOB_MOD = 0.7
         let DISTANCE_TO_ATTACK_JOB_MOD = 0.7
 
@@ -42,6 +42,8 @@
         let REPAIRER_REPAIRJOB_MOD = 0.0
 
         let SPONTANOUS_REPAIR_PERCENTAGE = 0.50
+
+        let NODE_VALUE_TO_ORDER_ATTACK = 8
 
         ///////////////////////////////
         /// Other constants

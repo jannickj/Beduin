@@ -30,8 +30,14 @@ module Common =
         let personalValueMod = 1 |> float//if an agent has some kind of "personal" preference 
                                          //that modifies how much it desires the new job, using the input modifier 
         
+        let isEnabled =
+            if (s.Self.Status = EntityStatus.Disabled) then
+                0.0
+            else
+                1.0
+
         //final desire
-        int <| (((float newValue) * personalValueMod) - (float oldJobValue))    +     (-((float distanceToJob) * DISTANCE_TO_OCCUPY_JOB_MOD))    +    modifier
+        int <| (((((float newValue) * personalValueMod) - (float oldJobValue))   +    (-((float distanceToJob) * DISTANCE_TO_OCCUPY_JOB_MOD))   +    modifier) * isEnabled)
 
 
     //Try to find any repair jobs put up by the agent itself.
@@ -49,25 +55,6 @@ module Common =
             false
 
     ////////////////////////////////////////Logic////////////////////////////////////////////
-
-    //An agent always wants to have exactly one goal
-    let onlyOneJob (inputState:State) =
-        logStateInfo inputState Perception <| sprintf "My jobs are: %A" inputState.MyJobs
-        None
-//        if (inputState.MyJobs.Length > 1) then 
-//            Some(
-//                    "have at most 1 job"
-//                    , Communication
-//                    , [Plan(fun state -> 
-//                                            match state.MyJobs with
-//                                            | [] -> None
-//                                            | _ :: tail -> 
-//                                                Some <| List.map (fun (id,_) -> Communicate (UnapplyJob id)) tail                                       
-//                            )
-//                      ]
-//                )
-//        else
-//            None
 
     //Try to make it so the agent has explored one more node
     let exploreMap (inputState:State) = 
@@ -204,3 +191,28 @@ module Common =
                    ]
                  )
         | [] -> None
+
+
+    let postAttackJob (inputState:State) = 
+        let agentsICanSee = List.filter (fun a -> a.Node <> "") inputState.EnemyData
+        let agentsOnValuableNode = List.filter 
+                                            (fun a -> 
+                                                if (inputState.World.[a.Node].Value.IsSome) then
+                                                    inputState.World.[a.Node].Value >= Some NODE_VALUE_TO_ORDER_ATTACK
+                                                else
+                                                    false
+                                            ) 
+            
+                                            agentsICanSee
+
+        let shouldPostJob = agentsOnValuableNode.Length > 0
+        if (shouldPostJob) then
+            let node = agentsOnValuableNode.Head.Node
+            let nodeValue = inputState.World.[node].Value.Value
+            Some <| normalIntention 
+                    ( "post attack job on node " + node
+                     , Activity
+                     , [ Plan <| fun state -> Some [Communicate( CreateJob( (None,nodeValue,JobType.AttackJob,1),AttackJob([node]) ))]]
+                     )
+        else
+            None
