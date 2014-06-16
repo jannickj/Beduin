@@ -217,9 +217,12 @@ module Planning =
             | Some newPlan -> nextAction state intent newPlan
             | None -> None
 
-    let updateStateBeforePlanning state intention = 
-        match intention with
-        | (_, Activity, objective :: _) ->
+    let updateStateBeforePlanning initstate (intent:Intention) = 
+        let state = match intent.ChangeStateBefore with
+                    | Some stateFunc -> stateFunc initstate
+                    | None -> initstate
+        match (intent.Type, intent.Objectives) with
+        | ( Activity, objective :: _) ->
             match objective with
             | Requirement goal ->
                 match goalVertex goal state with
@@ -228,7 +231,10 @@ module Planning =
             | _ -> state
         | _ -> state
 
-    let updateStateOnSolutionFinished state intention solution = state
+    let updateStateOnSolutionFinished initstate (intention:Intention) solution = 
+        match intention.ChangeStateAfter with
+        | Some stateFunc -> stateFunc initstate
+        | None -> initstate
 
     type AgentPlanner() =
         class
@@ -265,9 +271,9 @@ module Planning =
                     action
 
                 member self.UpdateStateBeforePlanning (state, intent) = 
-                    let oldintent = (intent.Label,intent.Type,intent.Objectives)
+                    //let oldintent = (intent.Label,intent.Type,intent.Objectives)
                     let newState = 
-                        try updateStateBeforePlanning state oldintent with
+                        try updateStateBeforePlanning state intent with
                         | exn -> logStateError state Planning <| sprintf "Error encountered in updateStateBeforePlanning: %A at %A" exn.Message exn.TargetSite
                                  state
                     newState

@@ -206,19 +206,25 @@ namespace NabfClientApplication.Client
             StartSim(sMsg);
             currentLogic.HandlePercepts(sMsgPercepts);
 
-			RunThread(this.UpdateMarsReceiver);
-			RunThread(this.UpdateMarsSender);
+			RunThread(this.UpdateMarsReceiver,false);
+			RunThread(this.UpdateMarsSender,false);
 			OnStart();
 
         }
 
-		protected void RunThread(Action updater)
+		protected void RunThread(Action updater,bool closeProgram)
 		{
-			Thread thread = new Thread(new ThreadStart(() => { while (true) updater(); }));
+			Action run = () => 
+				{
+				while (true)
+					updater ();
+				};
+
+			Thread thread = new Thread(new ThreadStart(() => ExecuteThread(run,closeProgram)));
 			thread.Start();
 		}
 
-        private void ExecuteThread(Action action)
+        protected void ExecuteThread(Action action, bool closeOnCrash)
         {
             try
             {
@@ -227,7 +233,8 @@ namespace NabfClientApplication.Client
             catch (Exception e)
             {
 				Logging.log (DebugLevel.Critical, Logging.DebugFlag.Agent, e.Message + "\n" + e.StackTrace);
-                Environment.Exit(1); 
+                if(closeOnCrash)
+                    Environment.Exit(1); 
             }
         }
 
