@@ -47,6 +47,16 @@ namespace NabfProject.NoticeBoardModel
         {
             return this._agentsOnJob.ToList();
         }
+        public bool EnoughAvailableAgentsApplied()
+        {
+            int availableAgents = 0;
+            foreach (NabfAgent a in _agentsApplied)
+            {
+                if (a.GotJobThisRound == false)
+                    availableAgents++;
+            }
+            return availableAgents >= AgentsNeeded;
+        }
         public void ClearAgentsOnJob()
         {
             _agentsOnJob.Clear();

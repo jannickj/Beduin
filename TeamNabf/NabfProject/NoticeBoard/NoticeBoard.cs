@@ -246,7 +246,12 @@ namespace NabfProject.NoticeBoardModel
         {
             Notice notice, nextNotice;
             bool agentsAlsoAppearAsTopDesiresOnNextNotice = false, selfNoticeRemoved = false;
-            List<Int64> noticesToUnapplyFrom;            
+            List<Int64> noticesToUnapplyFrom;
+
+            foreach (NabfAgent a in _sharingList)
+            {
+                a.GotJobThisRound = false;
+            }
 
             Queue<Notice> jobQueue = CreateQueueSortedByAvgDesirability();
 
@@ -263,39 +268,92 @@ namespace NabfProject.NoticeBoardModel
                 agentsAlsoAppearAsTopDesiresOnNextNotice = false;
                 foreach (NabfAgent agent in notice.GetAgentsOnJob())
                 {
+                    agent.GotJobThisRound = true;
                     agent.Raise(new ReceivedJobEvent(notice, agent));
                     if (verbose)
                         Console.WriteLine("" + agent.Name + " got " + notice.ToString());
 
-                    #region checks if queue needs re-ordering
-                    if (jobQueue.Count > 0)
-                    {
-                        nextNotice = jobQueue.Peek();
-                        if (nextNotice.GetAgentProspects().Contains<NabfAgent>(agent))
-                            agentsAlsoAppearAsTopDesiresOnNextNotice = true;
-                    }
-                    #endregion
+                    //#region checks if queue needs re-ordering
+                    //if (jobQueue.Count > 0)
+                    //{
+                    //    nextNotice = jobQueue.Peek();
+                    //    if (nextNotice.GetAgentProspects().Contains<NabfAgent>(agent))
+                    //        agentsAlsoAppearAsTopDesiresOnNextNotice = true;
+                    //}
+                    //#endregion
 
-                    noticesToUnapplyFrom = _agentToAppliedNotices[agent.Name].ToList();
-                    selfNoticeRemoved = noticesToUnapplyFrom.Remove(notice.Id);
+                    //noticesToUnapplyFrom = _agentToAppliedNotices[agent.Name].ToList();
+                    //selfNoticeRemoved = noticesToUnapplyFrom.Remove(notice.Id);
                     //if (selfNoticeRemoved)
                     //{
-                        foreach (Int64 noticeId in noticesToUnapplyFrom)
+                        foreach (Notice noticeToFireFrom in GetAllNotices())
                         {
-                            UnapplyToNotice(agent, noticeId);
+                            if (AgentListContainsAgent(noticeToFireFrom.GetAgentsOnJob(), agent) && noticeToFireFrom.Id != notice.Id)
+                                FireAllAgentsOnNotice(noticeToFireFrom);
+                            //UnapplyToNotice(agent, noticeId);
                         }
                     //}
                 }
-
-                #region re-orders the queue if needed
-                if (agentsAlsoAppearAsTopDesiresOnNextNotice)
-                {
-                    jobQueue = CreateQueueSortedByAvgDesirability();
-                }
-                #endregion
+                jobQueue = CreateQueueSortedByAvgDesirability();
+                //#region re-orders the queue if needed
+                //if (agentsAlsoAppearAsTopDesiresOnNextNotice)
+                //{
+                //    jobQueue = CreateQueueSortedByAvgDesirability();
+                //}
+                //#endregion
             }
             //Console.WriteLine("ending AssignJob");
+            foreach(Notice n in GetAllNotices())
+            {
+                foreach(NabfAgent a in _sharingList)
+                {
+                    if (AgentListContainsAgent(n.GetAgentsOnJob(), a))
+                        continue;
+                    else
+                    {
+                        a.Raise(new FiredFromJobEvent(n, a));
+                    }
+                }
+            }
+            //gør så alle agents modtager firedFromJob til alle notices som de ikke har
+            HashSet<string> nameChecking = new HashSet<string>();
+            bool b;
+            foreach (Notice n in GetAllNotices())
+            {
+                if (n.GetAgentsOnJob().Count > n.AgentsNeeded)
+                {
+                    Console.WriteLine("job with ID " + n.Id + " has more agents on job than agents needed");
+                    Console.WriteLine("job with ID " + n.Id + " has more agents on job than agents needed");
+                    Console.WriteLine("job with ID " + n.Id + " has more agents on job than agents needed");
+                    Console.WriteLine("job with ID " + n.Id + " has more agents on job than agents needed");
+                    Console.WriteLine("job with ID " + n.Id + " has more agents on job than agents needed");
+                }
+
+                foreach (NabfAgent a in n.GetAgentsOnJob())
+                {
+                    b = nameChecking.Add(a.Name);
+                    if (b == false)
+                    {
+                        Console.WriteLine("" + a.Name + " is in multiple OnJob lists");
+                        Console.WriteLine("" + a.Name + " is in multiple OnJob lists");
+                        Console.WriteLine("" + a.Name + " is in multiple OnJob lists");
+                        Console.WriteLine("" + a.Name + " is in multiple OnJob lists");
+                        Console.WriteLine("" + a.Name + " is in multiple OnJob lists");
+                        Console.WriteLine("" + a.Name + " is in multiple OnJob lists");
+                        Console.WriteLine("" + a.Name + " is in multiple OnJob lists");
+                    }
+                }
+            }
             return true;
+        }
+        private void FireAllAgentsOnNotice(Notice noticeToFireFrom)
+        {
+            foreach (NabfAgent a in noticeToFireFrom.GetAgentsOnJob())
+            {
+                a.Raise(new FiredFromJobEvent(noticeToFireFrom, a));
+            }
+            noticeToFireFrom.Status = Status.available;
+            noticeToFireFrom.ClearAgentsOnJob();
         }
 
         //Creates a queue of jobs, sorted after average desirability, which has AgentsApplied >= AgentsNeeded. 
@@ -316,7 +374,7 @@ namespace NabfProject.NoticeBoardModel
 
             foreach (Notice notice in GetAllNotices())
             {
-                if (notice.GetAgentsApplied().Count >= notice.AgentsNeeded && notice.Status == Status.available)
+                if (notice.EnoughAvailableAgentsApplied() && notice.Status == Status.available)
                 {
                     noticeList.Add(new KeyValuePair<double, Notice>(CalculateAverageDesireForTopContenders(notice, out namesOfTopContenders), notice));
                     notice.AddRangeToAgentProspects(namesOfTopContenders);
@@ -343,6 +401,8 @@ namespace NabfProject.NoticeBoardModel
 
             foreach (NabfAgent agent in notice.GetAgentsApplied())
             {
+                if (agent.GotJobThisRound)
+                    continue;
                 desireFound = notice.TryGetDesirabilityOfAgent(agent, out desire);
                 if (desireFound)
                 {
