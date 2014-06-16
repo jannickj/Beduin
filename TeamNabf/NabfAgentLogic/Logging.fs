@@ -19,11 +19,12 @@ module Logging =
         | Agent
 
     let allowFlags = 
-        [ Planning
-        ; ActionSpecifications
-        ; Intentions
-        ; Perception
-        ; Agent
+        [ 
+            Planning
+            ActionSpecifications
+            Intentions
+            Perception
+            Agent
         ] |> Set.ofList
 
     let logger = new Logger (sw, debugLevel);

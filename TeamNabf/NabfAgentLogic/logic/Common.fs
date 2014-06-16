@@ -52,7 +52,7 @@ module Common =
 
     //An agent always wants to have exactly one goal
     let onlyOneJob (inputState:State) =
-        logImportant <| sprintf "My jobs are: %A" inputState.MyJobs
+        logStateInfo inputState Perception <| sprintf "My jobs are: %A" inputState.MyJobs
         None
 //        if (inputState.MyJobs.Length > 1) then 
 //            Some(

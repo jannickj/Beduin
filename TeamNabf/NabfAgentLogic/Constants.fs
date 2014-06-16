@@ -5,10 +5,10 @@
         /// Agent constants
         ///////////////////////////////
         let STEPS_BEFORE_ROLE_DONT_MATTER_DISRUPT_TIER0 = 0.0
-        let STEPS_BEFORE_ROLE_DONT_MATTER_DISRUPT_TIER1 = 20.0
-        let STEPS_BEFORE_ROLE_DONT_MATTER_DISRUPT_TIER2 = 30.0
-        let STEPS_BEFORE_ROLE_DONT_MATTER_OCCUPY_TIER1 = 50.0
-        let STEPS_BEFORE_ROLE_DONT_MATTER_OCCUPY_TIER2 = 70.0
+        let STEPS_BEFORE_ROLE_DONT_MATTER_DISRUPT_TIER1 = 7.0
+        let STEPS_BEFORE_ROLE_DONT_MATTER_DISRUPT_TIER2 = 10.0
+        let STEPS_BEFORE_ROLE_DONT_MATTER_OCCUPY_TIER1 = 5.0
+        let STEPS_BEFORE_ROLE_DONT_MATTER_OCCUPY_TIER2 = 10.0
 
         //lower means distance between agent and job matters less
         let DISTANCE_TO_OCCUPY_JOB_MOD = 0.7

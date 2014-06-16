@@ -203,7 +203,7 @@ module HandlePercepts =
                         state
 
                 | FiredFrom jobID -> 
-                    logInfo <| sprintf "received fired from job with id %A" jobID
+                    logStateInfo state Perception <| sprintf "received fired from job with id %A" jobID
                     let existingJobRemoved = removeMyJob jobID
 
                     { state with MyJobs =  existingJobRemoved }
