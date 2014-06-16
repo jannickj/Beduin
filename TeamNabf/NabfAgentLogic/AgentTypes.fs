@@ -4,6 +4,7 @@ module AgentTypes =
 
     open Graphing.Graph
     open Constants
+    open Logging
 
     type TeamName = string
     type AgentName = string 
@@ -286,3 +287,12 @@ module AgentTypes =
             ChangeStateAfter : (State ->  State) option
             ChangeStateBefore : (State -> State) option
         }
+
+    let statePrefix state = 
+        sprintf "(%A): %A @ %A" state.SimulationStep state.Self.Name state.Self.Node
+
+    let logStateCritical state = logPrefixCritical (statePrefix state)
+    let logStateError state = logPrefixError (statePrefix state)
+    let logStateImportant state = logPrefixImportant (statePrefix state)
+    let logStateWarning state = logPrefixWarning (statePrefix state)
+    let logStateInfo state = logPrefixInfo (statePrefix state)

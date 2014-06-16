@@ -215,7 +215,9 @@ module HandlePercepts =
                 {state with GraphHeuristic = (Map.add (n1,n2) dist heuMap,countMap)}
             | MailPercept mail ->
                 { state with MailsReceived = mail::state.MailsReceived }
-            | unhandled -> logError (sprintf "Unhandled percept: %A" unhandled) 
+            | unhandled -> 
+                logStateError state Perception (sprintf "Unhandled percept: %A" unhandled) 
+                state
 
             | CommucationSent cs -> 
                 match cs with
