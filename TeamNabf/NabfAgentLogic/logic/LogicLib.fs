@@ -42,11 +42,7 @@ module LogicLib =
         List.append (getNeighbourIds self.Node state.World) [self.Node]
 
     let nearbyEnemies state source = 
-        List.filter (fun a -> nodeListContains a.Node (neighbourNodes state source)) state.EnemyData 
-        
-    let checkIfEnemyOnNode state node =
-        let agentlist = List.filter (fun a -> a.Node = node) state.EnemyData
-        agentlist.Length >= 1
+        List.filter (fun a -> nodeListContains a.Node (neighbourNodes state source)) state.EnemyData        
         
     let nearbyAllies state = 
         List.filter (fun a -> nodeListContains a.Node (neighbourNodes state state.Self)) state.FriendlyData 
@@ -229,3 +225,7 @@ module LogicLib =
             true
         else //more than 1 is standing on the node, including myself, so don't want
             false
+
+            
+    let nodeHasEnemyAgent (state:State) node =
+        List.exists (fun a -> a.Node = node && a.Status = EntityStatus.Normal) state.EnemyData

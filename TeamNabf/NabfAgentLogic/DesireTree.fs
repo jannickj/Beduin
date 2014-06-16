@@ -47,15 +47,14 @@ module DesireTree =
     //                                )
     //                            )
                         Desire(shareKnowledge)
-                        Desire(onlyOneJob)
     //
     //                    ////Desire(postDefenceJob)
     //
-    //                    ////Desire(postAttackJob)
-    //
-                        Desire(getRepaired)
+                        Desire(postAttackJob)
     //
     //                    ////Desire(postDisruptJob)
+    //
+                        Desire(getRepaired)
     //
                         getRoleDesires
     //

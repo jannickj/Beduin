@@ -19,19 +19,27 @@ module Saboteur =
         let jobTargetNode = 
             match jobData with
             | AttackJob (zone) -> zone.Head
+            | _ -> "None"
         
+        if jobTargetNode = "None" then
+            -1
+        else
 
-        let distanceToJob = (distanceBetweenAgentAndNode jobTargetNode s)
+            let distanceToJob = (distanceBetweenAgentAndNode jobTargetNode s)
         
-        let personalValueMod = 1 |> float//if an agent has some kind of "personal" preference 
-                                         //that modifies how much it desires the new job, using the input modifier 
+            let personalValueMod = 1 |> float//if an agent has some kind of "personal" preference 
+                                                //that modifies how much it desires the new job, using the input modifier 
         
-        //final desire
-        int <| (((float newValue) * personalValueMod) - (float oldJobValue))    +     (-((float distanceToJob) * DISTANCE_TO_ATTACK_JOB_MOD))    +    SABOTEUR_ATTACKJOB_MOD
+             
+            let isEnabled =
+                if (s.Self.Status = EntityStatus.Disabled) then
+                    0.0
+                else
+                    1.0
 
+            //final desire
+            int <| (((((float newValue) * personalValueMod) - (float oldJobValue))   +    (-((float distanceToJob) * DISTANCE_TO_ATTACK_JOB_MOD))) * isEnabled)
 
-    let nodeHasEnemyAgent (state:State) node =
-        List.exists (fun a -> a.Node = node && a.Status = EntityStatus.Normal) state.EnemyData
 
     ////////////////////////////////////////Logic////////////////////////////////////////////
 
