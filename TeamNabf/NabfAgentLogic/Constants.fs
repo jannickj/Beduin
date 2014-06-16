@@ -67,7 +67,7 @@
        
         let OUR_TEAM = "Nabf"
         let EXPLORE_FACTOR_LIGHT = 0.7
-        let MAX_PLANNING_TIME_MS = 1000L
+        let MAX_PLANNING_TIME_MS = 100000000000000L
 
         let NUMBER_OF_AGENTS = 28
         let INFINITE_HEURISTIC = 10000
