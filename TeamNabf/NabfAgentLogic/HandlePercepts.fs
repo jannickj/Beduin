@@ -163,13 +163,8 @@ module HandlePercepts =
                         match header with
                         | (jobID, _, _, _) -> jobID
 
-                let removeJob jobHeader = 
-                    let removeId = jobIDFromHeader jobHeader
-                    let hasId = ((=)removeId.Value)
-                    if  List.exists hasId <| List.map (fst) state.MyJobs then
-                        state.Jobs
-                    else
-                        List.filter (fun (existingJobHeader, _) -> not(jobIDFromHeader existingJobHeader = jobIDFromHeader jobHeader)) state.Jobs
+                let removeJob jobHeader = List.filter (fun (existingJobHeader, _) -> 
+                            not(jobIDFromHeader existingJobHeader = jobIDFromHeader jobHeader)) state.Jobs
 
                 let removeMyJob jobID = List.filter (fun (existingJobID, _) -> 
                             not(existingJobID = jobID)) state.MyJobs

@@ -44,8 +44,8 @@ module Saboteur =
             )
 
     let spontanouslyAttackAgentOnMyNode (inputState:State) = 
-        let enemiesNearby = List.filter (fun a -> a.Node = inputState.Self.Node) inputState.EnemyData
-        match enemiesNearby with
+        let ableEnemiesNearby = List.filter (fun a -> a.Node = inputState.Self.Node && a.Status = Normal) inputState.EnemyData
+        match ableEnemiesNearby with
         | [] -> None
         | head::tail ->     
             Some <| normalIntention (
