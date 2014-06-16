@@ -43,7 +43,7 @@
 
         let SPONTANOUS_REPAIR_PERCENTAGE = 0.50
 
-        let NODE_VALUE_TO_ORDER_ATTACK = 8
+        let MIN_NODE_VALUE_TO_POST_ATTACK = 8
 
         ///////////////////////////////
         /// Other constants

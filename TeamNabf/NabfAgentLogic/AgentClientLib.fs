@@ -58,4 +58,5 @@ module AgentClientLib =
             ;   PlannerInspectedEnemies = Set.empty
             ;   PlannerDisabledEnemies = Set.empty
             ;   GraphHeuristic = (Map.empty,Map.empty)
+            ;   NodesControlledByEnemy = Set.empty
             } : State

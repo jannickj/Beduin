@@ -212,6 +212,7 @@ module AgentTypes =
             MyExploredCount  : int
             ProbedCount      : int
             GraphHeuristic   : (Map<VertexName*VertexName, (int*int)>* Map<VertexName,int>)
+            NodesControlledByEnemy : VertexName Set
 
             ///USED FOR PLANNING ONLY DONT USE THEM IN INTENTION CHECKS
             PlannerProbed          : VertexName Set

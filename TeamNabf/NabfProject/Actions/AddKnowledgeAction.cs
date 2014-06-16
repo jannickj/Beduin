@@ -13,19 +13,24 @@ namespace NabfProject.Actions
     public class AddKnowledgeAction : EntityXmasAction<NabfAgent>
     {
         private int SimId;
-        private List<Knowledge> SentKnowledge;
+        private List<Knowledge> _sentKnowledge;
+
+        public List<Knowledge> SentKnowledge
+        {
+            get { return _sentKnowledge; }
+        }
 
         public AddKnowledgeAction(int simID, List<Knowledge> sentKnowledge)
         {
             SimId = simID;
-            SentKnowledge = sentKnowledge;
+            _sentKnowledge = sentKnowledge;
         }
 
         protected override void Execute()
         {
             SimulationManager simMan = ((NabfModel)this.Engine).SimulationManager;
 
-            simMan.SendKnowledge(SimId, SentKnowledge, this.Source);
+            simMan.SendKnowledge(SimId, _sentKnowledge, this.Source);
         }
     }
 }

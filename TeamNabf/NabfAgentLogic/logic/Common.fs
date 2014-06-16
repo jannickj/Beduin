@@ -153,17 +153,17 @@ module Common =
 //                                                Set.add p ps) ss s.NewKnowledge
 //                                    ()
 //                                    )               
-            Some<| normalIntention 
-                    (   "share my knowledge", 
-                        Communication, 
-                        [Plan   ( fun state -> 
-                                    if (state.NewKnowledge.Length > 0) then
-                                        Some [(Communicate <| ShareKnowledge ( state.NewKnowledge))] 
-                                    else
-                                        None
-                                )
-                        ]
-                    )
+        Some<| normalIntention 
+                (   "share my knowledge", 
+                    Communication, 
+                    [Plan   ( fun state -> 
+                                if (state.NewKnowledge.Length > 0) then
+                                    Some [(Communicate <| ShareKnowledge ( state.NewKnowledge))] 
+                                else
+                                    None
+                            )
+                    ]
+                )
          
     
     
@@ -194,25 +194,47 @@ module Common =
 
 
     let postAttackJob (inputState:State) = 
-        let agentsICanSee = List.filter (fun a -> a.Node <> "") inputState.EnemyData
+        let agentsICanSee = List.filter (fun a -> a.Node <> "" && a.Status = EntityStatus.Normal) inputState.EnemyData
         let agentsOnValuableNode = List.filter 
                                             (fun a -> 
-                                                if (inputState.World.[a.Node].Value.IsSome) then
-                                                    inputState.World.[a.Node].Value >= Some NODE_VALUE_TO_ORDER_ATTACK
-                                                else
-                                                    false
-                                            ) 
-            
+                                                inputState.World.[a.Node].Value.IsSome
+                                                && 
+                                                inputState.World.[a.Node].Value >= Some MIN_NODE_VALUE_TO_POST_ATTACK
+                                            )             
                                             agentsICanSee
 
-        let shouldPostJob = agentsOnValuableNode.Length > 0
-        if (shouldPostJob) then
-            let node = agentsOnValuableNode.Head.Node
-            let nodeValue = inputState.World.[node].Value.Value
-            Some <| normalIntention 
-                    ( "post attack job on node " + node
-                     , Activity
-                     , [ Plan <| fun state -> Some [Communicate( CreateJob( (None,nodeValue,JobType.AttackJob,1),AttackJob([node]) ))]]
-                     )
+        let valuableEnemyControlledNodes = Set.filter (fun n -> 
+                                                            inputState.World.[n].Value.IsSome
+                                                            && 
+                                                            inputState.World.[n].Value >= Some MIN_NODE_VALUE_TO_POST_ATTACK
+                                                       ) 
+                                                       inputState.NodesControlledByEnemy
+
+        let agentTargetExists = agentsOnValuableNode.Length > 0 
+        let nodeTargetExists = valuableEnemyControlledNodes.Count > 0
+        if (agentTargetExists || nodeTargetExists) then            
+            let node = 
+                if (agentTargetExists) then
+                    (List.maxBy (fun a -> inputState.World.[a.Node].Value) agentsOnValuableNode).Node
+                else
+                    List.maxBy (fun vertexName -> inputState.World.[vertexName].Value) (Set.toList valuableEnemyControlledNodes)
+
+            let jobExists = (List.filter 
+                                (fun (_,jobtype) -> 
+                                    match jobtype with
+                                    | AttackJob vertexList -> vertexList.Head = node                                         
+                                    | _ -> false
+                                ) 
+
+                                inputState.Jobs).Length > 0
+            if (jobExists) then
+                None
+            else
+                let nodeValue = inputState.World.[node].Value.Value
+                Some <| normalIntention 
+                        ( "post attack job on node " + node
+                         , Activity
+                         , [ Plan <| fun state -> Some [Communicate( CreateJob( (None,nodeValue,JobType.AttackJob,1),AttackJob([node]) ))]]
+                         )
         else
             None

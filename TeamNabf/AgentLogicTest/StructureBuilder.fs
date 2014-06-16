@@ -62,6 +62,7 @@ module StructureBuilder =
             ;   PlannerInspectedEnemies = Set.empty
             ;   PlannerDisabledEnemies = Set.empty
             ;   GraphHeuristic = (Map.empty<string*string, _>,Map.empty)
+            ;   NodesControlledByEnemy = Set.empty
             } : State
 
     let buildState node role world = buildStateWithEnergy node role world 30 

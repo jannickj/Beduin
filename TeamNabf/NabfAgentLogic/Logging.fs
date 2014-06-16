@@ -21,9 +21,9 @@ module Logging =
     let allowFlags = 
         [ 
             Planning
-//            ActionSpecifications
-//            Intentions
-//            Perception
+            ActionSpecifications
+            Intentions
+            Perception
             Agent
         ] |> Set.ofList
 

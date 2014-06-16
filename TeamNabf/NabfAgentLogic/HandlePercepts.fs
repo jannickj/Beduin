@@ -65,8 +65,12 @@ module HandlePercepts =
             
             | EnemySeen _ -> state
                 
-            | VertexSeen seenVertex -> 
-                { state with NewVertices = seenVertex::state.NewVertices} 
+            | VertexSeen seenVertex ->
+                let seenState = { state with NewVertices = seenVertex::state.NewVertices }
+                match seenVertex with
+                | (nodeName,team) when team.IsSome && team.Value <> OUR_TEAM -> 
+                    { seenState with NodesControlledByEnemy = Set.add nodeName seenState.NodesControlledByEnemy }
+                | _ -> seenState
 
             | VertexProbed (name, value) ->
                 { state with 
@@ -235,6 +239,7 @@ module HandlePercepts =
             NewEdges = []
             NewVertices = []
             EnemyData = newEnemyData
+            NodesControlledByEnemy = Set.empty
         }
 
     let updateTraversedEdgeCost (oldState : State) (newState : State) =
@@ -309,7 +314,7 @@ module HandlePercepts =
                     false
             else
                 true
-        | VertexSeen (vertexName, ownedBy) -> not (oldState.World.ContainsKey vertexName )
+        | VertexSeen (vertexName, ownedBy) -> not (oldState.World.ContainsKey vertexName ) 
         | EdgeSeen (edgeValue, node1, node2) ->
             if oldState.World.ContainsKey(node1) then
                 let edge = Set.filter (fun (_, endNode) -> endNode = node2) oldState.World.[node1].Edges
