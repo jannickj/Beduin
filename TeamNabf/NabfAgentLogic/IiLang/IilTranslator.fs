@@ -3,6 +3,7 @@ namespace NabfAgentLogic.IiLang
         open Graphing.Graph
         open IiLangDefinitions
         open NabfAgentLogic.AgentTypes
+        open NabfAgentLogic.Logging
 
         exception InvalidIilException of string * (Element list)
             with 
@@ -373,6 +374,7 @@ namespace NabfAgentLogic.IiLang
                     let [Percept ("noticeId", [Numeral rjobid]); Percept ("whichNodeNameToGoTo", [Identifier nodename])] = tail
                     AgentServerMessage <| (JobMessage <| (AcceptedJob <| ((int rjobid),nodename)))
                 | "firedFromJob" ->
+                    logError <| sprintf "parsed fired from job"
                     let [Percept ("noticeId", [Numeral jobId])] = tail
                     AgentServerMessage <| (JobMessage <| (FiredFrom (int jobId)))
                 | unknown ->  raise <| InvalidIilException ("iilServerMessage: "+unknown, data)

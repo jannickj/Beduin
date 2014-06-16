@@ -363,7 +363,8 @@ namespace NabfProject.SimManager
                         //        Console.WriteLine(""+n.ToString());
                         //}
                         Console.WriteLine("Got jobs :");
-                        foreach (Notice n in nb.GetUnavailableNotices())
+                        //foreach (Notice n in nb.GetUnavailableNotices())
+                        foreach (Notice n in nb.GetAllNotices())
                         {
                             if (NoticeBoardHelpers.AgentListContainsAgent(n.GetAgentsOnJob(), a))
                                 Console.WriteLine("" + n.ToString());
