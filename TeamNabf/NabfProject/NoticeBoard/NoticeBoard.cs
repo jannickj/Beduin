@@ -382,7 +382,7 @@ namespace NabfProject.NoticeBoardModel
                     notice.AddRangeToAgentProspects(namesOfTopContenders);
                 }
             }
-
+		
             noticeList.Sort(new KvpKeyInvertedComparer<double, Notice>());
 
             for (int i = 0; i < noticeList.Count; i++)
