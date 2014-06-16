@@ -21,13 +21,13 @@ module Saboteur =
             | AttackJob (zone) -> zone.Head
         
 
-        let distanceToJob = (getDistanceToJobAndNumberOfEnemyNodes jobTargetNode s)
+        let distanceToJob = (distanceBetweenAgentAndNode jobTargetNode s)
         
         let personalValueMod = 1 |> float//if an agent has some kind of "personal" preference 
                                          //that modifies how much it desires the new job, using the input modifier 
         
         //final desire
-        int <| (((float newValue) * personalValueMod) - (float oldJobValue))    +     (-(distanceToJob * DISTANCE_TO_ATTACK_JOB_MOD))    +    SABOTEUR_ATTACKJOB_MOD
+        int <| (((float newValue) * personalValueMod) - (float oldJobValue))    +     (-((float distanceToJob) * DISTANCE_TO_ATTACK_JOB_MOD))    +    SABOTEUR_ATTACKJOB_MOD
 
 
     let nodeHasEnemyAgent (state:State) node =
@@ -37,18 +37,18 @@ module Saboteur =
 
     let applyToAttackJob (inputState:State) = 
         let applicationList = createApplicationList inputState JobType.AttackJob calculateDesireAttackJob
-        Some(
+        Some <| normalIntention (
                 "apply to all attack jobs"
                 , Communication
                 , [Plan(fun state -> Some applicationList)]
             )
 
     let spontanouslyAttackAgentOnMyNode (inputState:State) = 
-        let enemiesNearby = List.filter (fun a -> a.Node = inputState.Self.Node) inputState.EnemyData
-        match enemiesNearby with
+        let ableEnemiesNearby = List.filter (fun a -> a.Node = inputState.Self.Node && a.Status = Normal) inputState.EnemyData
+        match ableEnemiesNearby with
         | [] -> None
         | head::tail ->     
-            Some(
+            Some <| normalIntention (
                     "attack agent " + head.Name
                     , Activity
                     , [Requirement <| Attacked head.Name]
@@ -60,7 +60,7 @@ module Saboteur =
         match myAttackJobs with
         | ((Some id,_,_,_),_)::_ -> 
             let (_,node) = List.find (fun (jid,_) -> id = jid) inputState.MyJobs
-            Some
+            Some <| normalIntention 
                 (   "attack agent on node " + node
                 ,   Activity
                 ,   [ Requirement <| At node 
@@ -74,7 +74,7 @@ module Saboteur =
         match enemiesNearby with
         | [] -> None
         | head::tail ->     
-            Some(
+            Some <| normalIntention (
                     "attack agent " + head.Name
                     , Activity
                     , [Requirement (Attacked head.Name)] 
@@ -92,14 +92,16 @@ module Saboteur =
                                 neighbourIds
                             else
                                 List.filter ((<>) inputState.LastPosition) neighbourIds
+        let (unExplored,explored) = List.partition (fun name -> isUnexplored inputState name) neighbours
         let rand = System.Random()
-        let index = rand.Next(0, List.length neighbours)
-        let target = List.nth neighbours index
-        Some
-            (   "go to node " + target
-            ,   Activity
-            ,   [
-                    Requirement <| At target
-                ]
-            )
+        if not unExplored.IsEmpty
+        then
+            let index = rand.Next(0, List.length unExplored)
+            let target = List.nth unExplored index
+            Some <| normalIntention ( "go to node " + target, Activity, [ Requirement <| At target ] )
+        else
+            let index = rand.Next(0, List.length explored)
+            let target = List.nth explored index
+            Some <| normalIntention ( "go to node " + target, Activity, [ Requirement <| At target ] )
+        
 

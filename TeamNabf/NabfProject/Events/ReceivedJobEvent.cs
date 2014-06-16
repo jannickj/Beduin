@@ -21,8 +21,8 @@ namespace NabfProject.Events
 
 		public override string ToString()
 		{
-            int desire;
-            if (Notice.TryGetValueAgentToDesirabilityMap(Receiver, out desire))
+            double desire;
+            if (Notice.TryGetDesirabilityOfAgent(Receiver, out desire))
                 return "Recieved job: " + Notice.GetType().Name + " " + Notice.Id + " desire: " + desire;
             else
                 return "Recieved job: " + Notice.GetType().Name + " " + Notice.Id;

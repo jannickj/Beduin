@@ -121,6 +121,13 @@ namespace NabfServerApplication
                         //Console.SetCursorPosition(15, consolepos[agent] * 2 + agentoffset);
                         Console.WriteLine(message);
 
+                        var meh = evt.Action.Exception.InnerException;
+                        while (meh != null)
+                        {
+                            Console.WriteLine("Message of inner exception: "+meh.Message+". Stack trace: "+meh.StackTrace);
+                            meh = meh.InnerException;
+                        }
+
                     }));
                 
                 //agent.Register(new Trigger<NewKnowledgeEvent>(evt => SendMessage(agent, evt)));

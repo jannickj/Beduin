@@ -10,11 +10,10 @@ module Planning =
     open Constants
     open GoalSpecifications
     open System.Diagnostics
+    open NabfAgentLogic.Search.HeuristicDijkstra
+    open GeneralLib
 
     type Plan = (ActionSpecification list) * (Objective list)
-    let test = 1
-    let flip f x y = f y x
-    let snd3 (_, a, _) = a 
 
     // Transforms objectives into a normalized form of State -> (Goal list)
     let goalFunc objective = 
@@ -27,7 +26,7 @@ module Planning =
 
     let wrappedGoalTest goalTest state = 
         try goalTest state with
-        | ex -> logError <| sprintf "goal test: %A \nfailed with:\n %A" goalTest ex
+        | ex -> logStateError state Planning <| sprintf "goal test: %A \nfailed with:\n %A" goalTest ex
                 false
 
     let distance (goals : Goal list) state cost =
@@ -45,34 +44,23 @@ module Planning =
         (unSatisfiedGoalCount goals state, cost + distance goals state cost)
     
     let goalTest goals state = 
-        List.forall (fun goal -> generateGoalCondition goal state) goals
+        List.forall (fun goal -> (generateGoalCondition goal) state) goals
+
+    let applicableActions goals state =
+        let actions = Set.ofList <| List.collect (availableActions state) goals
+        let appActs = Set.filter (isApplicable state) actions
+        Set.toList appActs
 
     let agentProblem (state : State) goals = 
         let headGoal = List.head goals
 
         { InitialState = state
         ; GoalTest     = wrappedGoalTest <| goalTest goals
-        ; Actions      = fun state -> List.filter (isApplicable state) (availableActions headGoal state)
+        ; Actions      = applicableActions goals
         ; Result       = fun state action -> action.Effect state
         ; StepCost     = fun state action -> action.Cost state
         ; Heuristic    = h goals
         }
-
-    let rec prunePlanHelper path goals =
-        let gC searchnode = unSatisfiedGoalCount goals searchnode.State
-        match path with
-        | searchNode1 :: searchNode2 :: tail when gC searchNode1 < gC searchNode2 ->
-            List.rev <| searchNode2 :: tail
-        | sn1 :: sn2 :: tail -> prunePlanHelper (sn2 :: tail) goals
-        | [sn] -> [sn]
-        | [] -> []
-
-    let prunePlan plan goals = 
-        match plan with
-        | Some {Cost = _; Path = path} -> 
-            match path with
-            | _ -> Some <| prunePlanHelper (List.rev path) goals
-        | None -> None
 
     let makePlan initstate objectives =
         let state = { initstate with LastAction = Skip }
@@ -92,174 +80,210 @@ module Planning =
                 not <| List.forall (fun node -> satisfiedGoalCount (goalList goalObjective node.State) node.State = 0) path
 
             match plan with
-            | Some {Cost = _; Path = []} -> Some ([], objectives)
+            | Some {Cost = _; Path = []} -> 
+                logStateImportant state Planning <| sprintf "Found empty plan for goals %A" goals
+                Some ([], objectives)
             | Some {Cost = _; Path = path} when isSomePathValid path -> 
                 let actions = List.map (fun node -> node.Action.Value) path
-                logImportant (sprintf "Found plan: %A" <| List.map (fun action -> action.ActionType) actions)
+                logStateImportant state Planning (sprintf "Found plan: %A" <| List.map (fun action -> action.ActionType) actions)
                 Some (actions, objectives)
             | Some {Cost = _; Path = path} ->
                 let actions = List.map (fun node -> node.Action.Value) path
-                logImportant <| sprintf " Discarded plan %A with objective %A" (List.map (fun action -> action.ActionType) actions) goalObjective
+                logStateImportant state Planning <| sprintf "Discarded plan %A" (List.map (fun action -> action.ActionType) actions) //with objective %A" goalObjective
+                None
+            | None ->
+                logStateImportant state Planning <| sprintf "No plan found for intention %A" goalObjective
+                None
+        | [] -> Some ([], [])
+
+    let repairPlan (state : State) intent (originalPlan : Plan) = 
+//        logImportant <| sprintf "Node: %A (%A)" state.Self.Node state.LastPosition
+//        logImportant <| sprintf "last action: %A (%A)" state.LastAction state.LastActionResult
+        match state.LastActionResult with
+        | Successful | FailedRandom -> ()
+        | err -> logStateError state Planning <| sprintf "Last action result was %A, trying to repair plan anyway" err
+
+        let tmpPlan = 
+            match originalPlan with
+            | (action :: tail, objectives) when state.LastActionResult <> FailedRandom || action = skipAction -> 
+                (tail, objectives)
+            | (action :: _, _) ->
+                originalPlan
+            | ([], _) -> originalPlan
+
+        let plan = 
+            match tmpPlan with
+            | (action :: rest, _) when isApplicable state action ->
+//                logImportant <| sprintf "applicable: (action, cost, energy) (%A, %A, %A)" action.ActionType (action.Cost state) state.Self.Energy
+                tmpPlan
+            | (action :: rest, objectives) when isApplicable (rechargeAction.Effect state) action ->
+                (rechargeAction :: action :: rest, objectives)
+            | _ -> tmpPlan
+
+        logStateInfo state Planning <| sprintf "repairing plan %A" (List.map (fun action -> action.ActionType) (fst plan))
+
+        let rechargedState (state : State) = {state with Self = {state.Self with Energy = state.Self.MaxEnergy}}
+
+        let rec workingPlan state plan =
+            match plan with
+            | (action :: tail, objectives) when isApplicable (rechargedState state) action ->
+                Option.map (List.append [action]) <| workingPlan (action.Effect state) (tail, objectives)
+            | (action :: tail, objectives) -> 
+                Some []
+            | ([], objective :: tail) when goalTest (goalList objective state) state ->
                 None
             | _ -> None
-        | [] -> Some ([], objectives)
 
-       
+        let planToMinHeuristic state objective plan =
+            
+            let heuristics (state, _, cost) action = 
+                let state' = action.Effect state 
+                let cost' = action.Cost state + cost
+                let heu' = h objective state' cost'
+                (state', heu', cost')
+
+            let initialState = (state, (h objective state 0), 0)
+
+            let heuList = List.scan heuristics initialState plan
+
+            let minHeu = List.minBy (fun (_, heu, _) -> heu) heuList
+            let minHeuIdx = List.findIndex ((=) minHeu) heuList
+
+            let rec toNth ls nth count =
+                match ls with
+                | [] -> []
+                | _ when nth = count -> []
+                | head :: tail -> head :: toNth tail nth (count + 1)
+
+            toNth plan minHeuIdx 0
+
+        match workingPlan state plan with           
+        | Some p -> 
+            let objective = List.head (snd plan)
+            let prunedPlan = planToMinHeuristic state (goalList objective state) p
+            let fromState = List.fold (fun state action -> action.Effect state) state prunedPlan
+
+            match makePlan fromState (snd plan) with
+            | Some (path, objectives) ->
+//                logImportant <| sprintf "repaired plan: %A" (List.map (fun action -> action.ActionType) path)
+                Some (prunedPlan @ path, objectives)
+            | None -> None
+
+        | None -> 
+//            logImportant <| sprintf "kept plan: %A" (List.map (fun action -> action.ActionType) (fst plan))
+            Some plan
+
     let formulatePlan (state : State) intent = 
         let (name, inttype, goals) = intent
         match inttype with
         | Communication -> 
-            logInfo ("Sending message " + name)
+            logStateInfo state Planning ("Sending message " + name)
         | Activity ->
-            logImportant ("Planning to " + name)
+            logStateImportant state Planning ("Planning to " + name)
         | _ -> ()
-        makePlan state goals
 
-//    let rec repairPlanHelper state plan = 
-//
-//        let restPlan state action actionList =
-//            let restOfPlan = repairPlanHelper state actionList
-//            match restOfPlan with
-//            | Some plan -> Some <| action :: plan
-//            | None -> None
-//
-//        match plan with
-//        | action :: tail when isApplicable state action ->
-//            restPlan (action.Effect state) action tail
-//        | action :: tail ->
-//            logImportant <| sprintf "Inconsistency found! state does not satisfy %A" action.ActionType
-//            logInfo <| sprintf "the following errors were found: %A" (unSatisfiedPreconditions state action)
-//            let gluePlan = makePlan state ([Requirement <| ((flip isApplicable action), None)])
-//
-//            match gluePlan with
-//            // If we find a non-empty glue plan [a; b; c], prepend it to the plan and continue recursing
-//            | Some (newAction :: newTail, _) -> 
-//                logInfo <| sprintf "Found glue plan %A" (List.map (fun action -> action.ActionType) (newAction :: newTail))
-//                restPlan (newAction.Effect state) newAction (newTail @ action :: tail)
-//      
-//            | Some (_, _) -> restPlan (action.Effect state) action tail
-//            | None -> 
-//                logImportant <| sprintf "Failed to find glue plan" 
-//                None
-//        | _ -> Some plan
-
-    let repairPlan state intent (plan : Plan) = 
-        formulatePlan state intent
-//        let rechargedState (state : State) = {state with Self = {state.Self with Energy = state.Self.MaxEnergy}}
-//
-//        let rec workingPlan state plan =
-//            match plan with
-//            | (action :: tail, objectives) when isApplicable (rechargedState state) action ->
-//                Option.map (List.append [action]) <| workingPlan (action.Effect state) (tail, objectives)
-//            | (action :: tail, objectives) -> 
-//                Some []
-//            | ([], objective :: tail) when goalTest (goalList objective state) state ->
-//                None
-//
-//        let planToMinHeuristic state plan goal =
-//            let heuList = List.map (fun action -> (goalHeuristics goal) (action.Effect state)) plan
-//            let minHeuIdx = List.find ((=) (List.min heuList)) heuList
-//            let rec toNth ls nth count =
-//                if count = nth then
-//                    ls
-//                else 
-//                    toNth (List.tail ls) nth (count + 1)
-//            toNth plan minHeuIdx 0
-//
-//        match workingPlan state plan with
-//            | None -> plan
-//            | Some p -> List.fold (fun state action -> action.Effect state) state p
-                
-
-//        let rec helper state plan =
-//            match plan with
-//            | action :: tail when isApplicable state action ->
-//                match helper (action.Effect state) tail with
-//                | Some plan -> Some <| [action] @ plan
-//                | None -> None
-//            | action :: tail ->
-//                logImportant <| sprintf "Inconsistency found! state does not satisfy %A" action.ActionType
-////                let gluePlan = makePlan state ([Requirement <| ((flip isApplicable action), None, CheckGoal)])
-////                match gluePlan with
-////                | Some (plan, _) ->
-////                    logInfo <| sprintf "Found glue plan %A" (List.map (fun action -> action.ActionType) plan)
-////                    Some <| plan @ (action :: tail)
-////                | None -> 
-////                    logImportant <| sprintf "Failed to find glue plan" 
-////                    None
-//                Some []
-//            | [] -> Some []
-
-        
-//        let (path, goals) = plan
-//        logInfo <| sprintf "Repairing plan %A" (List.map (fun action -> action.ActionType) path)
-////        let newPlan = repairPlanHelper state path
-//        let newPlan = helper state path
-//
-//        match newPlan with
-//        | Some p -> 
-//            logInfo <| sprintf "repaired plan: %A" (List.map (fun action -> action.ActionType) p)
-//            Some (p, goals)
-//        | None -> None
+//        makePlan state goals
+        match makePlan state goals with
+        | Some (path, Plan p :: objectives) -> Some (path, Plan p :: objectives)
+        | Some (path, objectives) -> Some (skipAction :: path, objectives)
+        | None -> None
 
     let solutionFinished state intent solution = 
         match solution with
-        | (_, [Plan plan]) -> 
-            match plan state with
-            | Some [] 
-            | None -> true
-            | _ -> false
-        | (_, [objective]) -> 
-            logImportant "before GoalTest"
-            if (wrappedGoalTest <| goalTest (goalList objective state)) state then
-                logImportant "solutionFinished"
-                true
-            else
-                let goals = goalList objective state
-                logImportant <| sprintf "goal length: %A, goals satisfied: %A" (List.length goals) (List.length <| List.filter (fun goal -> (generateGoalCondition goal) state) goals)
-                false
-        | (_, []) -> logImportant "solutionFinished"; true
+        | ([], [Plan _]) -> true
+        | (_, [Plan _]) -> false
+        | (_, [objective]) ->  
+            (wrappedGoalTest <| goalTest (goalList objective state)) state
+        | (_, []) -> true
         | _ -> false
     
     let rec nextAction state (intent : Intention) (plan : Plan) =
         match plan with
-        | (action :: rest, goals) -> Some (action.ActionType, (rest, goals))
-        | ([], (Requirement goal) :: t) when generateGoalCondition goal state -> 
-            match makePlan state t with
+        | (action :: rest, (Plan p) :: restObjectives) -> 
+            Some (action.ActionType, (rest, (Plan p) :: restObjectives))
+        | (action :: rest, goals) -> 
+            Some (action.ActionType, (action :: rest, goals))
+        | ([], objectives) ->
+            let newObjectives = 
+                match objectives with
+                | (Plan p) :: tail -> 
+                    tail
+                | objective :: tail when wrappedGoalTest (goalTest (goalFunc objective state)) state ->
+                    tail
+                | objectives ->
+                    objectives
+
+            match makePlan state newObjectives with
             | Some newPlan -> nextAction state intent newPlan
             | None -> None
-        | ([], (Requirement goal) :: t) when not <| generateGoalCondition goal state ->
-            let (_,goals) = plan
-            match makePlan state goals with
-            | Some newPlan -> nextAction state intent newPlan
-            | None -> None
-        | ([], (MultiGoal goalFun) :: t) when goalTest (goalFun state) state -> 
-            match makePlan state t with
-            | Some newPlan -> nextAction state intent newPlan
-            | None -> None
-        | ([], (MultiGoal goals) :: t) -> 
-            match makePlan state (snd plan) with
-            | Some newPlan -> nextAction state intent newPlan
-            | None -> None
-        | ([], (Plan p) :: t) ->
-            match makePlan state t with
-            | Some newPlan -> nextAction state intent newPlan
-            | None -> None
-        | _ -> None
+
+    let updateStateBeforePlanning initstate (intent:Intention) = 
+        let state = match intent.ChangeStateBefore with
+                    | Some stateFunc -> stateFunc initstate
+                    | None -> initstate
+        match (intent.Type, intent.Objectives) with
+        | ( Activity, objective :: _) ->
+            match objective with
+            | Requirement goal ->
+                match goalVertex goal state with
+                | Some vertex -> updateHeuristic state vertex
+                | None -> state
+            | _ -> state
+        | _ -> state
+
+    let updateStateOnSolutionFinished initstate (intention:Intention) solution = 
+        match intention.ChangeStateAfter with
+        | Some stateFunc -> stateFunc initstate
+        | None -> initstate
 
     type AgentPlanner() =
         class
             interface Planner<State, AgentAction, Intention, Plan> with 
                 member self.FormulatePlan (state, intent) = 
-                    formulatePlan state intent
-                member self.RepairPlan (state, intent, solution) = 
-                    repairPlan state intent solution
+                    let oldintent = (intent.Label,intent.Type,intent.Objectives)
+                    let plan = 
+                        try formulatePlan state oldintent with
+                        | exn -> logStateError state Planning <| sprintf "Error encountered in formulatePlan: %A at %A" exn.Message exn.TargetSite
+                                 None
+                    plan
+                member self.RepairPlan (state, intent, solution) =
+                    let plan = 
+                        match solution with
+                        | (_, Plan _ :: _) -> Some solution
+                        | _ -> 
+                            try repairPlan state intent solution with
+                            | exn -> logStateError state Planning <| sprintf "Error encountered in repairPlan: %A at %A" exn.Message exn.TargetSite
+                                     None
+                    plan
+                    
                 member self.SolutionFinished (state, intent, solution) = 
-                    solutionFinished state intent solution
+                    let result = 
+                        try solutionFinished state intent solution with
+                        | exn -> logStateError state Planning <| sprintf "Error encountered in solutionFinished: %A at %A" exn.Message exn.TargetSite
+                                 false
+                    result
+                    
                 member self.NextAction (state, intent, solution) = 
-                    nextAction state intent solution
-                member self.UpdateStateBeforePlanning (state, intent) = state
+                    let action = 
+                        try nextAction state intent solution with
+                        | exn -> logStateError state Planning <| sprintf "Error encountered in nextAction: %A at %A" exn.Message exn.TargetSite
+                                 None
+                    action
+
+                member self.UpdateStateBeforePlanning (state, intent) = 
+                    //let oldintent = (intent.Label,intent.Type,intent.Objectives)
+                    let newState = 
+                        try updateStateBeforePlanning state intent with
+                        | exn -> logStateError state Planning <| sprintf "Error encountered in updateStateBeforePlanning: %A at %A" exn.Message exn.TargetSite
+                                 state
+                    newState
                 
-                member self.UpdateStateOnSolutionFinished (state, intent, solution) = state
+                member self.UpdateStateOnSolutionFinished (state, intent, solution) = 
+                    let newState = 
+                        try updateStateOnSolutionFinished state intent solution with
+                        | exn -> logStateError state Planning <| sprintf "Error encountered in updateStateOnSolutionFinished: %A at %A" exn.Message exn.TargetSite
+                                 state
+                    newState
+                    
         end
  

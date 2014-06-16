@@ -17,16 +17,16 @@
                     newstate
             
                 override this.FilterIntention(intA, intB) = 
-                    match intA with
-                    | (id, Communication, _) -> match (id,intB) with
-                                                | (ida,(idb,Communication,_)) -> Conflictive
+                    match (intA.Label,intA.Type) with
+                    | (id, Communication) -> match (id,(intB.Label,intB.Type)) with
+                                                | (ida,(idb,Communication)) -> Conflictive
                                                 | _ -> Harmonic
-                    | (_, Inherent, _) -> Harmonic
-                    | (_, Activity, _) -> match intB with
-                                            | (_, Activity, _) -> Conflictive
+                    | (_, Inherent) -> Harmonic
+                    | (_, Activity) -> match (intB.Label,intB.Type) with
+                                            | (_, Activity) -> Conflictive
                                             | _ -> Harmonic
                 
-                override this.IsIntentionEqual ((S1,_,_),(S2,_,_)) = S1 = S2
+                override this.IsIntentionEqual (intA,intB) = intA.Label = intB.Label
 
                 override this.OptimizeState(curState) = curState
                 override this.ImplementOptimizedState(curState,optState)= curState

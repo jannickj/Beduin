@@ -1,8 +1,26 @@
 ﻿namespace AgentLogicTest
 module StructureBuilder =
     open NabfAgentLogic.AgentTypes
-    
+    open NabfAgentLogic.Search.HeuristicDijkstra
 
+    let buildEnemyWithRole name node role =
+        { Energy = None
+        ; Health = Some 30
+        ; MaxEnergy = None
+        ; MaxEnergyDisabled = None
+        ; MaxHealth = None
+        ; Name = name
+        ; Node = node
+        ; Role = role
+        ; RoleCertainty = 100
+        ; Strength = None
+        ; Team = "EnemyTeam"
+        ; Status = Normal
+        ; VisionRange = None
+        }
+
+    let buildEnemy name node = buildEnemyWithRole name node None
+        
 
     let buildStateWithEnergy node role world energy = 
         {   World = world
@@ -14,6 +32,7 @@ module StructureBuilder =
                         ;   Name = "gunner"
                         ;   Node = node
                         ;   Role = Some role
+                        ;   RoleCertainty = 100
                         ;   Strength = Some 0
                         ;   Team = "Team Love Unit testing"
                         ;   Status = Normal
@@ -47,3 +66,6 @@ module StructureBuilder =
             } : State
 
     let buildState node role world = buildStateWithEnergy node role world 30 
+
+    let enhanceStateWithGraphHeuristics state =
+        List.fold updateHeuristic state (List.map fst <| Map.toList state.World)

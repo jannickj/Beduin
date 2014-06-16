@@ -8,8 +8,18 @@ module LogicLib =
     open FsPlanning.Search
     open FsPlanning.Search.Problem
     open ActionSpecifications
+    open GeneralLib
 
     let flip f x y = f y x
+
+    let normalIntention (label,intentionType,objectives) =
+        {
+            Label = label;
+            Type = intentionType;
+            Objectives = objectives;
+            ChangeStateAfter = None
+            ChangeStateBefore = None
+        }
 
     let nodeListContains n (nl:string list) =
         (List.tryFind (fun s -> s = n) nl).IsSome
@@ -42,7 +52,7 @@ module LogicLib =
         List.filter (fun a -> nodeListContains a.Node (neighbourNodes state state.Self)) state.FriendlyData 
 
     let isUnexplored state vertex = 
-        not (List.exists (fun (value, _) -> Option.isSome value) <| Set.toList state.World.[vertex].Edges)
+        (not (List.exists (fun (value, _) -> Option.isSome value) <| Set.toList state.World.[vertex].Edges)) && vertex <> state.Self.Node
 
     let getJobsByType (jobtype:JobType) (list : Job list) : Job list = List.filter 
                                                                         (
@@ -84,13 +94,6 @@ module LogicLib =
         let ((_,value,_,_),_) = (getJobFromJobID s id)
         value
 
-    //pathfind through the graph. When the path is found, count it's length and return it
-    //returns: (dist to job * number of enemy node)
-    let getDistanceToJobAndNumberOfEnemyNodes (targetNode:VertexName) (s:State) =
-        let distance_to_job = 1.0        
-
-        distance_to_job     
-
 
     //let isPartOfOccupyJob n (s:State) = List.exists (fun (j:Job) -> j ) s.Jobs
 
@@ -105,7 +108,7 @@ module LogicLib =
             minimumTraversalCost + cost
         | None -> INFINITE_HEURISTIC
 
-    let distanceBetweenAgentAndNode node state : int = distanceBetweenNodes state.Self.Node node state
+    let distanceBetweenAgentAndNode node state : int = distanceBetweenNodes state.Self.Node node state  
     
     let findTargetNode startNode condition (state:State) = 
         let nodesWithCond = List.filter (condition state) <| (List.map fst <| Map.toList state.World)
@@ -134,7 +137,7 @@ module LogicLib =
         let definiteCost cost = 
             match cost with 
             | Some c -> c
-            | None -> Constants.UNKNOWN_EDGE_COST
+            | None -> Constants.MINIMUM_EDGE_COST
 
         let goalTest statePair = 
             match statePair with
@@ -166,41 +169,63 @@ module LogicLib =
             Some <| snd (List.head <| List.rev solution.Path)
         | None -> None
 
-//    let planRouteTo target (state:State) = 
-//        findNode (fun vertexName -> vertexName = target) state
-        
-//    let findAndDo startNode condition actionList actionString findNextBest (inputState:State) =
-//        let targetOpt = 
-//            match findNextBest with
-//            | true -> findTargetNode startNode condition inputState
-//            | false -> findNextBestNode startNode condition inputState
-//        
-//        match targetOpt with
-//        | None -> None
-//        | Some target ->
-//               Some
-//                    (   "go to node " + target + " and " + actionString
-//                    ,   Activity
-//                    ,   [ Plan <| planRouteTo target
-//                        ; Requirement ( fun state -> not <| condition state target             
-//                                      , None
-//                                      , actionList
-//                                      )
-//                        ]
-//                    )
+    let findNextBestUnprobed state =
+        let isVertexUnprobed vertex = state.World.ContainsKey(vertex) && state.World.[vertex].Value.IsNone
 
+        let definiteCost cost = 
+            match cost with 
+            | Some c -> c
+            | None -> Constants.MINIMUM_EDGE_COST
+
+        let goalTest statePair = 
+            match statePair with
+            | (Some oldVertex, newVertex) when oldVertex <> newVertex -> 
+                isVertexUnprobed newVertex
+            | _ -> false
+
+        let result (oldVertex, _) (_, resultVertex) =
+            match oldVertex with
+            | Some vertex -> (Some vertex, resultVertex)
+            | None ->
+                if isVertexUnprobed resultVertex then
+                    (Some resultVertex, resultVertex)
+                else
+                    (None, resultVertex)
+
+        let pathProblem = 
+            { InitialState = (None, state.World.[state.Self.Node].Identifier)
+            ; GoalTest = goalTest
+            ; Actions = fun (_, vertex) -> Set.toList state.World.[vertex].Edges
+            ; Result = result
+            ; StepCost = fun _ (cost, _) -> definiteCost cost
+            ; Heuristic = fun _ cost -> cost
+            }
+        
+        let solution = Astar.solve Astar.aStar pathProblem (fun () -> false)
+        match solution with
+        | Some solution -> 
+            Some <| snd (List.head <| List.rev solution.Path)
+        | None -> None
 
     let myRankIsGreatest myName (other:Agent List) =
-        let qq = List.filter (fun a -> a.Name > myName) other
+        let qq = List.filter (fun a -> a.Name < myName) other
         qq.IsEmpty
 
 
     let nearestVertexSatisfying (state : State) (condition : (State -> VertexName -> bool)) =
-        List.map fst (Map.toList state.World)
-        |> List.filter (condition state)
-        |> List.minBy (flip distanceBetweenAgentAndNode <| state)
+        let satisfying = List.map fst (Map.toList state.World)
+                         |> List.filter (condition state)
+        if List.length satisfying > 0 then
+            Some (List.minBy (flip distanceBetweenAgentAndNode <| state) satisfying )
+        else
+            None
 
         
-    let nodeHasNoAlliedAgents (inputState:State) (node:Vertex) : bool =
-        let friendliesOnNode = List.filter (fun a -> a.Node = node.Identifier) inputState.FriendlyData
-        friendliesOnNode.Length = 0
+    let nodeHasNoOtherFriendlyAgentsOnIt (inputState:State) node : bool =
+        let friendliesOnNode = List.filter (fun a -> a.Node = node) inputState.FriendlyData
+        if (friendliesOnNode.Length = 1) then //is it me standing on the node?
+            friendliesOnNode.Head.Name = inputState.Self.Name
+        elif (friendliesOnNode.Length = 0) then //no one is standing on the node
+            true
+        else //more than 1 is standing on the node, including myself, so don't want
+            false

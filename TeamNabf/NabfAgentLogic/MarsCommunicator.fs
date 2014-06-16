@@ -9,29 +9,66 @@
 
     type MarsCommunicator() =
         class
-            let mutable curActId = -1
+            let mutable requestedActId = -1
             let mutable awaitingPercepts = []
 
             let mutable actionSent = -1
 
             let perceptLock = new Object()
-            let actionLock = new Object()
+            let requestLock = new Object()
+
+            let performActionLock = new Object()
 
             let NewPerceptsEvent = new Event<EventHandler, EventArgs>()
             let ActuatorReadyEvent = new Event<EventHandler, EventArgs>()
             let NewActionEvent = new Event<UnaryValueHandler<int*Action>, UnaryValueEvent<int*Action>>()
 
+            let generateWaitForNewRound () = (Async.AwaitEvent NewPerceptsEvent.Publish) |> Async.Ignore
+
+            let rec sendAction actionSender action =
+                lock performActionLock 
+                    (fun () ->
+                        let waitNewRound = generateWaitForNewRound()
+                        let reqId = lock requestLock (fun () -> requestedActId)
+                        if reqId <> -1 && actionSent <> reqId then
+                            actionSender reqId action
+                            actionSent <- reqId
+                            actionSent
+                        else
+                            Async.RunSynchronously waitNewRound
+                            sendAction actionSender action
+                    )
+            let rec waitForActionToFinish actId =
+                let waitNewRound = generateWaitForNewRound()
+                let reqid = lock requestLock (fun () -> requestedActId)
+                if reqid > actId then
+                    ()
+                else
+                    Async.RunSynchronously waitNewRound
+                    waitForActionToFinish actId
+
+            let sendActionAndAwaitFinish actionSender action =
+                let sentId = sendAction actionSender action
+                waitForActionToFinish sentId
+
             [<CLIEvent>]
             member this.NewAction = NewActionEvent.Publish
+
+            member private this.ActionSender =
+                (fun id act  -> NewActionEvent.Trigger(this, new UnaryValueEvent<_>((id,act))))
 
             member this.SetMessage (msg:MarsServerMessage) =
                 match msg with
                 | ActionRequest ((deadline,curtime,id),percepts) -> 
-                    lock actionLock (fun () -> curActId <- id)
-                    lock perceptLock (fun () -> awaitingPercepts <- awaitingPercepts@(NewRoundPercept::percepts)) 
-                    NewPerceptsEvent.Trigger(this, new EventArgs()) 
+                    lock requestLock (
+                        fun () -> 
+                            requestedActId <- id
+                            lock perceptLock (fun () -> awaitingPercepts <- awaitingPercepts@(NewRoundPercept::percepts)) 
+                            NewPerceptsEvent.Trigger(this, new EventArgs())
+                        )
                     ActuatorReadyEvent.Trigger(this, new EventArgs())                 
                 | _ -> ()
+
 
 
             interface Actuator<AgentAction> with
@@ -39,15 +76,20 @@
                     match action with
                     | Perform _ -> true
                     | Communicate _ -> false
+                
+                member this.PerformActionBlockUntilFinished action =
+                    match action with
+                    | Perform act ->
+                        sendActionAndAwaitFinish (this.ActionSender) act
+                    | _ -> ()
 
                 member this.PerformAction action =
                     match action with
                     | Perform act ->
-                        let id = lock actionLock (fun () -> actionSent <- curActId
-                                                            curActId)
-                        NewActionEvent.Trigger(this, new UnaryValueEvent<_>((id,act)))
+                        ignore <| sendAction (this.ActionSender) act
                     | _ -> ()
-                member this.IsReady =  lock actionLock (fun () -> actionSent <> curActId)
+
+                member this.IsReady =  lock requestLock (fun () -> actionSent <> requestedActId)
 
                 [<CLIEvent>]
                 member this.ActuatorReady = ActuatorReadyEvent.Publish

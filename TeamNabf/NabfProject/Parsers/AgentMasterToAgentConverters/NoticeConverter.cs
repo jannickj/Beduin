@@ -23,7 +23,7 @@ namespace NabfProject.Parsers.NoticeConverters
         public override IilElement BeginConversionToForeign(Notice gobj)
         {
             string name = gobj.GetType().Name;
-            int jobType = (int)NoticeBoard.NoticeToJobType(gobj);
+            int jobType = (int)NoticeBoardHelpers.NoticeToJobType(gobj);
 
             IilFunction optional = null;
 

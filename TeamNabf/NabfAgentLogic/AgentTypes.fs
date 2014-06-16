@@ -44,6 +44,7 @@ module AgentTypes =
         ; Name        : string
         ; Node        : string
         ; Role        : Option<AgentRole>
+        ; RoleCertainty : int //Percent chance that this is the role we think
         ; Strength    : Option<int>
         ; Team        : string
         ; VisionRange : Option<int>
@@ -119,6 +120,8 @@ module AgentTypes =
         | RemovedJob of Job
         | AcceptedJob of JobID*VertexName
         | FiredFrom of JobID 
+    
+    
 
     type Percept =
         | EnemySeen         of Agent
@@ -136,14 +139,10 @@ module AgentTypes =
         | AgentRolePercept  of AgentRolePercept
         | KnowledgeSent     of Percept list
         | HeuristicUpdate   of VertexName * VertexName * (int*int)
-        
+        | CommucationSent   of CommunicationAction
         | MailPercept       of Mail
         | JobPercept        of JobPercept
-
-
-    type SimulationID = int
-
-    type CommunicationAction =
+    and CommunicationAction =
         | CreateJob of Job
         | RemoveJob of JobID
         | UpdateJob of Job
@@ -154,6 +153,10 @@ module AgentTypes =
         | NewRound of int
         | SendMail of Mail
     
+    type SimulationID = int
+    
+    
+        
     type AgentAction = 
         | Communicate of CommunicationAction
         | Perform of Action
@@ -221,10 +224,10 @@ module AgentTypes =
             GraphHeuristic   : (Map<VertexName*VertexName, (int*int)>* Map<VertexName,int>)
 
             ///USED FOR PLANNING ONLY DONT USE THEM IN INTENTION CHECKS
-            PlannerProbed           : VertexName Set
-            PlannerRepairedAgents   : AgentName Set
+            PlannerProbed          : VertexName Set
+            PlannerRepairedAgents  : AgentName Set
             PlannerInspectedEnemies : AgentName Set
-            PlannerDisabledEnemies  : AgentName Set
+            PlannerDisabledEnemies : AgentName Set
         }           
         member self.GetSubSet =
             { 
@@ -264,9 +267,9 @@ module AgentTypes =
         | Probed    of VertexName
         | Attacked  of AgentName 
         | Repaired  of AgentName
-        | Inspected of AgentName
+        | Inspected of VertexName
         | Explored  of VertexName
-        | GenerateMinValue
+        | AtMinValueNode of int
         | Parried
         | Charged   of int option
 
@@ -275,6 +278,11 @@ module AgentTypes =
         | Requirement of Goal
         | MultiGoal of (State -> Goal list)
 
-    type Intention = string*IntentionType*(Objective list)
-
-    
+    type Intention = 
+        {
+            Label : string
+            Type : IntentionType;
+            Objectives : (Objective list);
+            ChangeStateAfter : (State ->  State) option
+            ChangeStateBefore : (State -> State) option
+        }

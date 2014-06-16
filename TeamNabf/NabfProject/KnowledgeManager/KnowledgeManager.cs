@@ -19,7 +19,7 @@ namespace NabfProject.KnowledgeManagerModel
 		private Dictionary<Knowledge,Knowledge> _knowledgeBase = new Dictionary<Knowledge,Knowledge>();
 
 
-        private const bool verbose = true;
+        private const bool verbose = false;
         //status reporting for SimMan
         public int _redudantEdgeKnowledgeCounter = 0;
         public int _redudantNodeKnowledgeCounter = 0;
@@ -84,82 +84,76 @@ namespace NabfProject.KnowledgeManagerModel
                         updatedKnowledge = true;
                     }
                     else
-                    {                        
-                        if (verbose)
+                    {
+                        #region debug code
+                        if (k is HeuristicKnowledge)
                         {
-                            #region debug code
-                            if (k is HeuristicKnowledge)
-                            {
-                                _redudantHeuristicKnowledgeCounter++;
-                                if (_redudantHeuristicKnowledgeCounter % 1000 == 0)
-                                    Console.WriteLine("total numbers of --REDUDANT-- HEURISTIC knowledge is: " + _redudantHeuristicKnowledgeCounter);
-                            }
-                            if (k is MessageKnowledge)
-                            {
-                                _redudantMessageKnowledgeCounter++;
-                                if (_redudantMessageKnowledgeCounter % 200 == 0)
-                                    Console.WriteLine("total numbers of --REDUDANT-- MESSAGE knowledge is: " + _redudantMessageKnowledgeCounter);
-                            }
-                            if (k is EdgeKnowledge)
-                            {
-                                _redudantEdgeKnowledgeCounter++;
-                                if (_redudantEdgeKnowledgeCounter % 200 == 0)
-                                    Console.WriteLine("total numbers of --REDUDANT-- EDGE knowledge is: " + _redudantEdgeKnowledgeCounter);
-                            }
-                            if (k is NodeKnowledge)
-                            {
-                                _redudantNodeKnowledgeCounter++;
-                                if (_redudantNodeKnowledgeCounter % 200 == 0)
-                                    Console.WriteLine("total numbers of --REDUDANT-- NODE knowledge is: " + _redudantNodeKnowledgeCounter);
-                            }
-                            if (k is RoleKnowledge)
-                            {
-                                _redudantRoleKnowledgeCounter++;
-                                if (_redudantRoleKnowledgeCounter % 10 == 0)
-                                    Console.WriteLine("total numbers of --REDUDANT-- ROLE knowledge is: " + _redudantRoleKnowledgeCounter);
-                            }
-                            #endregion
+                            _redudantHeuristicKnowledgeCounter++;
+                            if (verbose && _redudantHeuristicKnowledgeCounter % 1000 == 0)
+                                Console.WriteLine("Total number of --REDUDANT-- HEURISTIC knowledge is: " + _redudantHeuristicKnowledgeCounter);
                         }
+                        else if (k is MessageKnowledge)
+                        {
+                            _redudantMessageKnowledgeCounter++;
+                            if (verbose && _redudantMessageKnowledgeCounter % 200 == 0)
+                                Console.WriteLine("Total number of --REDUDANT-- MESSAGE knowledge is: " + _redudantMessageKnowledgeCounter);
+                        }
+                        else if (k is EdgeKnowledge)
+                        {
+                            _redudantEdgeKnowledgeCounter++;
+                            if (verbose && _redudantEdgeKnowledgeCounter % 200 == 0)
+                                Console.WriteLine("Total number of --REDUDANT-- EDGE knowledge is: " + _redudantEdgeKnowledgeCounter);
+                        }
+                        else if (k is NodeKnowledge)
+                        {
+                            _redudantNodeKnowledgeCounter++;
+                            if (verbose && _redudantNodeKnowledgeCounter % 200 == 0)
+                                Console.WriteLine("Total number of --REDUDANT-- NODE knowledge is: " + _redudantNodeKnowledgeCounter);
+                        }
+                        else if (k is RoleKnowledge)
+                        {
+                            _redudantRoleKnowledgeCounter++;
+                            if (verbose && _redudantRoleKnowledgeCounter % 10 == 0)
+                                Console.WriteLine("Total number of --REDUDANT-- ROLE knowledge is: " + _redudantRoleKnowledgeCounter);
+                        }
+                        #endregion
                     }
 				}
 
                 if (updatedKnowledge)
                 {
-                    if (verbose)
+                    #region debug code
+                    if (k is HeuristicKnowledge)
                     {
-                        #region debug code
-                        if (k is HeuristicKnowledge)
-                        {
-                            _heuristicKnowledgeCounter++;
-                            if (_heuristicKnowledgeCounter % 1000 == 0)
-                                Console.WriteLine("total numbers of sent HEURISTIC knowledge is: " + _heuristicKnowledgeCounter);
-                        }
-                        if (k is MessageKnowledge)
-                        {
-                            _messageKnowledgeCounter++;
-                            if (_messageKnowledgeCounter % 100 == 0)
-                                Console.WriteLine("total numbers of sent MESSAGE knowledge is: " + _messageKnowledgeCounter);
-                        }
-                        if (k is EdgeKnowledge)
-                        {
-                            _edgeKnowledgeCounter++;
-                            if (_edgeKnowledgeCounter % 50 == 0)
-                                Console.WriteLine("total numbers of sent EDGE knowledge is: " + _edgeKnowledgeCounter);
-                        }
-                        if (k is NodeKnowledge)
-                        {
-                            _nodeKnowledgeCounter++;
-                            if (_nodeKnowledgeCounter % 50 == 0)
-                                Console.WriteLine("total numbers of sent NODE knowledge is: " + _nodeKnowledgeCounter);
-                        }
-                        if (k is RoleKnowledge)
-                        {
-                            _roleKnowledgeCounter++;
-                            if (_roleKnowledgeCounter % 2 == 0)
-                                Console.WriteLine("total numbers of sent ROLE knowledge is: " + _roleKnowledgeCounter);
-                        }
-                        #endregion
+                        _heuristicKnowledgeCounter++;
+                        if (verbose && _heuristicKnowledgeCounter % 1000 == 0)
+                            Console.WriteLine("Total number of sent HEURISTIC knowledge is: " + _heuristicKnowledgeCounter);
                     }
+                    if (k is MessageKnowledge)
+                    {
+                        _messageKnowledgeCounter++;
+                        if (verbose && _messageKnowledgeCounter % 100 == 0)
+                            Console.WriteLine("Total number of sent MESSAGE knowledge is: " + _messageKnowledgeCounter);
+                    }
+                    if (k is EdgeKnowledge)
+                    {
+                        _edgeKnowledgeCounter++;
+                        if (verbose && _edgeKnowledgeCounter % 50 == 0)
+                            Console.WriteLine("Total number of sent EDGE knowledge is: " + _edgeKnowledgeCounter);
+                    }
+                    if (k is NodeKnowledge)
+                    {
+                        _nodeKnowledgeCounter++;
+                        if (verbose && _nodeKnowledgeCounter % 50 == 0)
+                            Console.WriteLine("Total number of sent NODE knowledge is: " + _nodeKnowledgeCounter);
+                    }
+                    if (k is RoleKnowledge)
+                    {
+                        _roleKnowledgeCounter++;
+                        if (verbose && _roleKnowledgeCounter % 2 == 0)
+                            Console.WriteLine("Total number of sent ROLE knowledge is: " + _roleKnowledgeCounter);
+                    }
+                    #endregion
                     foreach (NabfAgent a in _sharingList)
                     {
                         if (a == sender)
@@ -181,8 +175,8 @@ namespace NabfProject.KnowledgeManagerModel
             }
             //SendKnowledgeToSubscribedAgents();   
             _callsToSendKnowledge++;
-            if (_callsToSendKnowledge % 50 == 0)
-                Console.WriteLine("size of Knowledge Base is: " + _knowledgeBase.Keys.Count);
+            if (verbose && _callsToSendKnowledge % 50 == 0)
+                Console.WriteLine("Size of Knowledge Base is: " + _knowledgeBase.Keys.Count);
         }
         
         public void SendOutAllKnowledgeToAgent(NabfAgent agent)

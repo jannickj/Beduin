@@ -15,7 +15,7 @@ module ExplorerTree =
                     Desire(findNewZone)
                     
                     Conditional
-                        (   inPhase1,
+                        (   lightExplorationDone,
                             ManyDesires
                                 [
                                     Desire findNodeToProbe

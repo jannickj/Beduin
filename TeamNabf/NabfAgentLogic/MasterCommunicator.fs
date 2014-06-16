@@ -40,7 +40,7 @@
             member this.SetMessage (msg:AgentServerMessage) =
                 match msg with
                 | JobMessage jobpercept -> 
-                        lock perceptLock (fun () -> awaitingPercepts <- (JobPercept jobpercept)::awaitingPercepts)
+                        lock perceptLock (fun () -> awaitingPercepts <- awaitingPercepts@[JobPercept jobpercept])
                 | SharedPercepts percepts ->
                         lock perceptLock (fun () -> awaitingPercepts <- percepts @ awaitingPercepts)
                 | _ -> ()
@@ -57,13 +57,16 @@
                 member this.PerformAction action =
                     match action with
                     | Communicate act ->
+                        lock perceptLock (fun () -> awaitingPercepts <- (CommucationSent act)::awaitingPercepts)
                         match act with
-                        | ShareKnowledge pl -> lock perceptLock (fun () -> awaitingPercepts <- (KnowledgeSent pl)::awaitingPercepts)
-                                               NewPerceptsEvent.Trigger(this, new EventArgs())
+                        | ShareKnowledge pl -> NewPerceptsEvent.Trigger(this, new EventArgs())
                         | _ -> ()
                         lock actionLock (fun () -> NewActionEvent.Trigger(this, new UnaryValueEvent<_>((act))))
                         ()
                     | _ -> ()
+
+                member this.PerformActionBlockUntilFinished action = (this :> Actuator<AgentAction>).PerformAction action
+
                 member this.IsReady =  true
 
                 [<CLIEvent>]

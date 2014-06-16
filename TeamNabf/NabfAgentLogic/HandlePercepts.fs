@@ -1,4 +1,4 @@
-﻿namespace NabfAgentLogic
+namespace NabfAgentLogic
 module HandlePercepts =
     open FsPlanning.Agent
     open FsPlanning.Agent.Planning
@@ -44,6 +44,8 @@ module HandlePercepts =
                         let oldUpdated = { oldUpdated with Team = agentNew.Team }
 
                         let oldUpdated = { oldUpdated with Status = agentNew.Status }
+
+                        let oldUpdated = { oldUpdated with RoleCertainty = agentNew.RoleCertainty }
 
                         oldUpdated          
                             
@@ -162,13 +164,8 @@ module HandlePercepts =
                         | (jobID, _, _, _) -> jobID
                         | _ -> None
 
-                let removeJob jobHeader = 
-                    let removeId = jobIDFromHeader jobHeader
-                    let hasId = ((=)removeId.Value)
-                    if  List.exists hasId <| List.map (fst) state.MyJobs then
-                        state.Jobs
-                    else
-                        List.filter (fun (existingJobHeader, _) -> not(jobIDFromHeader existingJobHeader = jobIDFromHeader jobHeader)) state.Jobs
+                let removeJob jobHeader = List.filter (fun (existingJobHeader, _) -> 
+                            not(jobIDFromHeader existingJobHeader = jobIDFromHeader jobHeader)) state.Jobs
 
                 let removeMyJob jobID = List.filter (fun (existingJobID, _) -> 
                             not(existingJobID = jobID)) state.MyJobs
@@ -193,19 +190,25 @@ module HandlePercepts =
 
                     { state with Jobs =  existingJobRemoved }
 
-                | AcceptedJob (jobID, vertexName) -> 
-                    { state with MyJobs = (jobID, vertexName)::state.MyJobs }
+                | AcceptedJob (jobID, vertexName) ->
+                    //logImportant <| sprintf "Added job w. id %A to myjobs. Round is %A" jobID state.SimulationStep
+                    if not <| List.exists ((=) (jobID,vertexName)) state.MyJobs 
+                    then
+                        { state with MyJobs = (jobID, vertexName)::state.MyJobs }
+                    else
+                        state
 
                 | FiredFrom jobID -> 
+                    logStateInfo state Perception <| sprintf "received fired from job with id %A" jobID
                     let existingJobRemoved = removeMyJob jobID
 
                     { state with MyJobs =  existingJobRemoved }
 
                
-            | KnowledgeSent pl -> 
-                    let updatedNK = List.filter (fun p -> not <| List.exists ((=) p) pl) state.NewKnowledge
-                    logImportant <| sprintf "Clearing knowledge sent. We sent %A knowledge" pl.Length
-                    { state with NewKnowledge = updatedNK }
+//            | KnowledgeSent pl -> 
+//                    let updatedNK = List.filter (fun p -> not <| List.exists ((=) p) pl) state.NewKnowledge
+//                    logImportant <| sprintf "Clearing knowledge sent. We sent %A knowledge" pl.Length
+//                    { state with NewKnowledge = updatedNK }
 
             | HeuristicUpdate (n1,n2,dist) -> 
                 let (heuMap,countMap) = state.GraphHeuristic 
@@ -213,6 +216,20 @@ module HandlePercepts =
             | MailPercept mail ->
                 { state with MailsReceived = mail::state.MailsReceived }
             | unhandled -> logError (sprintf "Unhandled percept: %A" unhandled) 
+
+            | CommucationSent cs -> 
+                match cs with
+                | ShareKnowledge pl -> 
+                    let updatedNK = List.filter (fun p -> not <| List.exists ((=) p) pl) state.NewKnowledge
+                    //logImportant <| sprintf "Clearing knowledge sent. We sent %A knowledge" pl.Length
+                    { state with NewKnowledge = updatedNK } 
+                | UnapplyJob jid -> 
+                    let removeMyJob jobID = List.filter (fst >> ((=) jobID)) state.MyJobs
+                    let existingJobRemoved = removeMyJob jid
+                    { state with MyJobs =  existingJobRemoved }
+                | _ -> state
+
+            | unhandled -> logStateError state Perception (sprintf "Unhandled percept: %A" unhandled) 
                            state //fix this later by handling remaining percepts
 
             
@@ -374,20 +391,7 @@ module HandlePercepts =
 //            state
 
     let updateHeuristicsMapSingle percepts oldState state =
-        if state.World.Count > oldState.World.Count then 
-            
-            //let stopwatch = System.Diagnostics.Stopwatch.StartNew()
-
-            let result = 
-                { state with GraphHeuristic = updateHeuristic state state.Self.Node
-
-                }
-
-            //logCritical <| sprintf "millieseconds used on single heuristic calc: %A" stopwatch.ElapsedMilliseconds
-
-            result
-        else
-            state
+        updateHeuristic state state.Self.Node
     
     (* let updateState : State -> Percept list -> State *)
     let updateState state percepts = 

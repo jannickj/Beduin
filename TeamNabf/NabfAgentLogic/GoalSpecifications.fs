@@ -1,4 +1,4 @@
-﻿namespace NabfAgentLogic
+namespace NabfAgentLogic
 module GoalSpecifications =
 
     open AgentTypes
@@ -6,6 +6,7 @@ module GoalSpecifications =
     open LogicLib
     open Constants
     open Logging
+    open GeneralLib
 
     let agentAt agentName state =
         let agent = List.find (fun ag -> ag.Name = agentName) (state.EnemyData @ state.FriendlyData)
@@ -18,9 +19,8 @@ module GoalSpecifications =
     let vertexProbed vertex state = 
         Option.isSome state.World.[vertex].Value
 
-    let agentInspected agent state =
-        let enemy = List.find (fun enemy -> enemy.Name = agent) state.EnemyData
-        enemy.Role.IsSome
+    let vertexInspected vertex state =
+        List.forall (fun enemy -> Option.isSome enemy.Role) (enemiesHere state vertex)
 
     let parried state = 
         state.LastAction = Parry
@@ -33,11 +33,10 @@ module GoalSpecifications =
     let agentRepaired agent state =
         state.LastAction = Repair agent
 
-
-    let generateMinValue state = 
+    let atMinValueNode value state = 
         let n = state.World.[state.Self.Node] 
-        if (n.Value.IsSome && nodeHasNoAlliedAgents state n) then
-            n.Value.Value >= MINIMUM_VALUE_VALUE
+        if (n.Value.IsSome && nodeHasNoOtherFriendlyAgentsOnIt state n.Identifier) then
+            n.Value.Value >= value
         else
             false
 
@@ -47,10 +46,10 @@ module GoalSpecifications =
         | Explored vertex -> fun state -> state.Self.Node = vertex
         | Attacked agent -> agentAttacked agent
         | Probed vertex -> vertexProbed vertex
-        | Inspected agent -> agentInspected agent
+        | Inspected vertex -> vertexInspected vertex
         | Parried -> parried
         | Charged charge -> charged charge
-        | GenerateMinValue -> generateMinValue
+        | AtMinValueNode value -> atMinValueNode value
         | Repaired agent -> agentRepaired agent
 
     let distanceHeuristics vertex =
@@ -60,14 +59,28 @@ module GoalSpecifications =
         match goal with
         | At vertex 
         | Explored vertex
-        | Probed vertex -> 
+        | Probed vertex
+        | Inspected vertex -> 
             distanceHeuristics vertex
 
         | Attacked agent 
-        | Repaired agent
-        | Inspected agent -> 
+        | Repaired agent ->
             fun state -> distanceHeuristics (agentAt agent state) state
 
         | Charged _
-        | GenerateMinValue
+        | AtMinValueNode _
         | Parried-> fun _ -> 0
+
+    let goalVertex goal state =
+        match goal with
+        | At vertex 
+        | Explored vertex
+        | Inspected vertex
+        | Probed vertex ->
+            Some <| vertex
+        
+        | Attacked agent 
+        | Repaired agent ->
+            Some <| agentAt agent state
+
+        | _ -> None

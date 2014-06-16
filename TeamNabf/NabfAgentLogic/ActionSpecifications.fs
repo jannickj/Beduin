@@ -1,10 +1,27 @@
-﻿namespace NabfAgentLogic
+namespace NabfAgentLogic
 module ActionSpecifications =
 
     open NabfAgentLogic.AgentTypes
     open Graphing.Graph
     open Constants
     open Logging
+    open GeneralLib
+
+    let buildAgent name node =
+        { Energy = None
+        ; Health = Some 30
+        ; MaxEnergy = None
+        ; MaxEnergyDisabled = None
+        ; MaxHealth = None
+        ; Name = name
+        ; Node = node
+        ; Role = Some Explorer
+        ; RoleCertainty = 100
+        ; Strength = None
+        ; Team = "EnemyTeam"
+        ; Status = Normal
+        ; VisionRange = None
+        }
 
     type ConditionResult = 
         | Success
@@ -53,10 +70,15 @@ module ActionSpecifications =
     let deductEnergy cost state =
         { state.Self with Energy = Some <| state.Self.Energy.Value - cost }
 
-    let definiteCost cost = 
+    let definiteOptimisticCost cost = 
         match cost with 
         | Some c -> c
-        | None -> Constants.UNKNOWN_EDGE_COST
+        | None -> Constants.MINIMUM_EDGE_COST
+    
+    let definitePessimisticCost cost =
+        match cost with
+        | Some c -> c
+        | None -> Constants.MAXIMUM_EDGE_COST
 
     let decide defaultValue opt =
         match opt with
@@ -94,7 +116,7 @@ module ActionSpecifications =
 
     let moveAction (destination : VertexName) = 
         let edgeCost state = 
-            //logInfo <| sprintf "At: %A, neighbours: %A, destination: %A" state.Self.Node state.World.[state.Self.Node].Edges destination
+//            logImportant <| sprintf "At: %A, neighbours: %A, destination: %A" state.Self.Node state.World.[state.Self.Node].Edges destination
             let neighbour = 
                 state.World.[state.Self.Node].Edges 
                 |> Set.toList 
@@ -110,19 +132,22 @@ module ActionSpecifications =
         let updateState state = 
             let self = { state.Self with Node = destination }
             let newSelf = deductEnergy (cost state) { state with Self = self}
-            //logImportant (sprintf "%A" (Set.filter (fun (o,_) -> Option.isSome o) state.World.[destination].Edges))
-            let edge = (Some (SIMULATED_EDGE_COST), state.Self.Node, destination)
+            let edge = 
+                match List.find (snd >> ((=) destination)) <| Set.toList state.World.[state.Self.Node].Edges with
+                | (Some cost, vn) -> (Some cost, state.Self.Node, vn)
+                | (None, vn) -> (Some (MINIMUM_EDGE_COST), state.Self.Node, vn)
+
             { state with 
-                            Self = newSelf; 
-                            LastAction = Action.Goto destination;
-                            World = addEdge edge state.World
+                Self = newSelf; 
+                LastAction = Action.Goto destination;
+                World = addEdge edge state.World
             }
 
 
         let canMoveTo state = 
             match edgeCost state with
             | Some cost ->
-                if (state.Self.Energy.Value - definiteCost cost) >= 0 then
+                if (state.Self.Energy.Value - definitePessimisticCost cost) >= 0 then
                     Success
                 else 
                     Failure "Not enough energy"
@@ -153,6 +178,7 @@ module ActionSpecifications =
 
     let rechargeAction =
         let updateState state = 
+//            logImportant "updating state rechargeAction"
             let newEnergy = state.Self.Energy.Value + (int ((float state.Self.MaxEnergy.Value) * RECHARGE_FACTOR)) 
             { state with Self = { state.Self with Energy = Some newEnergy}; LastAction = Recharge }
         { ActionType    = Perform <| Recharge
@@ -196,14 +222,15 @@ module ActionSpecifications =
             | Some _ -> Failure <| sprintf "Vertex %A is already probed" (realVertex state)
 
         let updateState state = 
-                                let vertex = (realVertex state)
-                                let newWorld = addVertexValue vertex 0 state.World
-                                { state with 
-                                        World = newWorld
-                                        Self = deductEnergy Constants.ACTION_COST_CHEAP state
-                                        PlannerProbed = Set.add vertex state.PlannerProbed
-                                        LastAction = Action.Probe vertexOption
-                                }
+//            logImportant "updating state probeAction"
+            let vertex = (realVertex state)
+            let newWorld = addVertexValue vertex 0 state.World
+            { state with 
+                    World = newWorld
+                    Self = deductEnergy Constants.ACTION_COST_CHEAP state
+                    PlannerProbed = Set.add vertex state.PlannerProbed
+                    LastAction = Action.Probe vertexOption
+            }
 
         { ActionType    = Perform <| Probe vertexOption
         ; Preconditions = [ vertexUnProbed; enoughEnergy Constants.ACTION_COST_CHEAP; isNotDisabled ]
@@ -211,27 +238,54 @@ module ActionSpecifications =
         ; Cost          = fun state -> turnCost state + Constants.ACTION_COST_CHEAP
         }
 
-    let inspectAction agentNameOption =
+    let inspectAction vertexNameOption =
+        let whichVertex state = 
+            match vertexNameOption with
+            | Some vertex -> vertex
+            | None -> state.Self.Node
         let agentNames (state : State) = 
-            match agentNameOption with
-            | Some agentName -> [ agentName ]
+            match vertexNameOption with
+            | Some vertexName -> [ vertexName ]
             | None -> List.filter (fun enemy -> enemy.Node = state.Self.Node) state.EnemyData |> List.map (fun enemy -> enemy.Name)
 
         let enemiesNotInspected state = 
-            let res = not <| List.forall (fun enemy -> Set.contains enemy state.InspectedEnemies) (agentNames state)
+            let res = not <| List.forall (fun enemy -> Option.isSome enemy.Role) (enemiesHere state state.Self.Node)
+//            logImportant <| sprintf "result: %A %A" res (enemiesHere state state.Self.Node)
+//            let res = not <| List.forall (fun enemy -> Set.contains enemy state.InspectedEnemies) (agentNames state)
             match res with
             | true -> Success
             | false -> Failure <| sprintf "No uninspected agents present"
 
+        //Make some fake agents from names. Used by the planner when inspecting.
+        let rec buildAgents state names =
+            match names with
+            | head :: tail -> (buildAgent head state.Self.Node) :: (buildAgents state tail)
+            | [] -> []
+
+        let newEnemyData state =
+            let vertex = whichVertex state
+
+            let updatedEnemies = 
+                List.map (fun enemy -> {enemy with Role = Some Explorer}) (enemiesHere state vertex)
+            
+            let enemiesNotHere = 
+                Set.toList <| Set.difference (Set.ofList state.EnemyData) (Set.ofList <| enemiesHere state vertex)
+            
+            enemiesNotHere @ updatedEnemies
+
+
         let updateState (state : State) = 
+            let inspectedEnemyNames = 
+                [for enemy in enemiesHere state <| whichVertex state -> enemy.Name] 
+                |> Set.ofList
             { state with 
-                    InspectedEnemies = Set.union state.InspectedEnemies (agentNames state |> Set.ofList);
-                    PlannerInspectedEnemies = Set.union state.PlannerInspectedEnemies (agentNames state |> Set.ofList);
-                    Self = deductEnergy Constants.ACTION_COST_EXPENSIVE state
-                    LastAction = Action.Inspect agentNameOption
+                EnemyData = newEnemyData state
+                Self = deductEnergy Constants.ACTION_COST_EXPENSIVE state
+                LastAction = Action.Inspect vertexNameOption
+                PlannerInspectedEnemies = inspectedEnemyNames + state.PlannerInspectedEnemies
             }
 
-        { ActionType    = Perform <| Inspect agentNameOption
+        { ActionType    = Perform <| Inspect vertexNameOption
         ; Preconditions = [ enemiesNotInspected; enoughEnergy Constants.ACTION_COST_EXPENSIVE; isNotDisabled ]
         ; Effect        = updateState
         ; Cost          = fun state -> turnCost state + Constants.ACTION_COST_EXPENSIVE
@@ -252,6 +306,13 @@ module ActionSpecifications =
         ; Preconditions = [ saboteurPresent; enoughEnergy Constants.ACTION_COST_EXPENSIVE; isNotDisabled ]
         ; Effect        = updateState
         ; Cost          = fun state -> turnCost state + Constants.ACTION_COST_EXPENSIVE
+        }
+
+    let skipAction =
+        { ActionType    = Perform Skip
+        ; Preconditions = []
+        ; Effect        = fun state -> state
+        ; Cost          = fun _ -> 0
         }
 
     let unSatisfiedPreconditions state actionSpec =
@@ -277,14 +338,6 @@ module ActionSpecifications =
             [attackAction agent]
         else 
             []
-//        match agent with
-//        | Some agent -> 
-//            if List.exists ((=) agent) agentsHere then
-//                [attackAction agent]
-//            else 
-//                []
-//        | None -> 
-//            List.map attackAction <| agentsHere
 
 
     let rechargeActions state = [rechargeAction]
@@ -302,9 +355,10 @@ module ActionSpecifications =
         else 
             []
 
-    let inspectActions agent state = 
-        let agentsHere = agentsAt state.Self.Node state.FriendlyData
-        if List.exists ((=) agent) agentsHere then
+    let inspectActions vertex state = 
+        let someUninspectedEnemy = 
+            not <| List.forall (fun enemy -> Option.isSome enemy.Role) (enemiesHere state vertex)
+        if vertex = state.Self.Node && someUninspectedEnemy then
             [inspectAction None]
         else 
             []
@@ -313,24 +367,15 @@ module ActionSpecifications =
 
     let commonActions state = gotoActions state @ rechargeActions state
 
-//    let roleActions state =
-//        match state.Self.Role with
-//        | Some Explorer  -> probeActions state   @ commonActions state 
-//        | Some Inspector -> inspectActions state @ commonActions state 
-//        | Some Repairer  -> repairActions state  @ commonActions state 
-//        | Some Saboteur  -> attackActions state  @ commonActions state 
-//        | Some Sentinel  -> parryActions state   @ commonActions state 
-//        | None -> failwith "agent role is unknown"
-
-    let availableActions goal state =
+    let availableActions state  goal  =
         let actions = 
             match goal with
-            | At _ | Explored _ | GenerateMinValue -> 
+            | At _ | Explored _ | AtMinValueNode _ -> 
                 gotoActions state
             | Attacked agent -> 
                 gotoActions state @ attackActions agent state
-            | Inspected agent -> 
-                gotoActions state @ inspectActions agent state
+            | Inspected vertex -> 
+                gotoActions state @ inspectActions vertex state
             | Probed vertex -> 
                 gotoActions state @ probeActions vertex state
             | Repaired agent -> 

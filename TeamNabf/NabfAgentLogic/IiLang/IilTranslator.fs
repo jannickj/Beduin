@@ -4,6 +4,7 @@ namespace NabfAgentLogic.IiLang
         open IiLangDefinitions
         open NabfAgentLogic.AgentTypes
         open MessageTranslator
+        open NabfAgentLogic.Logging
 
         exception InvalidIilException of string * (Element list)
             with 
@@ -58,6 +59,7 @@ namespace NabfAgentLogic.IiLang
                    ; Name        = name
                    ; Node        = node
                    ; Role        = parseIilRole role
+                   ; RoleCertainty = 100
                    ; Strength    = Some (int strength)
                    ; Team        = team
                    ; VisionRange = Some (int visionRange)
@@ -153,6 +155,7 @@ namespace NabfAgentLogic.IiLang
                           ; Name = ""
                           ; Node = node
                           ; Role = None
+                          ; RoleCertainty = 100
                           ; Strength = Some (int strength)
                           ; Team = ""
                           ; VisionRange = Some (int visRange)
@@ -257,6 +260,7 @@ namespace NabfAgentLogic.IiLang
                               ; Name = name
                               ; Node = node
                               ; Role = None
+                              ; RoleCertainty = 0
                               ; Strength = None
                               ; Team = team
                               ; VisionRange = None
@@ -383,7 +387,7 @@ namespace NabfAgentLogic.IiLang
                 | "firedFromJob" ->
                     let [Percept ("noticeId", [Numeral jobId])] = tail
                     AgentServerMessage <| (JobMessage <| (FiredFrom (int jobId)))
-                | _ ->  raise <| InvalidIilException ("iilServerMessage", data)
+                | unknown ->  raise <| InvalidIilException ("iilServerMessage: "+unknown, data)
             | _ -> failwith "nonono"
         
         let buildIilActionContainer action id =
@@ -454,7 +458,7 @@ namespace NabfAgentLogic.IiLang
                 let iilfuncs = List.collect (fun percept -> buildPerceptAsIilFunction percept) perceptlist
                 Action ("addKnowledgeAction",[Numeral (float simid); Function ("knowledges",iilfuncs)])
             | UnapplyJob jobid ->
-                Action ("unapplyJob", [Numeral (float simid); Numeral (float jobid)])
+                Action ("unapplyNoticeAction", [Numeral (float simid); Numeral (float jobid)])
             | SendMail mail ->
                 let (mailtext,recipient) = buildMail mail
                 let iilfuncs = [Function ("messageKnowledge", [Identifier recipient; Identifier mailtext])]

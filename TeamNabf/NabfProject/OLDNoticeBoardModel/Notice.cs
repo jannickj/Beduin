@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using NabfProject.AI;
 using NabfProject.KnowledgeManagerModel;
 
-namespace NabfProject.NoticeBoardModel
+namespace NabfProject.OLDNoticeBoardModel
 {
     public abstract class Notice : IEquatable<Notice>, IComparable
     {
@@ -26,8 +26,10 @@ namespace NabfProject.NoticeBoardModel
 		{
 			string nodes = this.WhichNodes.Select(nk => nk.ToString() + ", ").Aggregate((i, j) => i + j);
 
-			return "Notice: "+ this.GetType().Name +"( "+Id +" ), nodes: " + nodes;
+			return "Notice: "+ this.GetType().Name +"("+Id+"), nodes: " + nodes;
 		}
+
+        public abstract NoticeBoard.JobType GetNoticeType();
 
         public Notice(Int64 id)
         {
@@ -37,6 +39,11 @@ namespace NabfProject.NoticeBoardModel
         public List<NabfAgent> GetTopDesireAgents()
         {
             return this._topDesireAgents.ToList();
+        }
+
+        public void ClearTopDesireAgents()
+        {
+            _topDesireAgents.Clear();
         }
 
         public void AddToTopDesireAgents(NabfAgent toAdd)
@@ -70,7 +77,7 @@ namespace NabfProject.NoticeBoardModel
 
 			//return this.Id == no.Id;
 
-            if (no.GetType() != this.GetType())
+            if (no.GetNoticeType() != this.GetNoticeType())
                 return false;
             else if (this is RepairJob)
             {
@@ -113,7 +120,7 @@ namespace NabfProject.NoticeBoardModel
                     b = nb.RemoveJob(this);
                     if (b)
                     {
-                        _topDesireAgents.Clear();
+                        ClearTopDesireAgents();
                         _topDesireAgents.AddRange(agentsToAdd);
 						HighestAverageDesirabilityForNotice = avg;
                         nb.AddJob(this);
@@ -167,12 +174,18 @@ namespace NabfProject.NoticeBoardModel
 
 		public virtual bool ContentIsSubsetOf(Notice n)
 		{
+            if (n.GetNoticeType() != this.GetNoticeType())
+                return false;
 			return this.WhichNodes.Intersect(n.WhichNodes).Count() > 0;
 		}
 	}
     
     public class DisruptJob : Notice
     {
+        public override NoticeBoard.JobType GetNoticeType()
+        {
+            return NoticeBoard.JobType.Disrupt;
+        }
 
         public DisruptJob(int agentsNeeded, List<NodeKnowledge> whichNodes, int value, Int64 id)
             : base(id)
@@ -187,6 +200,10 @@ namespace NabfProject.NoticeBoardModel
 
     public class AttackJob : Notice
     {
+        public override NoticeBoard.JobType GetNoticeType()
+        {
+            return NoticeBoard.JobType.Attack;
+        }
 
         public AttackJob(int agentsNeeded, List<NodeKnowledge> whichNodes, int value, Int64 id)
             : base(id)
@@ -200,7 +217,11 @@ namespace NabfProject.NoticeBoardModel
 
     public class OccupyJob : Notice
     {
-        public List<NodeKnowledge> ZoneNodes { get; set; }
+        public override NoticeBoard.JobType GetNoticeType()
+        {
+            return NoticeBoard.JobType.Occupy;
+        }
+        public List<NodeKnowledge> ZoneNodes { get; set; } //the nodes which is part of the zone (not the nodes to stand on)
 
         public OccupyJob(int agentsNeeded, List<NodeKnowledge> whichNodes, List<NodeKnowledge> zoneNodes, int value, Int64 id)
             : base(id)
@@ -224,6 +245,10 @@ namespace NabfProject.NoticeBoardModel
 
     public class RepairJob : Notice
     {
+        public override NoticeBoard.JobType GetNoticeType()
+        {
+            return NoticeBoard.JobType.Repair;
+        }
         public string AgentToRepair { get; set; }
 
         public RepairJob(List<NodeKnowledge> whichNodes, string agentToRepair, int value, Int64 id)
@@ -240,6 +265,10 @@ namespace NabfProject.NoticeBoardModel
 
     public class EmptyJob : Notice
     {
+        public override NoticeBoard.JobType GetNoticeType()
+        {
+            return NoticeBoard.JobType.Empty;
+        }
         public EmptyJob()
             : base(-1)
         {

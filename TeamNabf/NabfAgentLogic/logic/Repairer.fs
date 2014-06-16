@@ -20,13 +20,13 @@ module Repairer =
             | RepairJob (node,_) -> node
         
 
-        let distanceToJob = (getDistanceToJobAndNumberOfEnemyNodes jobTargetNode s)
+        let distanceToJob = (distanceBetweenAgentAndNode jobTargetNode s)
         
         let personalValueMod = 1 |> float//if an agent has some kind of "personal" preference 
                                          //that modifies how much it desires the new job, using the input modifier 
         
         //final desire
-        int <| (((float newValue) * personalValueMod) - (float oldJobValue))    +     (-(distanceToJob * DISTANCE_TO_REPAIR_JOB_MOD))    +    REPAIRER_REPAIRJOB_MOD
+        int <| (((float newValue) * personalValueMod) - (float oldJobValue))    +     (-((float distanceToJob) * DISTANCE_TO_REPAIR_JOB_MOD))    +    REPAIRER_REPAIRJOB_MOD
    
 
     ////////////////////////////////////////Logic////////////////////////////////////////////
@@ -38,16 +38,15 @@ module Repairer =
         match nearbyDamagedAgent with
         | [] -> None
         | head::tail ->     
-            Some(
+            Some <| normalIntention (
                     "repair agent " + head.Name
                     , Activity
                     , [Requirement (Repaired head.Name)]
-//                    , [Requirement ((fun state -> agentHasFulfilledRequirementFriendlies head.Name state (fun ag -> ag.Health = ag.MaxHealth)), None, RepairGoal <| Some head.Name)]
                 )
 
     let applyToRepairJob (inputState:State) = 
         let applicationList = createApplicationList inputState JobType.RepairJob calculateDesireRepairJob
-        Some(
+        Some <| normalIntention (
                 "apply to all repair jobs"
                 , Communication
                 , [Plan (fun state -> Some applicationList)]
@@ -60,9 +59,9 @@ module Repairer =
         | ((id,_,_,_),_)::_ -> 
             let (jobid,node) = List.find (fun (jid,_) -> id.Value = jid) inputState.MyJobs
             let (_,RepairJob(_,agent)) = (getJobFromJobID inputState jobid) : Job
-            Some
-                ( "repair agent " + agent + " on node " + node
-                , Activity
-                , [Requirement (Repaired agent)]
-                )
+            Some <| normalIntention 
+                    ( "repair agent " + agent + " on node " + node
+                    , Activity
+                    , [Requirement (Repaired agent)]
+                    )
         | [] -> None

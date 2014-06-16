@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -116,8 +116,8 @@ namespace NabfClientApplication.Client
 
 		protected override void OnStart()
 		{
-			this.RunThread(this.UpdateMasterReceiver);
-			this.RunThread(this.UpdateMasterSender);
+			this.RunThread(this.UpdateMasterReceiver,true);
+			this.RunThread(this.UpdateMasterSender,true);
 		}
 
        

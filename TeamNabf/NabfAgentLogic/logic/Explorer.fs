@@ -25,12 +25,14 @@ module Explorer =
         | _ -> zone
 
 
-    let rec removeDuplicates (zone:VertexName list) (result:VertexName list) =
+    let rec removeDuplicatesRec (zone:VertexName list) (result:VertexName list) =
         match zone with
         | head :: tail -> 
                         let target = List.tryFind (fun n -> n = head) tail
-                        if target.IsSome then removeDuplicates tail result else removeDuplicates tail (head::result)
+                        if target.IsSome then removeDuplicatesRec tail result else removeDuplicatesRec tail (head::result)
         | [] -> result
+
+    let removeDuplicates zone = removeDuplicatesRec zone []
 
     //Check if any jobs contain the current vertex.
     let checkZoneCandidate (s:State) = 
@@ -38,18 +40,22 @@ module Explorer =
         let l = List.filter (fun ((_,OccupyJob(_,vertices)):Job) -> (List.exists (fun (vn:VertexName) -> s.Self.Node = vn ) vertices)) occupyJobs
         l <> []
 
-    let inPhase1 (s:State) = (float s.ProbedCount) > ( EXPLORE_FACTOR_LIGHT * (float s.TotalNodeCount) )
+    let lightExplorationDone (s:State) = (float s.ProbedCount) > ( EXPLORE_FACTOR_LIGHT * (float s.TotalNodeCount) )
 
     let onHighValueNode (s:State) = s.World.[s.Self.Node].Value.IsSome && s.World.[s.Self.Node].Value.Value >= ZONE_ORIGIN_VALUE
 
     let nodePartOfZone (s:State) =
         let occupyJobs = (List.filter (fun ((_,_,jType,_),_) -> jType = JobType.OccupyJob) s.Jobs)
         let occupyJobSet = Set.ofList (List.concat (List.map (fun (_,OccupyJob(_,l)) -> l) occupyJobs))
+//        logCritical <| sprintf "%A" s.Jobs
+//        logCritical <| sprintf "%A" occupyJobs
+//        logCritical <| sprintf "%A" occupyJobSet
+//        logCritical <| sprintf "%A" (Set.contains s.Self.Node occupyJobSet)
         Set.contains s.Self.Node occupyJobSet
 
     let nodeHostile (s:State) = false // Not implemented yet!
 
-    let newZoneFound (s:State) = (onHighValueNode s) && not (nodePartOfZone s) && not (nodeHostile s)
+    let newZoneFound (s:State) = (onHighValueNode s) && (not (nodePartOfZone s)) && (not (nodeHostile s))
 
     let hasValueHigherThan node value (s:State) = s.World.[node].Value.IsSome && s.World.[node].Value.Value >= value
     
@@ -79,7 +85,7 @@ module Explorer =
         match (vl, zone) with
         | ([], _) -> []
         | (head :: tail, l) -> 
-            if (List.tryFind (fun n -> n = head) l).IsNone then 
+            if (List.tryFind (fun n -> n = head) l).IsSome then 
                 head :: (getOverlappingVertices tail l)
             else 
                 getOverlappingVertices tail l
@@ -201,10 +207,13 @@ module Explorer =
     let findNewZone (inputState:State) = 
         if (newZoneFound inputState)
         then
+            
             let origin = inputState.Self.Node
-            Some("probe a new zone.",Activity,
-                [ MultiGoal(
-                            fun state -> 
+            Some<| normalIntention 
+                (   "probe a new zone.",
+                    Activity,
+                    [ MultiGoal(
+                                fun state -> 
                                 
                                 let zone = zoneToExplore state (Set.empty,Set [origin])
                                 let probed vertexName state = isProbed vertexName state.World
@@ -227,7 +236,7 @@ module Explorer =
                             Some [Communicate( CreateJob( (None,zoneValue,JobType.OccupyJob,agentsNeeded),OccupyJob(agentPositions,Set.toList zone) ) )]
                         | head::tail -> 
                             let removeIds = List.map ( fun ((id:Option<JobID>,_,_,_),_) -> if id.IsSome then id.Value else -1) overlapping
-                            let merged = removeDuplicates (mergeZones (Set.toList zone) overlapping) []
+                            let merged = removeDuplicates (mergeZones (Set.toList zone) overlapping)
                             let subGraph = List.map (fun n -> state.World.[n]) merged
                             let agentPositions = findAgentPlacement subGraph state.World
                             let agentsNeeded = agentPositions.Length
@@ -241,4 +250,22 @@ module Explorer =
 
     let findNodeToProbe (inputState:State) =
         let nearestUnprobed = nearestVertexSatisfying inputState nodeIsUnprobed
-        Some("probe one more node.", Activity, [Requirement (Probed nearestUnprobed)])
+        if(nodeHasNoOtherFriendlyAgentsOnIt inputState inputState.Self.Node)
+        then
+            match nearestUnprobed with
+            | Some unprobed ->
+                Some <| normalIntention ("probe one more node.", Activity, [Requirement (Probed unprobed)])
+            | _ -> None
+        else
+            let otherAgentsOnMyNode = List.filter (fun a -> a.Node = inputState.Self.Node && not(a.Name = inputState.Self.Name)) inputState.FriendlyData
+            if (myRankIsGreatest inputState.Self.Name otherAgentsOnMyNode)
+            then
+                let nextBest = findNextBestUnprobed inputState
+                match nextBest with
+                        | Some vertex -> Some<| normalIntention ("leave the group and probe a node.", Activity, [Requirement (Probed vertex)])
+                        | None -> Some<| normalIntention ("wait for the others to leave.", Activity, [Plan (fun _ -> Some [Perform(Recharge)])])
+            else
+                match nearestUnprobed with
+                | Some unprobed ->
+                    Some<| normalIntention ("probe one more node.", Activity, [Requirement (Probed unprobed)])
+                | _ -> None

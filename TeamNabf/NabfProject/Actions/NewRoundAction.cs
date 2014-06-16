@@ -28,13 +28,13 @@ namespace NabfProject.Actions
 
             if (newRound)
             {
-                TimedAction ta = this.Factory.CreateTimer(() =>
-                    {
-                        simMan.FindJobs(SimId);
-                    }
-                    );
-                ta.SetSingle(simMan.TimeBeforeApplyCloses);
-                this.RunAction(ta);
+                //TimedAction ta = this.Factory.CreateTimer(() =>
+                //    {
+                //        simMan.FindJobs(SimId);
+                //    }
+                //    );
+                //ta.SetSingle(simMan.TimeBeforeApplyCloses);
+                //this.RunAction(ta);
             }
         }
     }

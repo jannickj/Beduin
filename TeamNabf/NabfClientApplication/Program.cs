@@ -100,7 +100,10 @@ namespace NabfClientApplication
 			else
 				client = new ClientApplication(marsSerCom, marsToAgentParser, agentToMarsParser, logicFactory);
 
-            client.ActionSent += (sender, evt) => { if (!inDebugMode) Console.WriteLine("Action sent: " + "(" + evt.Value.Item1 + ", " + evt.Value.Item2.TotalMilliseconds + " ms)"); };
+            client.ActionSent += (sender, evt) => { 
+                    if (!inDebugMode)   
+					NabfAgentLogic.Logging.log(JSLibrary.Logging.DebugLevel.Important, NabfAgentLogic.Logging.DebugFlag.Agent, "Action sent: " + "(" + evt.Value.Item1 + ", " + evt.Value.Item2.TotalMilliseconds + " ms)"); 
+                };
 
             Console.WriteLine("Authenticating: username=" + username + ", password=" + password);
 
