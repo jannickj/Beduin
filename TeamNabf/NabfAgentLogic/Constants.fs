@@ -11,10 +11,10 @@
         let STEPS_BEFORE_ROLE_DONT_MATTER_OCCUPY_TIER2 = 70.0
 
         //lower means distance between agent and job matters less
-        let DISTANCE_TO_OCCUPY_JOB_MOD = 0.1
-        let DISTANCE_TO_REPAIR_JOB_MOD = 0.01
-        let DISTANCE_TO_DISRUPT_JOB_MOD = 0.1
-        let DISTANCE_TO_ATTACK_JOB_MOD = 0.1
+        let DISTANCE_TO_OCCUPY_JOB_MOD = 0.7
+        let DISTANCE_TO_REPAIR_JOB_MOD = 0.7
+        let DISTANCE_TO_DISRUPT_JOB_MOD = 0.7
+        let DISTANCE_TO_ATTACK_JOB_MOD = 0.7
 
         let DESIRE_COST_OF_MOVING_THROUGH_ONE_ENEMY_NODE = 0.02 //distance to job will be (dist + number_of_enemy_nodes*this_constant), meaning
                                                                 //nodes with enemies on them on the route will be considered more expensive,

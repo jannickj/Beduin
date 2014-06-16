@@ -223,7 +223,7 @@ namespace NabfProject.SimManager
         //    return NoticeBoard.NoticeToJobType(no);
         //}
 
-        public void ApplyToNotice(int simID, Int64 noticeId, int desirability, NabfAgent a)
+        public void ApplyToNotice(int simID, Int64 noticeId, double desirability, NabfAgent a)
         {
             if (_currentID != simID || _applicationClosed)
                 return;
@@ -311,6 +311,8 @@ namespace NabfProject.SimManager
             if (_currentRoundNumber % 5 == 0 || _currentRoundNumber < 10)
                 Console.WriteLine("-------- Simulation " + simID + ", Round: " + _currentRoundNumber + " --------");
 
+            if (_currentRoundNumber % 2 == 0)
+                nb.AssignJobs();
             //nb.ConsistencyChecker();
 
             if (reporting)

@@ -40,7 +40,7 @@
             member this.SetMessage (msg:AgentServerMessage) =
                 match msg with
                 | JobMessage jobpercept -> 
-                        lock perceptLock (fun () -> awaitingPercepts <- (JobPercept jobpercept)::awaitingPercepts)
+                        lock perceptLock (fun () -> awaitingPercepts <- awaitingPercepts@[JobPercept jobpercept])
                 | SharedPercepts percepts ->
                         lock perceptLock (fun () -> awaitingPercepts <- percepts @ awaitingPercepts)
                 | _ -> ()

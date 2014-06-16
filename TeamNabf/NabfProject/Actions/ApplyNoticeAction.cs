@@ -14,14 +14,14 @@ namespace NabfProject.Actions
     {
         private int SimId;
         private Int64 noticeId;
-        private int Desired;
+        private double Desired;
 
         public Int64 NoticeId
         {
             get { return noticeId; }
         }
 
-        public ApplyNoticeAction(int simID, Int64 noticeId, int desired)
+        public ApplyNoticeAction(int simID, Int64 noticeId, double desired)
         {
             SimId = simID;
             this.noticeId = noticeId;

@@ -27,7 +27,7 @@ namespace NabfProject.Parsers.AgentToAgentMasterConverters
 
             int noticeId = (int)((IilNumeral)bonusfunc.Parameters[1]).Value;
 
-            int desire = (int)((IilNumeral)bonusfunc.Parameters[2]).Value;            
+            double desire = (double)((IilNumeral)bonusfunc.Parameters[2]).Value;            
 
             ApplyNoticeAction ana = new ApplyNoticeAction(simId, noticeId, desire);
 

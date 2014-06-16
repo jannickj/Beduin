@@ -242,7 +242,7 @@ namespace NabfTest.NewNoticeBoardModelTest
             Int64 idToApplyTo = ListOfKnownIDs[0];
             bool applySuccessful = false;
             Notice noticeAppliedTo = null;
-            int desireOnNotice, desireAppliedWith = 1337;
+            double desireOnNotice, desireAppliedWith = 1337;
             #endregion
 
             bool applySucceded = nb.ApplyToNotice(agent1, idToApplyTo, desireAppliedWith);
@@ -307,7 +307,7 @@ namespace NabfTest.NewNoticeBoardModelTest
             Int64 idToApplyTo = ListOfKnownIDs[0];
             bool applySuccessful = false;
             Notice noticeAppliedTo = null;
-            int desireOnNotice, desireAppliedWith = 1337;
+            double desireOnNotice, desireAppliedWith = 1337;
             #endregion
 
             bool applySucceded = nb.ApplyToNotice(agent1, idToApplyTo, desireAppliedWith);
@@ -366,7 +366,7 @@ namespace NabfTest.NewNoticeBoardModelTest
             InitNoticeBoardInternalTesting();
             Int64 idToApplyTo = ListOfKnownIDs[0];
             Notice noticeAppliedTo = null;
-            int desireOnNotice, desireAppliedWith = 1337;
+            double desireOnNotice, desireAppliedWith = 1337;
             nb.ApplyToNotice(agent1, idToApplyTo, desireAppliedWith);
             foreach (Notice n in nb.GetAllNotices())
             {
@@ -397,7 +397,7 @@ namespace NabfTest.NewNoticeBoardModelTest
             InitNoticeBoardInternalTesting();
             Int64 idToApplyTo = ListOfKnownIDs[0];
             Notice noticeAppliedTo = null;
-            int desireOnNotice, empty, desireAppliedWith = 1337;
+            double desireOnNotice, empty, desireAppliedWith = 1337;
             #endregion
 
             nb.ApplyToNotice(agent2, idToApplyTo, desireAppliedWith);

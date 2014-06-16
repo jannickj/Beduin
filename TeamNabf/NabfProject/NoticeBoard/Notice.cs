@@ -22,7 +22,7 @@ namespace NabfProject.NoticeBoardModel
         private List<NabfAgent> _agentsApplied = new List<NabfAgent>();
         private List<NabfAgent> _agentsOnJob = new List<NabfAgent>();
         private List<NabfAgent> _agentProspects = new List<NabfAgent>();
-        private Dictionary<string, int> _agentNameToDesirability = new Dictionary<string, int>();
+        private Dictionary<string, double> _agentNameToDesirability = new Dictionary<string, double>();
         public abstract NoticeBoard.JobType GetNoticeType();
 
         public double AverageDesireFromTopContenders = 0;
@@ -83,7 +83,7 @@ namespace NabfProject.NoticeBoardModel
             _agentProspects.Clear();
         }
 
-        public bool TryGetDesirabilityOfAgent(NabfAgent agent, out int desire)
+        public bool TryGetDesirabilityOfAgent(NabfAgent agent, out double desire)
         {
             return _agentNameToDesirability.TryGetValue(agent.Name, out desire);
         }
@@ -93,7 +93,7 @@ namespace NabfProject.NoticeBoardModel
         }
 
 
-        public void Apply(int desirability, NabfAgent agent)
+        public void Apply(double desirability, NabfAgent agent)
         {
             NabfAgent a;
             _agentNameToDesirability.Remove(agent.Name);

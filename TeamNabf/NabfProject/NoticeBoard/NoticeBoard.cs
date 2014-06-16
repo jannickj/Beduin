@@ -170,7 +170,7 @@ namespace NabfProject.NoticeBoardModel
             }
         }
 
-        public bool ApplyToNotice(NabfAgent agent, Int64 idToApplyTo, int desireAppliedWith)
+        public bool ApplyToNotice(NabfAgent agent, Int64 idToApplyTo, double desireAppliedWith)
         {
             Notice noticeAppliedTo;
             bool b = TryGetNoticeById(idToApplyTo, out noticeAppliedTo); 
@@ -269,9 +269,6 @@ namespace NabfProject.NoticeBoardModel
                 foreach (NabfAgent agent in notice.GetAgentsOnJob())
                 {
                     agent.GotJobThisRound = true;
-                    agent.Raise(new ReceivedJobEvent(notice, agent));
-                    if (verbose)
-                        Console.WriteLine("" + agent.Name + " got " + notice.ToString());
 
                     //#region checks if queue needs re-ordering
                     //if (jobQueue.Count > 0)
@@ -308,7 +305,12 @@ namespace NabfProject.NoticeBoardModel
                 foreach(NabfAgent a in _sharingList)
                 {
                     if (AgentListContainsAgent(n.GetAgentsOnJob(), a))
-                        continue;
+                    {
+                        a.Raise(new FiredFromJobEvent(n, a));
+                        a.Raise(new ReceivedJobEvent(n, a));
+                        if (verbose)
+                            Console.WriteLine("" + a.Name + " got " + n.ToString());
+                    }
                     else
                     {
                         a.Raise(new FiredFromJobEvent(n, a));
@@ -393,11 +395,11 @@ namespace NabfProject.NoticeBoardModel
         public double CalculateAverageDesireForTopContenders(Notice notice, out List<NabfAgent> namesOfTopContenders)
         {
             double result = -1.0;
-            int desire;
+            double desire;
             bool desireFound;
             namesOfTopContenders = new List<NabfAgent>();
             //SortedList<int, NabfAgent> sortedAgentList = new SortedList<int, NabfAgent>(new InvertedComparer<int>());//the list now sorts descending
-            List<KeyValuePair<int, NabfAgent>> agentList = new List<KeyValuePair<int, NabfAgent>>();
+            List<KeyValuePair<double, NabfAgent>> agentList = new List<KeyValuePair<double, NabfAgent>>();
 
             foreach (NabfAgent agent in notice.GetAgentsApplied())
             {
@@ -406,10 +408,10 @@ namespace NabfProject.NoticeBoardModel
                 desireFound = notice.TryGetDesirabilityOfAgent(agent, out desire);
                 if (desireFound)
                 {
-                    agentList.Add(new KeyValuePair<int, NabfAgent>(desire, agent));
+                    agentList.Add(new KeyValuePair<double, NabfAgent>(desire, agent));
                 }
             }
-            agentList.Sort(new KvpKeyInvertedComparer<int, NabfAgent>());
+            agentList.Sort(new KvpKeyInvertedComparer<double, NabfAgent>());
 
             //calculate the sum of desire for the first K agents in sortedAgentList, where K is AgentsNeeded
             double desireSum = 0, agentsNeeded = notice.AgentsNeeded;
