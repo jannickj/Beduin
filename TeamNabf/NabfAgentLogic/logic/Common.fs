@@ -25,13 +25,13 @@ module Common =
             match jobData with
             | OccupyJob (_,zone) -> zone.Head
 
-        let distanceToJob = (getDistanceToJobAndNumberOfEnemyNodes jobTargetNode s)
+        let distanceToJob = (distanceBetweenAgentAndNode jobTargetNode s)
         
         let personalValueMod = 1 |> float//if an agent has some kind of "personal" preference 
                                          //that modifies how much it desires the new job, using the input modifier 
         
         //final desire
-        int <| (((float newValue) * personalValueMod) - (float oldJobValue))    +     (-(distanceToJob * DISTANCE_TO_OCCUPY_JOB_MOD))    +    modifier
+        int <| (((float newValue) * personalValueMod) - (float oldJobValue))    +     (-((float distanceToJob) * DISTANCE_TO_OCCUPY_JOB_MOD))    +    modifier
 
 
     //Try to find any repair jobs put up by the agent itself.

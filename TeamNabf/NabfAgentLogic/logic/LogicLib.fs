@@ -84,13 +84,6 @@ module LogicLib =
         let ((_,value,_,_),_) = (getJobFromJobID s id)
         value
 
-    //pathfind through the graph. When the path is found, count it's length and return it
-    //returns: (dist to job * number of enemy node)
-    let getDistanceToJobAndNumberOfEnemyNodes (targetNode:VertexName) (s:State) =
-        let distance_to_job = 1.0        
-
-        distance_to_job     
-
 
     //let isPartOfOccupyJob n (s:State) = List.exists (fun (j:Job) -> j ) s.Jobs
 
@@ -105,7 +98,7 @@ module LogicLib =
             minimumTraversalCost + cost
         | None -> INFINITE_HEURISTIC
 
-    let distanceBetweenAgentAndNode node state : int = distanceBetweenNodes state.Self.Node node state
+    let distanceBetweenAgentAndNode node state : int = distanceBetweenNodes state.Self.Node node state  
     
     let findTargetNode startNode condition (state:State) = 
         let nodesWithCond = List.filter (condition state) <| (List.map fst <| Map.toList state.World)

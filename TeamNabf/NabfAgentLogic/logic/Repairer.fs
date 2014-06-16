@@ -20,13 +20,13 @@ module Repairer =
             | RepairJob (node,_) -> node
         
 
-        let distanceToJob = (getDistanceToJobAndNumberOfEnemyNodes jobTargetNode s)
+        let distanceToJob = (distanceBetweenAgentAndNode jobTargetNode s)
         
         let personalValueMod = 1 |> float//if an agent has some kind of "personal" preference 
                                          //that modifies how much it desires the new job, using the input modifier 
         
         //final desire
-        int <| (((float newValue) * personalValueMod) - (float oldJobValue))    +     (-(distanceToJob * DISTANCE_TO_REPAIR_JOB_MOD))    +    REPAIRER_REPAIRJOB_MOD
+        int <| (((float newValue) * personalValueMod) - (float oldJobValue))    +     (-((float distanceToJob) * DISTANCE_TO_REPAIR_JOB_MOD))    +    REPAIRER_REPAIRJOB_MOD
    
 
     ////////////////////////////////////////Logic////////////////////////////////////////////
