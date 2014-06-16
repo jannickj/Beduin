@@ -36,12 +36,13 @@ namespace NabfProject.AI
 			: base(agent)
 		{
 			this.transmitter = transmitter;
-            this.Agent.Register(new Trigger<NewKnowledgeEvent>(evt => receivedEvent(evt)));
-            this.Agent.Register(new Trigger<NewNoticeEvent>(evt => receivedEvent(evt)));
-            this.Agent.Register(new Trigger<NoticeRemovedEvent>(evt => receivedEvent(evt)));
-            this.Agent.Register(new Trigger<NoticeUpdatedEvent>(evt => receivedEvent(evt)));
-            this.Agent.Register(new Trigger<ReceivedJobEvent>(evt => receivedEvent(evt)));
-            this.Agent.Register(new Trigger<RoundChangedEvent>(evt => receivedEvent(evt)));
+            this.Agent.Register(new Trigger<NewKnowledgeEvent>(receivedEvent));
+            this.Agent.Register(new Trigger<NewNoticeEvent>(receivedEvent));
+            this.Agent.Register(new Trigger<NoticeRemovedEvent>(receivedEvent));
+            this.Agent.Register(new Trigger<NoticeUpdatedEvent>(receivedEvent));
+            this.Agent.Register(new Trigger<ReceivedJobEvent>(receivedEvent));
+			this.Agent.Register(new Trigger<RoundChangedEvent> (receivedEvent));
+			this.Agent.Register(new Trigger<FiredFromJobEvent> (receivedEvent));
             this.Agent.Register(new Trigger<SimulationSubscribedEvent>(simSubscribedEvent));
 
 			this.masterToAgentParser = masterToAgentParser;
