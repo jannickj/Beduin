@@ -43,7 +43,8 @@ module LogicLib =
 
     let nearbyEnemies state source = 
         List.filter (fun a -> nodeListContains a.Node (neighbourNodes state source)) state.EnemyData        
-        
+
+
     let nearbyAllies state = 
         List.filter (fun a -> nodeListContains a.Node (neighbourNodes state state.Self)) state.FriendlyData 
 

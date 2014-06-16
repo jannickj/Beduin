@@ -11,7 +11,9 @@ module Common =
 
 
     ///////////////////////////////////Helper functions//////////////////////////////////////
-    
+
+
+
     //Calculate the desire to an occupy job
     let calculateDesireOccupyJob  modifier (j:Job) (s:State)= 
         let ((_,newValue,_,_),(jobData)) = j      
@@ -55,6 +57,9 @@ module Common =
             false
 
     ////////////////////////////////////////Logic////////////////////////////////////////////
+
+    //Checks if the agent is an repairer
+    let isNotRepairer (state:State) = state.Self.Role <> Some Repairer
 
     //Try to make it so the agent has explored one more node
     let exploreMap (inputState:State) = 

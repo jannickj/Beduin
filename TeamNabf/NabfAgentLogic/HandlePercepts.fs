@@ -395,8 +395,12 @@ module HandlePercepts =
     let updateHeuristicsMapSingle percepts oldState state =
         updateHeuristic state state.Self.Node
     
+    let clearMessages (state:State) = 
+        { state with MailsReceived = [] }    
+
     (* let updateState : State -> Percept list -> State *)
-    let updateState state percepts = 
+    let updateState inputState percepts = 
+        let state = clearMessages inputState
         let clearedState = clearTempBeliefs state
         let handlePercepts state percepts = List.fold handlePercept state percepts
         let newRoundPercepts s = handlePercepts s percepts

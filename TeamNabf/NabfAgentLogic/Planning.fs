@@ -12,6 +12,7 @@ module Planning =
     open System.Diagnostics
     open NabfAgentLogic.Search.HeuristicDijkstra
     open GeneralLib
+    open AgentTypes
 
     type Plan = (ActionSpecification list) * (Objective list)
 

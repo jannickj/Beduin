@@ -54,7 +54,7 @@ module DesireTree =
     //
     //                    ////Desire(postDisruptJob)
     //
-                        Desire(getRepaired)
+                        Conditional (isNotRepairer, Desire(getRepaired) )
     //
                         getRoleDesires
     //

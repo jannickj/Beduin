@@ -1,4 +1,4 @@
-﻿namespace NabfAgentLogic.IiLang
+namespace NabfAgentLogic.IiLang
 module MessageTranslator =
     open NabfAgentLogic.AgentTypes
 

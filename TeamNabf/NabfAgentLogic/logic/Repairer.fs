@@ -34,7 +34,7 @@ module Repairer =
 
     let spontanouslyRepairNearbyDamagedAgent (inputState:State) = 
         //let nearbyDamagedAgent = List.filter (fun a -> (float a.Health.Value) < ((float a.MaxHealth.Value) * SPONTANOUS_REPAIR_PERCENTAGE)) (nearbyAllies inputState)
-        let nearbyDamagedAgent = List.filter (fun a -> a.Status = Disabled) (nearbyAllies inputState)
+        let nearbyDamagedAgent = List.filter (fun a -> a.Status = Disabled) ((nearbyAllies inputState)@[inputState.Self])
         
         match nearbyDamagedAgent with
         | [] -> None
