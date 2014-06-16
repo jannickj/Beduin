@@ -89,9 +89,9 @@ module FloydWarshall =
         hMap
     
     let floydWarshallComplete (map:Graph) =
-        logImportant <| sprintf "Starting Floyd %A" map.Count
+//        logImportant <| sprintf "Starting Floyd %A" map.Count
         let result = floydWarshallSimple map
-        logImportant "Floyd complete"
+//        logImportant "Floyd complete"
         result
 
         //let vertices = List.sort (removeDuplicates ((List.map fst (Map.toList map))) [])

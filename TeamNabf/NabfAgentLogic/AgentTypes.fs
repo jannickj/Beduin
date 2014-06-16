@@ -4,6 +4,7 @@ module AgentTypes =
 
     open Graphing.Graph
     open Constants
+    open Logging
 
     type TeamName = string
     type AgentName = string 
@@ -213,10 +214,10 @@ module AgentTypes =
             GraphHeuristic   : (Map<VertexName*VertexName, (int*int)>* Map<VertexName,int>)
 
             ///USED FOR PLANNING ONLY DONT USE THEM IN INTENTION CHECKS
-            PlannerProbed           : VertexName Set
-            PlannerRepairedAgents   : AgentName Set
+            PlannerProbed          : VertexName Set
+            PlannerRepairedAgents  : AgentName Set
             PlannerInspectedEnemies : AgentName Set
-            PlannerDisabledEnemies  : AgentName Set
+            PlannerDisabledEnemies : AgentName Set
         }           
         member self.GetSubSet =
             { 
@@ -256,7 +257,7 @@ module AgentTypes =
         | Probed    of VertexName
         | Attacked  of AgentName 
         | Repaired  of AgentName
-        | Inspected of AgentName
+        | Inspected of VertexName
         | Explored  of VertexName
         | AtMinValueNode of int
         | Parried
@@ -267,4 +268,22 @@ module AgentTypes =
         | Requirement of Goal
         | MultiGoal of (State -> Goal list)
 
-    type Intention = string*IntentionType*(Objective list)
+    //type Intention = string*IntentionType*(Objective list)
+
+    type Intention = 
+        {
+            Label  : string
+            Type   : IntentionType
+            Objectives : Objective list
+            ChangeStateBefore : (State -> State) option
+            ChangeStateAfter  : (State -> State) option
+        } 
+
+    let statePrefix state = 
+        sprintf "(%A): %A @ %A" state.SimulationStep state.Self.Name state.Self.Node
+
+    let logStateCritical state = logPrefixCritical (statePrefix state)
+    let logStateError state = logPrefixError (statePrefix state)
+    let logStateImportant state = logPrefixImportant (statePrefix state)
+    let logStateWarning state = logPrefixWarning (statePrefix state)
+    let logStateInfo state = logPrefixInfo (statePrefix state)

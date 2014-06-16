@@ -102,7 +102,7 @@ namespace NabfClientApplication
 
             client.ActionSent += (sender, evt) => { 
                     if (!inDebugMode)   
-                        NabfAgentLogic.Logging.log(JSLibrary.Logging.DebugLevel.Info, "Action sent: " + "(" + evt.Value.Item1 + ", " + evt.Value.Item2.TotalMilliseconds + " ms)"); 
+					NabfAgentLogic.Logging.log(JSLibrary.Logging.DebugLevel.Important, NabfAgentLogic.Logging.DebugFlag.Agent, "Action sent: " + "(" + evt.Value.Item1 + ", " + evt.Value.Item2.TotalMilliseconds + " ms)"); 
                 };
 
             Console.WriteLine("Authenticating: username=" + username + ", password=" + password);

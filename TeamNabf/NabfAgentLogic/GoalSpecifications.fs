@@ -6,6 +6,7 @@ module GoalSpecifications =
     open LogicLib
     open Constants
     open Logging
+    open GeneralLib
 
     let agentAt agentName state =
         let agent = List.find (fun ag -> ag.Name = agentName) (state.EnemyData @ state.FriendlyData)
@@ -18,9 +19,8 @@ module GoalSpecifications =
     let vertexProbed vertex state = 
         Option.isSome state.World.[vertex].Value
 
-    let agentInspected agent state =
-        let enemy = List.find (fun enemy -> enemy.Name = agent) state.EnemyData
-        enemy.Role.IsSome
+    let vertexInspected vertex state =
+        List.forall (fun enemy -> Option.isSome enemy.Role) (enemiesHere state vertex)
 
     let parried state = 
         state.LastAction = Parry
@@ -46,7 +46,7 @@ module GoalSpecifications =
         | Explored vertex -> fun state -> state.Self.Node = vertex
         | Attacked agent -> agentAttacked agent
         | Probed vertex -> vertexProbed vertex
-        | Inspected agent -> agentInspected agent
+        | Inspected vertex -> vertexInspected vertex
         | Parried -> parried
         | Charged charge -> charged charge
         | AtMinValueNode value -> atMinValueNode value
@@ -59,12 +59,12 @@ module GoalSpecifications =
         match goal with
         | At vertex 
         | Explored vertex
-        | Probed vertex -> 
+        | Probed vertex
+        | Inspected vertex -> 
             distanceHeuristics vertex
 
         | Attacked agent 
-        | Repaired agent
-        | Inspected agent -> 
+        | Repaired agent ->
             fun state -> distanceHeuristics (agentAt agent state) state
 
         | Charged _
@@ -75,12 +75,12 @@ module GoalSpecifications =
         match goal with
         | At vertex 
         | Explored vertex
+        | Inspected vertex
         | Probed vertex ->
             Some <| vertex
         
         | Attacked agent 
-        | Repaired agent
-        | Inspected agent -> 
+        | Repaired agent ->
             Some <| agentAt agent state
 
         | _ -> None

@@ -4,13 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>3CAC5B0F-6B66-4B12-B58E-BB326C989B84</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>AgentLogicTest</RootNamespace>
     <AssemblyName>AgentLogicTest</AssemblyName>
     <Name>AgentLogicTest</Name>
-    <ProductVersion>12.0.0</ProductVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -23,7 +21,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DocumentationFile>bin\Debug\AgentLogicTest.XML</DocumentationFile>
     <Prefer32Bit>true</Prefer32Bit>
-    <ConsolePause>false</ConsolePause>
+    <Externalconsole>true</Externalconsole>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -37,7 +35,6 @@
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FSharp.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="mscorlib" />
     <Reference Include="nunit.framework">
       <HintPath>..\referenceddlls\nunit.framework.dll</HintPath>
@@ -46,17 +43,16 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
     <Reference Include="System.Xml" />
+    <Reference Include="FSharp.Core" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\FsPlanning\FsPlanning\FsPlanning\FsPlanning.fsproj">
       <Name>FsPlanning</Name>
-      <Project>{06cc68a7-84b7-4352-8700-fd9f79daa71b}</Project>
-      <Private>True</Private>
+      <Project>{06CC68A7-84B7-4352-8700-FD9F79DAA71B}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\JSLibrary\JSLibrary\JSLibrary\JSLibrary.csproj">
       <Name>JSLibrary</Name>
-      <Project>{02121c4a-b1fb-46b8-bde8-c5c6ca28c036}</Project>
-      <Private>True</Private>
+      <Project>{02121C4A-B1FB-46B8-BDE8-C5C6CA28C036}</Project>
     </ProjectReference>
     <ProjectReference Include="..\NabfAgentLogic\NabfAgentLogic.fsproj">
       <Project>{039EE1F6-4FD5-4DC7-97ED-4D3E5E8B9C20}</Project>
@@ -69,6 +65,7 @@
     <Compile Include="PlanningTest.fs" />
     <Compile Include="HeuristicTest.fs" />
     <Compile Include="CommonTest.fs" />
+    <Compile Include="BiconnectedTest.fs" />
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>

@@ -18,7 +18,7 @@ module Sentinel =
         match myOccupyJobs with
         | ((id,_,_,_),_)::_ -> 
             let (_,node) = List.find (fun (jid,_) -> id.Value = jid) inputState.MyJobs
-            Some
+            Some <| normalIntention 
                 (   "occupy node " + node + " and then parry"
                 ,   Activity
                 ,   [ Requirement (At node)

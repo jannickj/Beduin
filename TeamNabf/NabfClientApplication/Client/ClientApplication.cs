@@ -18,7 +18,6 @@ using XmasEngineModel.Interfaces;
 using NabfProject.ServerMessages;
 using NabfProject.Parsers;
 using NabfProject.AI;
-using NabfAgentLogic;
 using JSLibrary.Logging;
 
 namespace NabfClientApplication.Client
@@ -227,7 +226,7 @@ namespace NabfClientApplication.Client
             }
             catch (Exception e)
             {
-                Logging.log (DebugLevel.Critical, e.Message + "\n" + e.StackTrace);
+				Logging.log (DebugLevel.Critical, Logging.DebugFlag.Agent, e.Message + "\n" + e.StackTrace);
                 Environment.Exit(1); 
             }
         }

@@ -8,8 +8,18 @@ module LogicLib =
     open FsPlanning.Search
     open FsPlanning.Search.Problem
     open ActionSpecifications
+    open GeneralLib
 
     let flip f x y = f y x
+
+    let normalIntention (label,intentionType,objectives) =
+        {
+            Label = label;
+            Type = intentionType;
+            Objectives = objectives;
+            ChangeStateAfter = None
+            ChangeStateBefore = None
+        }
 
     let nodeListContains n (nl:string list) =
         (List.tryFind (fun s -> s = n) nl).IsSome
@@ -159,32 +169,46 @@ module LogicLib =
             Some <| snd (List.head <| List.rev solution.Path)
         | None -> None
 
-//    let planRouteTo target (state:State) = 
-//        findNode (fun vertexName -> vertexName = target) state
-        
-//    let findAndDo startNode condition actionList actionString findNextBest (inputState:State) =
-//        let targetOpt = 
-//            match findNextBest with
-//            | true -> findTargetNode startNode condition inputState
-//            | false -> findNextBestNode startNode condition inputState
-//        
-//        match targetOpt with
-//        | None -> None
-//        | Some target ->
-//               Some
-//                    (   "go to node " + target + " and " + actionString
-//                    ,   Activity
-//                    ,   [ Plan <| planRouteTo target
-//                        ; Requirement ( fun state -> not <| condition state target             
-//                                      , None
-//                                      , actionList
-//                                      )
-//                        ]
-//                    )
+    let findNextBestUnprobed state =
+        let isVertexUnprobed vertex = state.World.ContainsKey(vertex) && state.World.[vertex].Value.IsNone
 
+        let definiteCost cost = 
+            match cost with 
+            | Some c -> c
+            | None -> Constants.MINIMUM_EDGE_COST
+
+        let goalTest statePair = 
+            match statePair with
+            | (Some oldVertex, newVertex) when oldVertex <> newVertex -> 
+                isVertexUnprobed newVertex
+            | _ -> false
+
+        let result (oldVertex, _) (_, resultVertex) =
+            match oldVertex with
+            | Some vertex -> (Some vertex, resultVertex)
+            | None ->
+                if isVertexUnprobed resultVertex then
+                    (Some resultVertex, resultVertex)
+                else
+                    (None, resultVertex)
+
+        let pathProblem = 
+            { InitialState = (None, state.World.[state.Self.Node].Identifier)
+            ; GoalTest = goalTest
+            ; Actions = fun (_, vertex) -> Set.toList state.World.[vertex].Edges
+            ; Result = result
+            ; StepCost = fun _ (cost, _) -> definiteCost cost
+            ; Heuristic = fun _ cost -> cost
+            }
+        
+        let solution = Astar.solve Astar.aStar pathProblem (fun () -> false)
+        match solution with
+        | Some solution -> 
+            Some <| snd (List.head <| List.rev solution.Path)
+        | None -> None
 
     let myRankIsGreatest myName (other:Agent List) =
-        let qq = List.filter (fun a -> a.Name > myName) other
+        let qq = List.filter (fun a -> a.Name < myName) other
         qq.IsEmpty
 
 
@@ -201,7 +225,7 @@ module LogicLib =
         let friendliesOnNode = List.filter (fun a -> a.Node = node) inputState.FriendlyData
         if (friendliesOnNode.Length = 1) then //is it me standing on the node?
             friendliesOnNode.Head.Name = inputState.Self.Name
-        elif (friendliesOnNode.Length = 0) then //no one is standing on the
+        elif (friendliesOnNode.Length = 0) then //no one is standing on the node
             true
         else //more than 1 is standing on the node, including myself, so don't want
             false
