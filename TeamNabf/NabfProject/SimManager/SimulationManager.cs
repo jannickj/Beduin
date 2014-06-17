@@ -336,7 +336,7 @@ namespace NabfProject.SimManager
                     Console.WriteLine("Total number of sent job removals: " + _noticesRemovedCounter);
                     Console.WriteLine("Total number of received non-unique jobs: " + nb._nonUniqueJobsAttemptedToBeAdded);
 
-                    if (nb.GetSubscribedAgents().Count < 28)
+                    if (nb.GetSubscribedAgents().Count != 28)
                         Console.WriteLine("WARNING! there is only " + nb.GetSubscribedAgents().Count + " agents connected to Notice Board");
 
                     Console.WriteLine("  ");
@@ -349,55 +349,44 @@ namespace NabfProject.SimManager
                     Console.WriteLine("Redudant knowledge sent. Edge: " + km._redudantEdgeKnowledgeCounter + ". Node " + km._redudantNodeKnowledgeCounter + ". Role " + km._redudantRoleKnowledgeCounter + ". Message " + km._redudantMessageKnowledgeCounter + ". Heuristic " + km._redudantHeuristicKnowledgeCounter);
                     Console.WriteLine("Useful knowledge sent. Edge: " + km._edgeKnowledgeCounter + ". Node " + km._nodeKnowledgeCounter + ". Role " + km._roleKnowledgeCounter + ". Message " + km._messageKnowledgeCounter + ". Heuristic " + km._heuristicKnowledgeCounter);
 
-                    if (km.GetSubscribedAgentsCount() < 28)
+                    if (km.GetSubscribedAgentsCount() != 28)
                         Console.WriteLine("WARNING! there is only " + km.GetSubscribedAgentsCount() + " agents connected to Knowledge Manager");
                     Console.WriteLine("  ");
-                }
-                if ((_currentRoundNumber % 200 == 0 || _currentRoundNumber % 300 == 0 || _currentRoundNumber % 400 == 0 || _currentRoundNumber % 500 == 0) && _currentRoundNumber > 1)
-                {
-                    foreach (NabfAgent a in nb.GetSubscribedAgents())
-                    {
-                        Console.WriteLine(" ---- " + a.Name + " ---- ");
-                        //Console.WriteLine("Applications :");
-                        //foreach (Notice n in nb.GetAllNotices())
-                        //{
-                        //    if (NoticeBoardHelpers.AgentListContainsAgent(n.GetAgentsApplied(), a))
-                        //        Console.WriteLine(""+n.ToString());
-                        //}
-                        Console.WriteLine("Got jobs :");
-                        //foreach (Notice n in nb.GetUnavailableNotices())
-                        foreach (Notice n in nb.GetAllNotices())
-                        {
-                            if (NoticeBoardHelpers.AgentListContainsAgent(n.GetAgentsOnJob(), a))
-                                Console.WriteLine("" + n.ToString());
-                        }
-                        Console.WriteLine("  ");
-                    }
-                    Console.WriteLine(" --- Non-unique jobs --- ");
-                    foreach (Notice n in nb._nonUniqueJobs)
-                    {
-                        Console.WriteLine("" + n.ToString());
-                    }
+
+                    //Console.WriteLine(" --- Non-unique jobs --- ");
+                    //foreach (Notice n in nb._nonUniqueJobs)
+                    //{
+                    //    Console.WriteLine("" + n.ToString());
+                    //}
                     Console.WriteLine(" --- Unique jobs --- ");
                     foreach (Notice n in nb.GetAllNotices())
                     {
                         Console.WriteLine("" + n.ToString());
                     }
-                    
+                }
+                if ((_currentRoundNumber % 200 == 0 || _currentRoundNumber % 300 == 0 || _currentRoundNumber % 400 == 0 || _currentRoundNumber % 500 == 0) && _currentRoundNumber > 1)
+                {
+                    foreach (NabfAgent a in nb.GetSubscribedAgents())
+                    {
+                        //Console.WriteLine(" ---- " + a.Name + " ---- ");
+                        ////Console.WriteLine("Applications :");
+                        ////foreach (Notice n in nb.GetAllNotices())
+                        ////{
+                        ////    if (NoticeBoardHelpers.AgentListContainsAgent(n.GetAgentsApplied(), a))
+                        ////        Console.WriteLine(""+n.ToString());
+                        ////}
+                        //Console.WriteLine("Got jobs :");
+                        ////foreach (Notice n in nb.GetUnavailableNotices())
+                        //foreach (Notice n in nb.GetAllNotices())
+                        //{
+                        //    if (NoticeBoardHelpers.AgentListContainsAgent(n.GetAgentsOnJob(), a))
+                        //        Console.WriteLine("" + n.ToString());
+                        //}
+                        //Console.WriteLine("  ");
+                    }                    
                 }
                 #endregion
             }
-            //Console.WriteLine("Number of occupy jobs: "+nb.GetNoticeCount(NoticeBoard.JobType.Occupy));
-            //Console.WriteLine("Number of taken occupy jobs: " + nb.GetUnavailableNotices(NoticeBoard.JobType.Occupy).Count);
-            //Console.WriteLine("Number of fired agents: " + nb._agentsFiredCounter);
-            //Console.WriteLine("Total number of agent applications on non-taken jobs: " + nb.CountNumberOfApplications(nb.GetAvailableNotices(NoticeBoard.JobType.Occupy)));
-            //foreach (Notice n in nb.GetAvailableJobs(NoticeBoard.JobType.Occupy))
-            //{
-            //    //foreach (NabfAgent a in n.GetTopDesireAgents())
-            //    //    Console.WriteLine("" + a.Name + " has " + n.ToString());
-            //    //foreach (NabfAgent a in n.GetAgentsApplied())
-            //    //    Console.WriteLine(""+a.Name);                
-            //}
             
             return true;
         }

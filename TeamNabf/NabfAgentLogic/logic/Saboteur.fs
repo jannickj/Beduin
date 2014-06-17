@@ -38,7 +38,7 @@ module Saboteur =
                     1.0
 
             //final desire
-            int <| (((((float newValue) * personalValueMod) - (float oldJobValue))   +    (-((float distanceToJob) * DISTANCE_TO_ATTACK_JOB_MOD))) * isEnabled)
+            int <| (( JOB_IMPORTANCE_MODIFIER_ATTACK*(((float newValue) * personalValueMod) - (float oldJobValue))   +    (-((float distanceToJob) * DISTANCE_TO_ATTACK_JOB_MOD))) * isEnabled)
 
 
     ////////////////////////////////////////Logic////////////////////////////////////////////

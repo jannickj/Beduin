@@ -244,9 +244,7 @@ namespace NabfProject.NoticeBoardModel
         #region AssignJobs
         public bool AssignJobs()
         {
-            Notice notice, nextNotice;
-            bool agentsAlsoAppearAsTopDesiresOnNextNotice = false, selfNoticeRemoved = false;
-            List<Int64> noticesToUnapplyFrom;
+            Notice notice;
 
             foreach (NabfAgent a in _sharingList)
             {
@@ -257,7 +255,6 @@ namespace NabfProject.NoticeBoardModel
 
             if (jobQueue.Count <= 0)
                 return false;
-            //Console.WriteLine("starting AssignJob");
             while(jobQueue.Count > 0)
             {
                 notice = jobQueue.Dequeue();
@@ -265,59 +262,21 @@ namespace NabfProject.NoticeBoardModel
                 notice.Status = Status.unavailable;
                 notice.AddRangeToAgentsOnJob(notice.GetAgentProspects());
                 notice.ClearAgentProspects();
-                agentsAlsoAppearAsTopDesiresOnNextNotice = false;
                 foreach (NabfAgent agent in notice.GetAgentsOnJob())
                 {
                     agent.GotJobThisRound = true;
+                    agent.Raise(new ReceivedJobEvent(notice, agent));
+                    Console.WriteLine(""+agent.Name+" got "+notice.ToString());
 
-                    //#region checks if queue needs re-ordering
-                    //if (jobQueue.Count > 0)
-                    //{
-                    //    nextNotice = jobQueue.Peek();
-                    //    if (nextNotice.GetAgentProspects().Contains<NabfAgent>(agent))
-                    //        agentsAlsoAppearAsTopDesiresOnNextNotice = true;
-                    //}
-                    //#endregion
-
-                    //noticesToUnapplyFrom = _agentToAppliedNotices[agent.Name].ToList();
-                    //selfNoticeRemoved = noticesToUnapplyFrom.Remove(notice.Id);
-                    //if (selfNoticeRemoved)
-                    //{
-                        foreach (Notice noticeToFireFrom in GetAllNotices())
-                        {
-                            if (AgentListContainsAgent(noticeToFireFrom.GetAgentsOnJob(), agent) && noticeToFireFrom.Id != notice.Id)
-                                FireAllAgentsOnNotice(noticeToFireFrom);
-                            //UnapplyToNotice(agent, noticeId);
-                        }
-                    //}
-                }
-                jobQueue = CreateQueueSortedByAvgDesirability();
-                //#region re-orders the queue if needed
-                //if (agentsAlsoAppearAsTopDesiresOnNextNotice)
-                //{
-                //    jobQueue = CreateQueueSortedByAvgDesirability();
-                //}
-                //#endregion
-            }
-            //Console.WriteLine("ending AssignJob");
-            foreach(Notice n in GetAllNotices())
-            {
-                foreach(NabfAgent a in _sharingList)
-                {
-                    if (AgentListContainsAgent(n.GetAgentsOnJob(), a))
+                    foreach (Notice noticeToFireFrom in GetAllNotices())
                     {
-                        a.Raise(new FiredFromJobEvent(n, a));
-                        a.Raise(new ReceivedJobEvent(n, a));
-                        if (verbose)
-                            Console.WriteLine("" + a.Name + " got " + n.ToString());
+                        if (AgentListContainsAgent(noticeToFireFrom.GetAgentsOnJob(), agent) && noticeToFireFrom.Id != notice.Id)
+                            FireAllAgentsOnNotice(noticeToFireFrom);
                     }
-                    else
-                    {
-                        a.Raise(new FiredFromJobEvent(n, a));
-                    }
+                    jobQueue = CreateQueueSortedByAvgDesirability();
                 }
             }
-            //gør så alle agents modtager firedFromJob til alle notices som de ikke har
+            
             HashSet<string> nameChecking = new HashSet<string>();
             bool b;
             foreach (Notice n in GetAllNotices())
@@ -429,6 +388,7 @@ namespace NabfProject.NoticeBoardModel
 
         public void ConsistencyChecker()
         {
+            return;
             foreach (KeyValuePair<Int64, Notice> kvp in _allNotices)
             {
                 if (kvp.Value.Status == Status.unavailable)

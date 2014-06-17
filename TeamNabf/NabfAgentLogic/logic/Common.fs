@@ -37,7 +37,7 @@ module Common =
                 1.0
 
         //final desire
-        int <| (((((float newValue) * personalValueMod) - (float oldJobValue))   +    (-((float distanceToJob) * DISTANCE_TO_OCCUPY_JOB_MOD))   +    modifier) * isEnabled)
+        int <| (( (JOB_IMPORTANCE_MODIFIER_OCCUPY*(((float newValue) * personalValueMod) - (float oldJobValue)))   +    (-((float distanceToJob) * DISTANCE_TO_OCCUPY_JOB_MOD))   +    modifier) * isEnabled)
 
 
     //Try to find any repair jobs put up by the agent itself.
@@ -219,14 +219,17 @@ module Common =
                 else
                     List.maxBy (fun vertexName -> inputState.World.[vertexName].Value) (Set.toList valuableEnemyControlledNodes)
 
-            let jobExists = (List.filter 
-                                (fun (_,jobtype) -> 
-                                    match jobtype with
-                                    | AttackJob vertexList -> vertexList.Head = node                                         
-                                    | _ -> false
-                                ) 
+            let jobExists = (
+                                List.filter 
+                                    (fun (_,jobtype) -> 
+                                        match jobtype with
+                                        | AttackJob vertexList -> vertexList.Head = node                                         
+                                        | _ -> false
+                                    ) 
 
-                                inputState.Jobs).Length > 0
+                                    inputState.Jobs
+                            ).Length > 0
+
             if (jobExists) then
                 None
             else
