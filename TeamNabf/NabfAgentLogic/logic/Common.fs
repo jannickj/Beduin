@@ -58,6 +58,18 @@ module Common =
 
     ////////////////////////////////////////Logic////////////////////////////////////////////
 
+    let unapplyFromJobsWhenDisabled (inputState:State) = 
+        if inputState.MyJobs.Length = 0 || inputState.Self.Status = EntityStatus.Normal then
+            None
+        else
+            let (jobid,_) = inputState.MyJobs.Head
+            Some <| normalIntention 
+                        ( "unapply from my job with id " + jobid.ToString() + " because im disabled"
+                            , Communication
+                            , [ Plan <| fun state -> Some [Communicate( UnapplyJob(jobid) )]]
+                            )
+
+
     //Try to make it so the agent has explored one more node
     let exploreMap (inputState:State) = 
         let otherAgentsOnMyNode = List.filter (fun a -> a.Node = inputState.Self.Node && not(a.Name = inputState.Self.Name)) inputState.FriendlyData
