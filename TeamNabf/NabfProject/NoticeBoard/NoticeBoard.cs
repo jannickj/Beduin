@@ -111,6 +111,8 @@ namespace NabfProject.NoticeBoardModel
             if (n is AttackJob)
                 _createdAttackJob++;
 
+            if (verbose)
+                Console.WriteLine("An agent posted " + n.ToString());
             return true;
         }
         public bool UpdateNotice(Int64 id, List<NodeKnowledge> whichNodesIsInvolvedInJob, List<NodeKnowledge> whichNodesToStandOn, int agentsNeeded, int jobValue, string agentToRepair)
