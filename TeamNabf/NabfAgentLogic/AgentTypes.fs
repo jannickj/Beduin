@@ -88,7 +88,7 @@ module AgentTypes =
         | OccupyJob of VertexName list * VertexName list //(agentPositions,zone)
         | RepairJob of VertexName * AgentName
         | DisruptJob of VertexName
-        | AttackJob of VertexName list //Change to single vertex?
+        | AttackJob of VertexName list * int //the int is a timestamp
         | EmptyJob
     
     type AgentsNeededForJob = int

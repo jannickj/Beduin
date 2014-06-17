@@ -28,9 +28,9 @@ namespace NabfProject.KnowledgeManagerModel
             if (other.GetType() != this.GetType())
                 return false;
 
-            RoleKnowledge ek = (RoleKnowledge)other;
+            RoleKnowledge rk = (RoleKnowledge)other;
 
-            return ek.AgentId == this.AgentId;
+            return rk.AgentId == this.AgentId;
         }
 
         int IComparable<Knowledge>.CompareTo(Knowledge other)
@@ -46,6 +46,21 @@ namespace NabfProject.KnowledgeManagerModel
                     return 0;
             else
                 throw new ArgumentException("Object : " + other.GetType().Name + " of CompareTo is not of type EdgeKnowledge");
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+                throw new ArgumentException("Input of Equals of " + this.GetType().Name + " is null");
+            else if (!(obj is Knowledge))
+                throw new ArgumentException("Object : " + obj.GetType().Name + " of Equals is not implementing interface Knowledge");
+
+            if (obj.GetType() != this.GetType())
+                return false;
+
+            RoleKnowledge rk = (RoleKnowledge)obj;
+
+            return rk.AgentId == this.AgentId;
         }
 
         public string GetTypeToString()

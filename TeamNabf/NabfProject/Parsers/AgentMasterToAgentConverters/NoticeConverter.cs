@@ -31,6 +31,8 @@ namespace NabfProject.Parsers.NoticeConverters
                 optional = new IilFunction("agentToRepair", new IilIdentifier(((RepairJob)gobj).AgentToRepair));
             else if (gobj is OccupyJob)
                 optional = new IilFunction("zoneNodes", ((OccupyJob)gobj).ZoneNodes.Select(n => (new IilIdentifier(n.Name))));
+            else if (gobj is AttackJob)
+                optional = new IilFunction("timeStamp", new IilNumeral(((AttackJob)gobj).TimeStamp));
 
             IilPerceptCollection ipc;
 

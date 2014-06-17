@@ -16,11 +16,7 @@ module ExplorerTree =
                     
                     Conditional
                         (   lightProbingDone,
-                            ManyDesires
-                                [
-                                    Desire findNodeToProbe
-                                    Desire(applyToOccupyJob EXPLORER_OCCUPYJOB_MOD)
-                                ]
+                            Desire(applyToOccupyJob EXPLORER_OCCUPYJOB_MOD)
                         )
 
 

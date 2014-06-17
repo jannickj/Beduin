@@ -12,9 +12,9 @@ module SaboteurTree =
 
                     Desire(spontanouslyAttackAgentOnMyNode)
 
-                    Desire(workOnAttackJob)
-
                     Desire(spontanouslyAttackAgent)
+
+                    Desire(workOnAttackJob)                    
 
                     Desire(applyToDisruptJob)
 
