@@ -197,7 +197,7 @@ module AgentTypes =
             InspectedEnemies : AgentName Set
             SimulationStep   : int
             LastPosition     : VertexName
-            NewVertices      : SeenVertex list
+            //NewVertices      : SeenVertex list
             NewEdges         : Edge list
             LastStepScore    : int
             Score            : int

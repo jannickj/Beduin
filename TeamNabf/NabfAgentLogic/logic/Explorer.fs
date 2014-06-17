@@ -40,7 +40,7 @@ module Explorer =
         let l = List.filter (fun ((_,OccupyJob(_,vertices)):Job) -> (List.exists (fun (vn:VertexName) -> s.Self.Node = vn ) vertices)) occupyJobs
         l <> []
 
-    let lightExplorationDone (s:State) = (float s.ProbedCount) > ( EXPLORE_FACTOR_LIGHT * (float s.TotalNodeCount) )
+    let lightProbingDone (s:State) = (float s.ProbedCount) > ( PROBE_FACTOR_LIGHT * (float s.TotalNodeCount) )
 
     let onHighValueNode (s:State) = s.World.[s.Self.Node].Value.IsSome && s.World.[s.Self.Node].Value.Value >= ZONE_ORIGIN_VALUE
 
@@ -90,8 +90,12 @@ module Explorer =
             else 
                 getOverlappingVertices tail l
 
-    let getOverlappingJobs (occupyJobs:Job list) (zone:VertexName List) =
-        List.filter (fun ((_,OccupyJob(_,vertices)):Job) -> (getOverlappingVertices vertices zone) <> []) occupyJobs
+    let getOverlappingOccupyJobs (jobs:Job list) (zone:VertexName List) =
+        List.filter (fun job -> 
+                            match job with 
+                            | (_,OccupyJob(_,vertices)) -> (getOverlappingVertices vertices zone) <> []
+                            | _ -> false
+                        ) jobs
 
     let buildZoneVertex (vertex:Vertex) =
         {
@@ -226,7 +230,7 @@ module Explorer =
                         let exploredZone = zoneToExplore state (Set.empty,Set [origin])
                         let zone = Set.filter (fun z -> hasValueHigherThan z ZONE_BORDER_VALUE state) exploredZone
                         //let zone = findZone Set.empty (Set [origin]) state
-                        let overlapping = getOverlappingJobs state.Jobs (Set.toList zone)
+                        let overlapping = getOverlappingOccupyJobs state.Jobs (Set.toList zone)
                         match overlapping with
                         | [] -> 
                             let subGraph = List.map (fun n -> state.World.[n]) (Set.toList zone)

@@ -66,12 +66,11 @@ module HandlePercepts =
             | EnemySeen _ -> state
                 
             | VertexSeen seenVertex ->
-                { state with NewVertices = seenVertex::state.NewVertices }
-//                let seenState = { state with NewVertices = seenVertex::state.NewVertices }
-//                match seenVertex with
-//                | (nodeName,team) when team.IsSome && team.Value <> OUR_TEAM -> 
-//                    { seenState with NodesControlledByEnemy = Set.add nodeName seenState.NodesControlledByEnemy }
-//                | _ -> seenState
+//                { state with NewVertices = seenVertex::state.NewVertices }
+                match seenVertex with
+                | (nodeName,Some team) when team <> OUR_TEAM -> 
+                    { state with NodesControlledByEnemy = Set.add nodeName state.NodesControlledByEnemy }
+                | _ -> state
 
             | VertexProbed (name, value) ->
                 { state with 
@@ -238,7 +237,7 @@ module HandlePercepts =
         let newEnemyData = List.map (fun enemy -> { enemy with Agent.Node = ""}) state.EnemyData
         { state with 
             NewEdges = []
-            NewVertices = []
+//            NewVertices = []
             EnemyData = newEnemyData
             NodesControlledByEnemy = Set.empty
         }

@@ -12,8 +12,6 @@ module InspectorTree =
                 [
                     Desire(spontaneousInspectAgentOnMyNode)
 
-                    Desire(spontanousInspectAgent)
-
                     Desire(applyToOccupyJob INSPECTOR_OCCUPYJOB_MOD)
 
                     Desire(workOnOccupyJob)//Heuristic
@@ -21,6 +19,4 @@ module InspectorTree =
                     Desire(applyToDisruptJob)
 
                     Desire(workOnDisruptJob)//Heuristic
-
-                    Desire(findAgentToInspect)
                 ]

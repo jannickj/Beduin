@@ -58,7 +58,11 @@ module DesireTree =
     //
                         getRoleDesires
     //
-                        Desire exploreMap
+                        
+                        Conditional
+                            (   exploringNotDone,
+                                Desire exploreMap
+                            )
     //
                         Desire(generateSomeValue)
                         Desire(generateLittleValue)

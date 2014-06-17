@@ -266,7 +266,7 @@ module Planning =
                 member self.NextAction (state, intent, solution) = 
                     let action = 
                         try nextAction state intent solution with
-                        | exn -> logStateError state Planning <| sprintf "Error encountered in nextAction: %A at %A" exn.Message exn.TargetSite
+                        | exn -> logStateError state Planning <| sprintf "Error encountered in nextAction: %A at %A" exn.Message exn.StackTrace
                                  None
                     action
 

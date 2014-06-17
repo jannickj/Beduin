@@ -53,6 +53,8 @@ module Common =
             n.Value.Value >= MINIMUM_VALUE_VALUE
         else
             false
+            
+    let exploringNotDone (s:State) = (float s.World.Count) < ( EXPLORE_FACTOR_DONE_EXPLORING * (float s.TotalNodeCount) )
 
     ////////////////////////////////////////Logic////////////////////////////////////////////
 
@@ -177,7 +179,7 @@ module Common =
     
 
     let workOnOccupyJob (inputState:State) =
-        logStateImportant inputState Intentions <| sprintf  "my jobs are: %A" (List.map fst inputState.MyJobs)//delete this line. no longer needed
+        logStateInfo inputState Intentions <| sprintf  "my jobs are: %A" (List.map fst inputState.MyJobs)
         let myJobs = List.map (fun (id,_) -> getJobFromJobID inputState id) inputState.MyJobs
         let myOccupyJobs = getJobsByType JobType.OccupyJob myJobs
         match myOccupyJobs with
@@ -236,7 +238,7 @@ module Common =
                 let nodeValue = inputState.World.[node].Value.Value
                 Some <| normalIntention 
                         ( "post attack job on node " + node
-                         , Activity
+                         , Communication
                          , [ Plan <| fun state -> Some [Communicate( CreateJob( (None,nodeValue,JobType.AttackJob,1),AttackJob([node]) ))]]
                          )
         else
