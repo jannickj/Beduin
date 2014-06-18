@@ -20,7 +20,8 @@ module LogicLib =
             ChangeStateAfter = None
             ChangeStateBefore = None
         }
-
+     
+    
     let nodeListContains n (nl:string list) =
         (List.tryFind (fun s -> s = n) nl).IsSome
 

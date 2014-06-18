@@ -12,6 +12,25 @@ module HandlePercepts =
 
     ///////////////////////////////////Helper functions//////////////////////////////////////
 
+    let getAgentName (a:Agent) = a.Name
+
+    let buildAgent name team =
+        { Energy      = None
+        ; Health      = None
+        ; MaxEnergy   = None
+        ; MaxEnergyDisabled = None
+        ; MaxHealth   = None
+        ; Name        = name
+        ; Node        = ""
+        ; Role        = None
+        ; RoleCertainty = 100
+        ; Strength    = None
+        ; Team        = team
+        ; VisionRange = None
+        ; Status      = Normal
+        }
+
+
     let rec addListToMap mapToUpdate list =
         match list with 
         | (key,value)::tail -> 
@@ -162,7 +181,6 @@ module HandlePercepts =
                 let jobIDFromHeader (header:JobHeader) =
                         match header with
                         | (jobID, _, _, _) -> jobID
-                        | _ -> None
 
                 let removeJob jobHeader = List.filter (fun (existingJobHeader, _) -> 
                             not(jobIDFromHeader existingJobHeader = jobIDFromHeader jobHeader)) state.Jobs
@@ -214,7 +232,12 @@ module HandlePercepts =
                 let (heuMap,countMap) = state.GraphHeuristic 
                 {state with GraphHeuristic = (Map.add (n1,n2) dist heuMap,countMap)}
             | MailPercept mail ->
-                { state with MailsReceived = mail::state.MailsReceived }
+                let roundNr = state.SimulationStep
+                let newMails = 
+                    match Map.tryFind roundNr state.MailsReceived with
+                    | Some oldMails -> Set.add mail oldMails
+                    | None -> Set [mail]
+                { state with MailsReceived = Map.add roundNr newMails state.MailsReceived }
             | unhandled -> 
                 logStateError state Perception (sprintf "Unhandled percept: %A" unhandled) 
                 state
@@ -237,10 +260,12 @@ module HandlePercepts =
             
     let clearTempBeliefs (state:State) =
         let newEnemyData = List.map (fun enemy -> { enemy with Agent.Node = ""}) state.EnemyData
+        let newAllyData = List.map (fun ally -> { ally with Status = Disabled }) state.FriendlyData
         { state with 
             NewEdges = []
             NewVertices = []
             EnemyData = newEnemyData
+            FriendlyData = newAllyData
         }
 
     let updateTraversedEdgeCost (oldState : State) (newState : State) =
@@ -394,15 +419,43 @@ module HandlePercepts =
 
     let updateHeuristicsMapSingle percepts oldState state =
         updateHeuristic state state.Self.Node
+  
+    let clearOldMails (state:State) = 
+        //split mails into new mails and mails that are MAIL_EXPIRATION number of rounds old
+        let (fresh,old) = Map.partition (fun mailRound _ ->  (state.SimulationStep - MAIL_EXPIRATION) <= mailRound) state.MailsReceived 
+        { state with MailsReceived = fresh }    
     
-    let clearMessages (state:State) = 
-        { state with MailsReceived = [] }    
+    let handleMail (state:State) ((sender,_,message):Mail) =
+        match message with
+        | GoingToRepairYou ->
+            { state with Relations = Map.add MyRepairer sender state.Relations  }
+        | MyLocation vn ->
+            let friendly = List.partition (getAgentName >> ((=) sender)) state.FriendlyData
+            match friendly with
+            | ([agent],others) -> 
+                { state with FriendlyData = ({ agent with Node = vn })::others }
+            | ([],others) -> 
+                let agent = { buildAgent sender OUR_TEAM with Node = vn }
+                { state with FriendlyData = agent::others }
+            | _ -> 
+                logStateError state Perception <| sprintf "Multiple of same agent: %A in friendlyData" sender 
+                state        
+
+    let rec handleMails (state:State) mailgroups =
+        if not <| Map.isEmpty mailgroups then
+            let (round,mails) =  Set.minElement <| (Set.ofSeq <| Map.toSeq mailgroups)
+            let updatedState = Set.fold handleMail state mails
+            handleMails updatedState (Map.remove round mailgroups)
+        else
+            state
+
 
     (* let updateState : State -> Percept list -> State *)
-    let updateState inputState percepts = 
-        let state = clearMessages inputState
+    let updateState state percepts = 
         let clearedState = clearTempBeliefs state
+
         let handlePercepts state percepts = List.fold handlePercept state percepts
+
         let newRoundPercepts s = handlePercepts s percepts
                                 |> updateLastPos state
                                 |> updateProbeCount state
@@ -410,11 +463,14 @@ module HandlePercepts =
                                 |> updateTraversedEdgeCost state
                                 |> selectSharedPercepts percepts state
                                 |> updateHeuristicsMapSingle percepts state
-
+                                |> clearOldMails
         
         match percepts with
-        | NewRoundPercept::_ -> newRoundPercepts clearedState
-                                
-        | _ -> handlePercepts state percepts
+        | NewRoundPercept::_ -> 
+            let newState = handleMails clearedState clearedState.MailsReceived
+            newRoundPercepts newState                    
+        | _ -> 
+            let newState = handleMails state state.MailsReceived
+            handlePercepts newState percepts
 
         

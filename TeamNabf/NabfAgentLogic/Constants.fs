@@ -4,6 +4,12 @@
         ///////////////////////////////
         /// Agent constants
         ///////////////////////////////
+        let REPAIRER_REPAIR_PRIORITY = 10
+        let SENTINEL_REPAIR_PRIORITY = 0
+        let INSPECTOR_REPAIR_PRIORITY = 0
+        let SABOTEUR_REPAIR_PRIORITY = 20
+        let EXPLORER_REPAIR_PRIORITY = 1
+
         let STEPS_BEFORE_ROLE_DONT_MATTER_DISRUPT_TIER0 = 0.0
         let STEPS_BEFORE_ROLE_DONT_MATTER_DISRUPT_TIER1 = 7.0
         let STEPS_BEFORE_ROLE_DONT_MATTER_DISRUPT_TIER2 = 10.0
@@ -12,7 +18,7 @@
 
         //lower means distance between agent and job matters less
         let DISTANCE_TO_OCCUPY_JOB_MOD = 0.7
-        let DISTANCE_TO_REPAIR_JOB_MOD = 2.0
+        let DISTANCE_TO_REPAIR_JOB_MOD = 1.0
         let DISTANCE_TO_DISRUPT_JOB_MOD = 0.7
         let DISTANCE_TO_ATTACK_JOB_MOD = 0.7
 
@@ -22,6 +28,8 @@
                                                                 //This constant may not be negative and not exceed 1.0
 
         //don't change these. Modify the above constants as what they actually do is clearly understood
+
+
         let REPAIRER_OCCUPYJOB_MOD = -0.0
         let SENTINEL_OCCUPYJOB_MOD = 10.0 + (STEPS_BEFORE_ROLE_DONT_MATTER_OCCUPY_TIER1 / 10.0)
         let INSPECTOR_OCCUPYJOB_MOD = 10.0
@@ -67,6 +75,8 @@
         let ACTION_COST_EXPENSIVE = 2
         let ACTION_COST_DISABLED = 3
        
+        let MAIL_EXPIRATION = 1
+
         let OUR_TEAM = "Nabf"
         let EXPLORE_FACTOR_LIGHT = 0.9
         let MAX_PLANNING_TIME_MS = 1000L

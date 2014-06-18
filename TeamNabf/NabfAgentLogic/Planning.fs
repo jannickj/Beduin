@@ -217,6 +217,11 @@ module Planning =
             match makePlan state newObjectives with
             | Some newPlan -> nextAction state intent newPlan
             | None -> None
+           
+    let updateGoalHeuristic goal state =
+        match goalVertex goal state with
+        | Some vertex -> updateHeuristic state vertex
+        | None -> state
 
     let updateStateBeforePlanning initstate (intent:Intention) = 
         let state = match intent.ChangeStateBefore with
@@ -226,9 +231,12 @@ module Planning =
         | ( Activity, objective :: _) ->
             match objective with
             | Requirement goal ->
-                match goalVertex goal state with
-                | Some vertex -> updateHeuristic state vertex
-                | None -> state
+                updateGoalHeuristic goal state
+            | MultiGoal goalfunc ->
+                match goalfunc state with
+                | first::_ -> 
+                    updateGoalHeuristic first state
+                | [] -> state
             | _ -> state
         | _ -> state
 

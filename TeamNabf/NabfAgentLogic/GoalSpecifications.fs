@@ -31,7 +31,10 @@ module GoalSpecifications =
         | None -> state.LastAction = Recharge
 
     let agentRepaired agent state =
-        state.LastAction = Repair agent
+        match List.tryFind (fun a -> a.Name = agent) state.FriendlyData with
+        | Some (agent) -> agent.Status = Normal
+        | None -> false
+        //state.LastAction = Repair agent
 
     let atMinValueNode value state = 
         let n = state.World.[state.Self.Node] 

@@ -109,6 +109,7 @@ module AgentTypes =
     
     type Message =
         | MyLocation of VertexName
+        | GoingToRepairYou
 
     type RecipientName = AgentName
     type SenderName = AgentName
@@ -122,7 +123,7 @@ module AgentTypes =
         | AcceptedJob of JobID*VertexName
         | FiredFrom of JobID 
     
-    
+    type RoundNumber = int
 
     type Percept =
         | EnemySeen         of Agent
@@ -185,7 +186,10 @@ module AgentTypes =
     type ServerMessage = 
         | AgentServerMessage of AgentServerMessage
         | MarsServerMessage of MarsServerMessage
-
+    
+    type Relation =
+        | MyRepairer
+    
     type SubSetState =
         {
             Pos             : string
@@ -221,8 +225,9 @@ module AgentTypes =
             NewKnowledge     : Percept list
             MyExploredCount  : int
             ProbedCount      : int
-            MailsReceived    : Mail list
+            MailsReceived    : Map<RoundNumber,Mail Set>
             GraphHeuristic   : (Map<VertexName*VertexName, (int*int)>* Map<VertexName,int>)
+            Relations        : Map<Relation,AgentName>
 
             ///USED FOR PLANNING ONLY DONT USE THEM IN INTENTION CHECKS
             PlannerProbed          : VertexName Set
@@ -296,3 +301,6 @@ module AgentTypes =
     let logStateImportant state = logPrefixImportant (statePrefix state)
     let logStateWarning state = logPrefixWarning (statePrefix state)
     let logStateInfo state = logPrefixInfo (statePrefix state)
+
+
+

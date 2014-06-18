@@ -10,10 +10,10 @@ module Repairer =
     let calculateDesireRepairJob (j:Job) (s:State) = 
         let ((_,newValue,_,_),(jobData)) = j      
         let oldJobValue = 
-                            if (s.MyJobs.IsEmpty) then
-                                0
-                            else
-                                (getJobValueFromJoblist s.MyJobs s)
+            if (s.MyJobs.IsEmpty) then
+                0
+            else
+                (getJobValueFromJoblist s.MyJobs s)
 
         let jobTargetNode = 
             match jobData with
@@ -32,10 +32,25 @@ module Repairer =
 
     ////////////////////////////////////////Logic////////////////////////////////////////////
 
+    let giveMyLocationToRepairee (inputState:State) =
+        match inputState.MyJobs with
+        | (curJobId,_)::_ -> 
+            match getJobFromJobID inputState curJobId with
+            | (_,RepairJob (_, an)) -> 
+                normalIntention ( "send my location to "+an, 
+                                  Communication, 
+                                  [Plan (fun s -> 
+                                        [Communicate <| SendMail (s.Self.Name,an,MyLocation s.Self.Node)]
+                                        |> Some
+                                   )]
+                                )
+                |> Some
+            | _ -> None    
+        | _ -> None
+
     let spontanouslyRepairNearbyDamagedAgent (inputState:State) = 
         //let nearbyDamagedAgent = List.filter (fun a -> (float a.Health.Value) < ((float a.MaxHealth.Value) * SPONTANOUS_REPAIR_PERCENTAGE)) (nearbyAllies inputState)
         let nearbyDamagedAgent = List.filter (fun a -> a.Status = Disabled) ((nearbyAllies inputState)@[inputState.Self])
-        
         match nearbyDamagedAgent with
         | [] -> None
         | head::tail ->     
@@ -63,6 +78,7 @@ module Repairer =
             Some <| normalIntention 
                     ( "repair agent " + agent + " on node " + node
                     , Activity
-                    , [Requirement (Repaired agent)]
+                    , [ Plan (fun s -> Some [Communicate <| SendMail (s.Self.Name,agent,GoingToRepairYou)]);
+                        Requirement (Repaired agent)]
                     )
         | [] -> None

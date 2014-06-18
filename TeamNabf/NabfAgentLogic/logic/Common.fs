@@ -12,7 +12,11 @@ module Common =
 
     ///////////////////////////////////Helper functions//////////////////////////////////////
 
-
+    //Calculate value of repairing of an agenttype
+    let calculateRepairValue agentType =
+        match agentType with
+        | Saboteur -> 
+       
 
     //Calculate the desire to an occupy job
     let calculateDesireOccupyJob  modifier (j:Job) (s:State)= 
@@ -40,13 +44,13 @@ module Common =
 
         //final desire
         int <| (((((float newValue) * personalValueMod) - (float oldJobValue))   +    (-((float distanceToJob) * DISTANCE_TO_OCCUPY_JOB_MOD))   +    modifier) * isEnabled)
+    //Try to find any repair jobs for a specific agent
+    let tryFindRepairJobForAgent (agentName) (jobs:Job list) =
+        List.tryFind (fun (_,job) -> 
+                            match job with
+                            | RepairJob (_,a) -> agentName = a
+                            | _ -> false) jobs
 
-
-    //Try to find any repair jobs put up by the agent itself.
-    let rec tryFindRepairJob (inputState:State) (knownJobs:Job list) =
-            match knownJobs with
-            | (_ , rdata) :: tail -> if rdata = RepairJob(inputState.Self.Node,inputState.Self.Name) then Some knownJobs.Head else tryFindRepairJob inputState tail
-            | [] -> None
 
 
     let nodeHasMinValue (state:State) node =
@@ -58,8 +62,21 @@ module Common =
 
     ////////////////////////////////////////Logic////////////////////////////////////////////
 
-    //Checks if the agent is an repairer
-    let isNotRepairer (state:State) = state.Self.Role <> Some Repairer
+  
+
+    let giveMyLocationToMyRepairer (inputState:State) =
+        match (inputState.Self.Status,Map.tryFind MyRepairer inputState.Relations) with
+        | (Normal, Some repairer) -> 
+            Some <| normalIntention 
+                    ( "send my location to repairer "+repairer,
+                      Communication,
+                      [
+                        Plan (fun s -> 
+                            [Communicate <| SendMail (s.Self.Name,repairer,MyLocation s.Self.Node)]
+                            |> Some)
+                      ]
+                    )
+        | _ -> None 
 
     //Try to make it so the agent has explored one more node
     let exploreMap (inputState:State) = 
@@ -86,6 +103,25 @@ module Common =
                  , [Requirement goal]
                  )
         | _ -> None
+
+    let postRepairJob (inputState:State) =
+        if inputState.Self.Status = Disabled then
+            match tryFindRepairJobForAgent inputState.Self.Name inputState.Jobs with
+            | None ->
+                let myNode = inputState.Self.Node
+                let myName = inputState.Self.Name
+                let communicateJob = CreateJob ( (None,5,JobType.RepairJob,1),RepairJob(myNode,myName))
+
+                Some  <| normalIntention ( "post repair job of me."
+                     , Activity
+                     , [ Plan <| fun _ -> Some [ Communicate <| communicateJob ]
+                       ; Requirement <| Charged None
+                       ]
+                     )
+            | _ -> None
+        else
+            None     
+
     //When disabled, post a repair job, then recharge while waiting for a repairer. Temporary version to be updated later.
     //Works by creating a plan to recharge one turn each turn.
     let getRepaired (inputState:State) = 

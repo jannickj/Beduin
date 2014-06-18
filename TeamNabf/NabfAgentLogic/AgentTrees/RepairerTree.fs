@@ -11,6 +11,6 @@ module RepairerTree =
                     Desire(spontanouslyRepairNearbyDamagedAgent)
 
                     Desire(applyToRepairJob)
-
-                    Desire(workOnRepairJob)//Heu
+                    Desire(giveMyLocationToRepairee)
+                    Desire(workOnRepairJob)
                 ]
