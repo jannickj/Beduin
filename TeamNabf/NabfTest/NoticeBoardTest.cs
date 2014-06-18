@@ -115,7 +115,7 @@ namespace NabfTest.NewNoticeBoardModelTest
 
             Assert.AreEqual(0, nb.GetAllNotices().Count);
 
-            bool createSuccess = nb.CreateNotice(jobType, agentsNeeded, whichNodesIsInvolvedInJob, whichNodesToStandOn, notNeededForOccupyJob, jobValue);
+            bool createSuccess = nb.CreateNotice(jobType, agentsNeeded, whichNodesIsInvolvedInJob, whichNodesToStandOn, notNeededForOccupyJob, DontCareInt, jobValue);
 
             Assert.True(createSuccess);
             Assert.AreEqual(1,nb.GetAllNotices().Count);
@@ -135,10 +135,10 @@ namespace NabfTest.NewNoticeBoardModelTest
 
             Assert.AreEqual(0, nb.GetAllNotices().Count);
 
-            nb.CreateNotice(jobType, agentsNeeded, whichNodesIsInvolvedInJob, whichNodesToStandOn, notNeededForOccupyJob, jobValue);
+            nb.CreateNotice(jobType, agentsNeeded, whichNodesIsInvolvedInJob, whichNodesToStandOn, notNeededForOccupyJob, DontCareInt, jobValue);
             Assert.AreEqual(1, nb.GetAllNotices().Count);
 
-            bool createSuccessDuplicate = nb.CreateNotice(jobType, agentsNeeded, whichNodesIsInvolvedInJob, whichNodesToStandOn, notNeededForOccupyJob, jobValue);
+            bool createSuccessDuplicate = nb.CreateNotice(jobType, agentsNeeded, whichNodesIsInvolvedInJob, whichNodesToStandOn, notNeededForOccupyJob, DontCareInt, jobValue);
 
             Assert.False(createSuccessDuplicate);
             Assert.AreEqual(1, nb.GetAllNotices().Count);
@@ -158,7 +158,7 @@ namespace NabfTest.NewNoticeBoardModelTest
             List<NodeKnowledge> whichNodesToStandOn = new List<NodeKnowledge>() { };
             #endregion
 
-            nb.CreateNotice(jobType, agentsNeeded, whichNodesIsInvolvedInJob, whichNodesToStandOn, notNeededForOccupyJob, jobValue);
+            nb.CreateNotice(jobType, agentsNeeded, whichNodesIsInvolvedInJob, whichNodesToStandOn, notNeededForOccupyJob, DontCareInt, jobValue);
 
             Assert.AreEqual(agentsNeeded, nb.GetAllNotices().ToList()[0].AgentsNeeded);
             Assert.AreEqual(jobValue, nb.GetAllNotices().ToList()[0].Value);
@@ -200,7 +200,7 @@ namespace NabfTest.NewNoticeBoardModelTest
             List<NodeKnowledge> whichNodesToStandOn = new List<NodeKnowledge>() { };
             #endregion
 
-            nb.CreateNotice(jobType, agentsNeeded, whichNodesIsInvolvedInJob, whichNodesToStandOn, notNeededForOccupyJob, jobValue);
+            nb.CreateNotice(jobType, agentsNeeded, whichNodesIsInvolvedInJob, whichNodesToStandOn, notNeededForOccupyJob, DontCareInt, jobValue);
 
             Assert.AreEqual(1, nb.GetAllNotices().Count);
 
@@ -222,7 +222,7 @@ namespace NabfTest.NewNoticeBoardModelTest
             List<NodeKnowledge> whichNodesToStandOn = new List<NodeKnowledge>() { };
             #endregion
 
-            nb.CreateNotice(jobType, agentsNeeded, whichNodesIsInvolvedInJob, whichNodesToStandOn, notNeededForOccupyJob, jobValue);
+            nb.CreateNotice(jobType, agentsNeeded, whichNodesIsInvolvedInJob, whichNodesToStandOn, notNeededForOccupyJob, DontCareInt, jobValue);
            
             Assert.AreEqual(1, nb.GetAllNotices().Count);
 
@@ -816,10 +816,10 @@ namespace NabfTest.NewNoticeBoardModelTest
             nb.Subscribe(agent2);
             nb.Subscribe(agent3);
             nb.Subscribe(agent4);
-            nb.CreateNotice(NoticeBoard.JobType.Occupy, 2, DontCareNodes, DontCareNodes, DontCareString, DontCareInt);
-            nb.CreateNotice(NoticeBoard.JobType.Occupy, 2, DontCareNodes2, DontCareNodes2, DontCareString, DontCareInt);
-            nb.CreateNotice(NoticeBoard.JobType.Repair, 1, DontCareNodes, DontCareNodes, DontCareString, DontCareInt);
-            nb.CreateNotice(NoticeBoard.JobType.Repair, 1, DontCareNodes2, DontCareNodes2, DontCareString2, DontCareInt);
+            nb.CreateNotice(NoticeBoard.JobType.Occupy, 2, DontCareNodes, DontCareNodes, DontCareString, DontCareInt, DontCareInt);
+            nb.CreateNotice(NoticeBoard.JobType.Occupy, 2, DontCareNodes2, DontCareNodes2, DontCareString, DontCareInt, DontCareInt);
+            nb.CreateNotice(NoticeBoard.JobType.Repair, 1, DontCareNodes, DontCareNodes, DontCareString, DontCareInt, DontCareInt);
+            nb.CreateNotice(NoticeBoard.JobType.Repair, 1, DontCareNodes2, DontCareNodes2, DontCareString2, DontCareInt, DontCareInt);
             ListOfKnownIDs.Add(0);
             ListOfKnownIDs.Add(1);
             ListOfKnownIDs.Add(2);
@@ -847,14 +847,14 @@ namespace NabfTest.NewNoticeBoardModelTest
             agent3.Register(trigger);
             agent4.Register(trigger);
 
-            nb.CreateNotice(jobType, agentsNeeded, whichNodesIsInvolvedInJob, whichNodesToStandOn, notNeededForOccupyJob, jobValue);
+            nb.CreateNotice(jobType, agentsNeeded, whichNodesIsInvolvedInJob, whichNodesToStandOn, notNeededForOccupyJob, DontCareInt, jobValue);
             Assert.AreEqual(0,eventFiredCounter);
 
             nb.Subscribe(agent1);
             nb.Subscribe(agent2);
             nb.Subscribe(agent3);
             nb.Subscribe(agent4);
-            nb.CreateNotice(jobType, agentsNeeded, DontCareNodes, DontCareNodes, notNeededForOccupyJob, jobValue);
+            nb.CreateNotice(jobType, agentsNeeded, DontCareNodes, DontCareNodes, notNeededForOccupyJob, DontCareInt, jobValue);
             Assert.AreEqual(4, eventFiredCounter);
 
 
@@ -886,11 +886,11 @@ namespace NabfTest.NewNoticeBoardModelTest
             nb.Subscribe(agent4);
 
             Int64 idOfFirstJob = 0, idOfSecondJob;
-            nb.CreateNotice(jobType, agentsNeeded, whichNodesIsInvolvedInJob, whichNodesToStandOn, notNeededForOccupyJob, jobValue);
+            nb.CreateNotice(jobType, agentsNeeded, whichNodesIsInvolvedInJob, whichNodesToStandOn, notNeededForOccupyJob, DontCareInt, jobValue);
             Assert.AreEqual(4, NewNoticeEventFiredCounter);
-            nb.CreateNotice(jobType, agentsNeeded, whichNodesIsInvolvedInJob, whichNodesToStandOn, notNeededForOccupyJob, jobValue);
+            nb.CreateNotice(jobType, agentsNeeded, whichNodesIsInvolvedInJob, whichNodesToStandOn, notNeededForOccupyJob, DontCareInt, jobValue);
             Assert.AreEqual(4, NewNoticeEventFiredCounter);
-            nb.CreateNotice(jobType, agentsNeeded, whichNodesIsInvolvedInJob, whichNodesToStandOn, notNeededForOccupyJob, jobValue);
+            nb.CreateNotice(jobType, agentsNeeded, whichNodesIsInvolvedInJob, whichNodesToStandOn, notNeededForOccupyJob, DontCareInt, jobValue);
             Assert.AreEqual(4, NewNoticeEventFiredCounter);
 
             NameToNoticesNew.TryGetValues(agent3.Name, out noticesFromEvent);
@@ -898,11 +898,11 @@ namespace NabfTest.NewNoticeBoardModelTest
             Assert.AreEqual(1, noticesFromEvent.Count);
             Assert.IsTrue(noticeInternal.ContentIsEqualTo(noticesFromEvent.ToList()[0]));
 
-            nb.CreateNotice(jobType, agentsNeeded, DontCareNodes, DontCareNodes, notNeededForOccupyJob, jobValue);
+            nb.CreateNotice(jobType, agentsNeeded, DontCareNodes, DontCareNodes, notNeededForOccupyJob, DontCareInt, jobValue);
             Assert.AreEqual(8, NewNoticeEventFiredCounter);
-            nb.CreateNotice(jobType, agentsNeeded, DontCareNodes, DontCareNodes, notNeededForOccupyJob, jobValue);
+            nb.CreateNotice(jobType, agentsNeeded, DontCareNodes, DontCareNodes, notNeededForOccupyJob, DontCareInt, jobValue);
             Assert.AreEqual(8, NewNoticeEventFiredCounter);
-            nb.CreateNotice(jobType, agentsNeeded, DontCareNodes, DontCareNodes, notNeededForOccupyJob, jobValue);
+            nb.CreateNotice(jobType, agentsNeeded, DontCareNodes, DontCareNodes, notNeededForOccupyJob, DontCareInt, jobValue);
             Assert.AreEqual(8, NewNoticeEventFiredCounter);
 
             idOfSecondJob = 3; //even if a job is rejected the ID counter is incremented, hence the ID of the second successfull job in this case is 3 as the id of the first is 0
@@ -1352,11 +1352,11 @@ namespace NabfTest.NewNoticeBoardModelTest
         private void InitNoticeBoardMsgTesting()
         {
             ListOfKnownIDs = new List<long>();
-            nb.CreateNotice(NoticeBoard.JobType.Occupy, 2, DontCareNodes, DontCareNodes, DontCareString, DontCareInt);
-            nb.CreateNotice(NoticeBoard.JobType.Occupy, 2, DontCareNodes2, DontCareNodes2, DontCareString, DontCareInt);
-            nb.CreateNotice(NoticeBoard.JobType.Repair, 1, DontCareNodes, DontCareNodes, DontCareString, DontCareInt);
-            nb.CreateNotice(NoticeBoard.JobType.Repair, 1, DontCareNodes2, DontCareNodes2, DontCareString2, DontCareInt);
-            nb.CreateNotice(NoticeBoard.JobType.Occupy, 3, DontCareNodes3, DontCareNodes3, DontCareString2, DontCareInt);
+            nb.CreateNotice(NoticeBoard.JobType.Occupy, 2, DontCareNodes, DontCareNodes, DontCareString, DontCareInt, DontCareInt);
+            nb.CreateNotice(NoticeBoard.JobType.Occupy, 2, DontCareNodes2, DontCareNodes2, DontCareString, DontCareInt, DontCareInt);
+            nb.CreateNotice(NoticeBoard.JobType.Repair, 1, DontCareNodes, DontCareNodes, DontCareString, DontCareInt, DontCareInt);
+            nb.CreateNotice(NoticeBoard.JobType.Repair, 1, DontCareNodes2, DontCareNodes2, DontCareString2, DontCareInt, DontCareInt);
+            nb.CreateNotice(NoticeBoard.JobType.Occupy, 3, DontCareNodes3, DontCareNodes3, DontCareString2, DontCareInt, DontCareInt);
             ListOfKnownIDs.Add(0);
             ListOfKnownIDs.Add(1);
             ListOfKnownIDs.Add(2);

@@ -25,7 +25,7 @@
         let SENTINEL_OCCUPYJOB_MOD = 10.0
         let INSPECTOR_OCCUPYJOB_MOD = 10.0
         let SABOTEUR_OCCUPYJOB_MOD = -0.0
-        let EXPLORER_OCCUPYJOB_MOD = 5.0
+        let EXPLORER_OCCUPYJOB_MOD = 10.0
 
         //Use these if specific roles should have preference on a job. Compare it to the DISTANCE_TO modifier. 
         //If role X should have preference over role Y at distance from job Z, given DIST mod of 1.0, then be sure that ROLE mod of X is Z larger than the ROLE mod of Y
@@ -43,6 +43,10 @@
         let SPONTANOUS_REPAIR_PERCENTAGE = 0.50
 
         let MIN_NODE_VALUE_TO_POST_ATTACK = 8
+
+        let DEFENSE_IMPORTANCE_MODIFIER = 2
+        let ATTACK_IMPORTANCE_MODIFIER = 1
+        let VALUE_DECAY_PER_TURN = 2.0
 
         ///////////////////////////////
         /// Other constants
@@ -67,7 +71,8 @@
         let ACTION_COST_DISABLED = 3
        
         let OUR_TEAM = "Nabf"
-        let EXPLORE_FACTOR_LIGHT = 0.9
+        let EXPLORE_FACTOR_DONE_EXPLORING = 0.98
+        let PROBE_FACTOR_LIGHT = 0.9
         let MAX_PLANNING_TIME_MS = 1000L
 
         let NUMBER_OF_AGENTS = 28

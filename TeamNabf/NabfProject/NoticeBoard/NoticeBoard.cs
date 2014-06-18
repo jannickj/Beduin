@@ -53,7 +53,7 @@ namespace NabfProject.NoticeBoardModel
             _allNotices.Add(n.Id, n);
         }                
 
-        public bool CreateNotice(JobType jobType, int agentsNeeded, List<NodeKnowledge> whichNodesIsInvolvedInJob, List<NodeKnowledge> whichNodesToStandOn, string agentToRepair, int jobValue)
+        public bool CreateNotice(JobType jobType, int agentsNeeded, List<NodeKnowledge> whichNodesIsInvolvedInJob, List<NodeKnowledge> whichNodesToStandOn, string agentToRepair, int timeStamp, int jobValue)
         {
             Notice n = null;
             Int64 id = _freeID;
@@ -61,7 +61,7 @@ namespace NabfProject.NoticeBoardModel
             switch (jobType)
             {
                 case JobType.Attack:
-                    n = new AttackJob(agentsNeeded, whichNodesIsInvolvedInJob, jobValue, id);
+                    n = new AttackJob(agentsNeeded, whichNodesIsInvolvedInJob, timeStamp, jobValue, id);
                     break;
                 case JobType.Disrupt:
                     n = new DisruptJob(agentsNeeded, whichNodesIsInvolvedInJob, jobValue, id);
@@ -92,7 +92,7 @@ namespace NabfProject.NoticeBoardModel
                 _nonUniqueJobsAttemptedToBeAdded++;
                 _nonUniqueJobs.Add(n);
                 if (verbose && _nonUniqueJobsAttemptedToBeAdded % 2 == 0)
-                    Console.WriteLine("Total number of received non-unique jobs: " + _nonUniqueJobsAttemptedToBeAdded);
+                    Console.WriteLine("Total number of received non-unique jobs: \n" + _nonUniqueJobsAttemptedToBeAdded);
                 return false;
             }
 
@@ -111,6 +111,8 @@ namespace NabfProject.NoticeBoardModel
             if (n is AttackJob)
                 _createdAttackJob++;
 
+            if (verbose)
+                Console.WriteLine("An agent posted " + n.ToString());
             return true;
         }
         public bool UpdateNotice(Int64 id, List<NodeKnowledge> whichNodesIsInvolvedInJob, List<NodeKnowledge> whichNodesToStandOn, int agentsNeeded, int jobValue, string agentToRepair)
