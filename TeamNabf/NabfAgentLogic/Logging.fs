@@ -17,6 +17,7 @@ module Logging =
         | Intentions
         | Perception
         | Agent
+        | Parsing
 
     let allowFlags = 
         [ 
@@ -25,6 +26,7 @@ module Logging =
             Intentions
             Perception
             Agent
+            Parsing
         ] |> Set.ofList
 
     let logger = new Logger (sw, debugLevel);

@@ -6,6 +6,7 @@ module Saboteur =
     open LogicLib
     open Constants
     open Graphing.Graph
+    open GeneralLib
 
     ///////////////////////////////////Helper functions//////////////////////////////////////
     let calculateDesireAttackJob (j:Job) (s:State) = 

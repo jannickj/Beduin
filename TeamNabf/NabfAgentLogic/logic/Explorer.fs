@@ -1,12 +1,13 @@
 ﻿namespace NabfAgentLogic
 module Explorer =
 
-    
     open AgentTypes
     open Graphing.Graph
     open Constants
     open Logging
     open LogicLib
+    open GeneralLib
+
     type ZoneVertex = 
         {   
             Vertex          : Vertex
@@ -273,3 +274,17 @@ module Explorer =
                 | Some unprobed ->
                     Some<| normalIntention ("probe one more node.", Activity, [Requirement (Probed unprobed)])
                 | _ -> None
+
+    let probeThisAndAdjacentDeadEnds (state : State) =
+                
+        if nodeIsUnprobed state state.Self.Node then
+            Some <| normalIntention ("probe this node", Activity, [Requirement <| Probed state.Self.Node])
+        else
+            let unProbedDeadEnds = 
+                List.filter (fun vertex -> Option.isNone state.World.[vertex].Value) (adjacentDeadEnds state)
+
+            if List.length (adjacentDeadEnds state) > 0 then
+                let requirements = List.map (Probed >> Requirement) unProbedDeadEnds
+                Some <| normalIntention ("probe a dead end.", Activity, requirements)
+            else 
+                None

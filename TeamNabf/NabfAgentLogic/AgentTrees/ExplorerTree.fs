@@ -23,6 +23,6 @@ module ExplorerTree =
                                 ]
                         )
 
-
+                    Desire probeThisAndAdjacentDeadEnds
                     Desire(findNodeToProbe)
                 ]

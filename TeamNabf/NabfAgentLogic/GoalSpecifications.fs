@@ -17,6 +17,7 @@ module GoalSpecifications =
         enemy.Status = Disabled
 
     let vertexProbed vertex state = 
+//        logStateImportant state Planning <| sprintf "vertex probed %A" state.World.[vertex]
         Option.isSome state.World.[vertex].Value
 
     let vertexInspected vertex state =

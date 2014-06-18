@@ -221,6 +221,19 @@ module ActionSpecifications =
             | None -> Success
             | Some _ -> Failure <| sprintf "Vertex %A is already probed" (realVertex state)
 
+        let inRange state =
+            let trueness = 
+                match vertexOption with
+                | Some vertex -> 
+                    Set.contains vertex (Set.ofList <| getNeighbourIds state.Self.Node state.World)
+                | None -> 
+                    realVertex state = state.Self.Node
+
+            if trueness then
+                Success
+            else
+                Failure <| sprintf "not at or adjacent to %A" (realVertex state)
+
         let updateState state = 
 //            logImportant "updating state probeAction"
             let vertex = (realVertex state)
@@ -232,8 +245,13 @@ module ActionSpecifications =
                     LastAction = Action.Probe vertexOption
             }
 
+        let cost state = 
+            match vertexOption with
+            | Some vertex -> turnCost state + Constants.ACTION_COST_CHEAP + 1
+            | None -> turnCost state + Constants.ACTION_COST_CHEAP
+
         { ActionType    = Perform <| Probe vertexOption
-        ; Preconditions = [ vertexUnProbed; enoughEnergy Constants.ACTION_COST_CHEAP; isNotDisabled ]
+        ; Preconditions = [ inRange; vertexUnProbed; enoughEnergy Constants.ACTION_COST_CHEAP; isNotDisabled ]
         ; Effect        = updateState
         ; Cost          = fun state -> turnCost state + Constants.ACTION_COST_CHEAP
         }
@@ -350,10 +368,13 @@ module ActionSpecifications =
             []
 
     let probeActions vertex state = 
+        let rangedActions = 
+            List.map (Some >> probeAction) (List.filter (isUnexplored state) <| adjacentDeadEnds state)
+            
         if state.Self.Node = vertex then
-            [probeAction None]
+            probeAction None :: rangedActions
         else 
-            []
+            rangedActions
 
     let inspectActions vertex state = 
         let someUninspectedEnemy = 

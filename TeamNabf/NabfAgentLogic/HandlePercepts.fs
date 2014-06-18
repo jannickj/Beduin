@@ -73,6 +73,7 @@ module HandlePercepts =
                 | _ -> state
 
             | VertexProbed (name, value) ->
+                logStateImportant state Perception <| sprintf "vertex probed percept %A %A" name value
                 { state with 
                         World = addVertexValue name value state.World
                 }
