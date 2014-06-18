@@ -5,6 +5,7 @@ module Repairer =
     open AgentTypes
     open LogicLib
     open Constants
+    open GeneralLib
 
     ///////////////////////////////////Helper functions//////////////////////////////////////
     let calculateDesireRepairJob (j:Job) (s:State) = 
@@ -32,10 +33,8 @@ module Repairer =
 
     ////////////////////////////////////////Logic////////////////////////////////////////////
 
-    let spontanouslyRepairNearbyDamagedAgent (inputState:State) = 
-        //let nearbyDamagedAgent = List.filter (fun a -> (float a.Health.Value) < ((float a.MaxHealth.Value) * SPONTANOUS_REPAIR_PERCENTAGE)) (nearbyAllies inputState)
-        let nearbyDamagedAgent = List.filter (fun a -> a.Status = Disabled) (nearbyAllies inputState)
-        
+    let spontanouslyRepairDamagedAgent (inputState:State) = 
+        let nearbyDamagedAgent = List.filter (fun a -> a.Status = Disabled) (alliesHere inputState inputState.Self.Node)
         match nearbyDamagedAgent with
         | [] -> None
         | head::tail ->     
