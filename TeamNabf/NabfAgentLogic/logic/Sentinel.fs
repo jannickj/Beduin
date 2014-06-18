@@ -27,9 +27,12 @@ module Sentinel =
         let rangeOneUnsurveyd = Set.filter (fun (value,_) -> Option.isNone value) rangeOneEdges
         let rangeTwoUnsurveyd = List.filter (fun (value,_) -> Option.isNone value) rangeTwoEdges
 
-        if ((float rangeOneEdges.Count)*SURVEY_NEEDED_FACTOR_RANGE1 < (float rangeOneUnsurveyd.Count) 
-            || (float rangeTwoEdges.Length)*SURVEY_NEEDED_FACTOR_RANGE2 < (float rangeTwoUnsurveyd.Length)) then
+        let enoughEdgesInRange1 = (float rangeOneEdges.Count)*SURVEY_NEEDED_FACTOR_RANGE1 < (float rangeOneUnsurveyd.Count) 
 
+        let enoughEdgesInRange1WhenConsideringRange2 = (float rangeOneEdges.Count)*SURVEY_NEEDED_FACTOR_RANGE1_WHILE_ON_2 < (float rangeOneUnsurveyd.Count) 
+        let enoughEdgesInRange2 = (float rangeTwoEdges.Length)*SURVEY_NEEDED_FACTOR_RANGE2 < (float rangeTwoUnsurveyd.Length)
+
+        if (enoughEdgesInRange1 || (enoughEdgesInRange2 && enoughEdgesInRange1WhenConsideringRange2)) then
                 Some <| normalIntention 
                      ( "survey the area"
                      , Activity
