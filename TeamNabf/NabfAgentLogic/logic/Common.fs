@@ -55,7 +55,21 @@ module Common =
             
     let exploringNotDone (s:State) = (float s.World.Count) < ( EXPLORE_FACTOR_DONE_EXPLORING * (float s.TotalNodeCount) )
 
+    let notSurveyedEnough (s:State) = s.SimulationStep < SURVEY_MY_NODE_UNTIL_THIS_TURN_IF_NEEDED
+
     ////////////////////////////////////////Logic////////////////////////////////////////////
+
+    let unapplyFromJobsWhenDisabled (inputState:State) = 
+        if inputState.MyJobs.Length = 0 || inputState.Self.Status = EntityStatus.Normal then
+            None
+        else
+            let (jobid,_) = inputState.MyJobs.Head
+            Some <| normalIntention 
+                        ( "unapply from my job with id " + jobid.ToString() + " because im disabled"
+                            , Communication
+                            , [ Plan <| fun state -> Some [Communicate( UnapplyJob(jobid) )]]
+                            )
+
 
     //Try to make it so the agent has explored one more node
     let exploreMap (inputState:State) = 
@@ -224,7 +238,7 @@ module Common =
                                 List.filter 
                                     (fun (_,jobtype) -> 
                                         match jobtype with
-                                        | AttackJob vertexList -> vertexList.Head = node                                         
+                                        | AttackJob (vertexList,_) -> vertexList.Head = node                                         
                                         | _ -> false
                                     ) 
 
@@ -234,11 +248,49 @@ module Common =
             if (jobExists) then
                 None
             else
-                let nodeValue = inputState.World.[node].Value.Value
+                let nodeValue = inputState.World.[node].Value.Value * ATTACK_IMPORTANCE_MODIFIER
                 Some <| normalIntention 
                         ( "post attack job on node " + node
                          , Communication
-                         , [ Plan <| fun state -> Some [Communicate( CreateJob( (None,nodeValue,JobType.AttackJob,1),AttackJob([node]) ))]]
+                         , [ Plan <| fun state -> Some [Communicate( CreateJob( (None,nodeValue,JobType.AttackJob,1),AttackJob([node],inputState.SimulationStep) ))]]
                          )
         else
             None
+
+
+    let postDefenseJob (inputState:State) = 
+        //checking if the agent has an occupy job and that an non-disabled enemy is standing on it's node
+        let agentsOnMyNodeWhileImOnOccupyJob =
+            match inputState.MyJobs with
+            | (jobid,_)::tail -> 
+                match (getJobFromJobID inputState jobid) with
+                | ((_,_,jobtype,_),_) when jobtype = JobType.OccupyJob -> 
+                    match List.filter (fun a -> a.Node = inputState.Self.Node && a.Status = EntityStatus.Normal) inputState.EnemyData with
+                    | h::t -> Some (h::t)
+                    | _ -> None
+                | _ -> None
+            | _ -> None
+            
+        if (agentsOnMyNodeWhileImOnOccupyJob.IsNone) then
+            None
+        else
+            let node = agentsOnMyNodeWhileImOnOccupyJob.Value.Head.Node
+            let jobValue = inputState.World.[node].Value.Value * DEFENSE_IMPORTANCE_MODIFIER
+            let jobExists = (
+                                List.filter 
+                                    (fun (_,jobtype) -> 
+                                        match jobtype with
+                                        | AttackJob (vertexList,_) -> vertexList.Head = node                                         
+                                        | _ -> false
+                                    ) 
+                                    inputState.Jobs
+                            ).Length > 0
+
+            if (jobExists) then
+                None
+            else
+                Some <| normalIntention 
+                        ( "post defense job on node " + node
+                            , Communication
+                            , [ Plan <| fun state -> Some [Communicate( CreateJob( (None,jobValue,JobType.AttackJob,1),AttackJob([node],inputState.SimulationStep) ))]]
+                            )

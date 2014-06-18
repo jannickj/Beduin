@@ -19,12 +19,18 @@ module Saboteur =
 
         let jobTargetNode = 
             match jobData with
-            | AttackJob (zone) -> zone.Head
+            | AttackJob (zone,_) -> zone.Head
             | _ -> "None"
         
         if jobTargetNode = "None" then
             -1
-        else
+        else   
+            let timeStamp = 
+                match jobData with
+                | AttackJob (_,roundnumber) -> roundnumber
+                | _ -> -1
+
+            let jobAge = float (s.SimulationStep - timeStamp);
 
             let distanceToJob = (distanceBetweenAgentAndNode jobTargetNode s)
         
@@ -39,7 +45,9 @@ module Saboteur =
                     1.0
 
             //final desire
-            int <| (( JOB_IMPORTANCE_MODIFIER_ATTACK*(((float newValue) * personalValueMod) - (float oldJobValue))   +    (-((float distanceToJob) * DISTANCE_TO_ATTACK_JOB_MOD))) * isEnabled)
+            int <| ( JOB_IMPORTANCE_MODIFIER_ATTACK*(((float newValue) * personalValueMod) - (float oldJobValue))      
+                 +    (-((float distanceToJob) * DISTANCE_TO_ATTACK_JOB_MOD))
+                 - (jobAge * VALUE_DECAY_PER_TURN) ) * isEnabled 
 
 
     ////////////////////////////////////////Logic////////////////////////////////////////////

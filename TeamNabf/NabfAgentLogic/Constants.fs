@@ -25,7 +25,7 @@
         let SENTINEL_OCCUPYJOB_MOD = 10.0
         let INSPECTOR_OCCUPYJOB_MOD = 10.0
         let SABOTEUR_OCCUPYJOB_MOD = -0.0
-        let EXPLORER_OCCUPYJOB_MOD = 5.0
+        let EXPLORER_OCCUPYJOB_MOD = 10.0
 
         //Use these if specific roles should have preference on a job. Compare it to the DISTANCE_TO modifier. 
         //If role X should have preference over role Y at distance from job Z, given DIST mod of 1.0, then be sure that ROLE mod of X is Z larger than the ROLE mod of Y
@@ -43,6 +43,17 @@
         let SPONTANOUS_REPAIR_PERCENTAGE = 0.50
 
         let MIN_NODE_VALUE_TO_POST_ATTACK = 8
+
+        let DEFENSE_IMPORTANCE_MODIFIER = 2
+        let ATTACK_IMPORTANCE_MODIFIER = 1
+        let VALUE_DECAY_PER_TURN = 2.0
+
+        //value related to sentinel survey
+        let SURVEY_NEEDED_FACTOR_RANGE1 = 0.6
+        let SURVEY_NEEDED_FACTOR_RANGE2 = 0.8
+        let SURVEY_NEEDED_FACTOR_RANGE1_WHILE_ON_2 = 0.4
+        let SURVEY_MY_NODE_UNTIL_THIS_TURN_IF_NEEDED = 50
+        let ENERGY_FACTOR_TO_PREFER_SURVEY_OVER_RECHARGE = 0.75
 
         ///////////////////////////////
         /// Other constants

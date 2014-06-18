@@ -256,6 +256,31 @@ module ActionSpecifications =
         ; Cost          = fun state -> turnCost state + Constants.ACTION_COST_CHEAP
         }
 
+    let surveyAction =
+//        let edgesAreUnsurveyed state = 
+//            let rangeOneEdges = state.World.[state.Self.Node].Edges          
+//            
+//            match 0 = (Set.count <| Set.filter (fun (value,_) -> Option.isNone value) rangeOneEdges) with
+//            | false -> Success
+//            | true -> Failure <| sprintf "Edges around me is already surveyed"
+
+        let updateState state = 
+//            logImportant "updating state surveyAction"
+            let rangeOneEdges = state.World.[state.Self.Node].Edges 
+            let undirectedEdges = Set.map (fun (cost, toV) -> (cost, state.Self.Node, toV)) rangeOneEdges
+            let newWorld = Set.fold (fun graph edge -> addEdge edge graph) state.World undirectedEdges            
+            { state with 
+                    World = newWorld
+                    Self = deductEnergy Constants.ACTION_COST_CHEAP state
+                    LastAction = Action.Survey
+            }
+
+        { ActionType    = Perform <| Survey
+        ; Preconditions = [ enoughEnergy Constants.ACTION_COST_CHEAP; isNotDisabled ]
+        ; Effect        = updateState
+        ; Cost          = fun state -> turnCost state + Constants.ACTION_COST_CHEAP
+        }
+
     let inspectAction vertexNameOption =
         let whichVertex state = 
             match vertexNameOption with
@@ -405,6 +430,8 @@ module ActionSpecifications =
                 parryActions state
             | Charged _ -> 
                 rechargeActions state
+            | Surveyed ->
+                [surveyAction]
         rechargeAction :: actions
 
     let actionSpecification (action : AgentAction) =
@@ -420,5 +447,5 @@ module ActionSpecifications =
             | Recharge -> rechargeAction
             | Repair agent -> repairAction agent
             | Skip -> rechargeAction
-            | Survey -> failwith "survey does not have an actionspecification"
+            | Survey -> surveyAction//failwith "survey does not have an actionspecification"
 

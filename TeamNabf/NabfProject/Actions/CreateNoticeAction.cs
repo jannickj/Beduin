@@ -26,8 +26,9 @@ namespace NabfProject.Actions
         private int Value;
         private string AgentToRepair;
         private List<NodeKnowledge> ZoneNodes;
+        private int TimeStamp;
 
-        public CreateNoticeAction(int simID, NoticeBoard.JobType jobType, int agentsNeeded, List<NodeKnowledge> whichNodes, List<NodeKnowledge> zoneNodes, string agentToRepair, int value)
+        public CreateNoticeAction(int simID, NoticeBoard.JobType jobType, int agentsNeeded, List<NodeKnowledge> whichNodes, List<NodeKnowledge> zoneNodes, string agentToRepair, int timeStamp, int value)
         {
             SimId = simID;
             this.jobType = jobType;
@@ -35,6 +36,7 @@ namespace NabfProject.Actions
             WhichNodes = whichNodes;
             ZoneNodes = zoneNodes;
             AgentToRepair = agentToRepair;
+            TimeStamp = timeStamp;
             Value = value;
         }
         protected override void Execute()
@@ -44,7 +46,7 @@ namespace NabfProject.Actions
 			
 
             Notice n;
-            simMan.CreateAndAddNotice(SimId, jobType, AgentsNeeded, WhichNodes, ZoneNodes, AgentToRepair, Value);
+            simMan.CreateAndAddNotice(SimId, jobType, AgentsNeeded, WhichNodes, ZoneNodes, AgentToRepair, TimeStamp, Value);
 			//string nodes = n.WhichNodes.Select(nk => nk.ToString() + ", ").Aggregate((i, j) => i + j);
 			//Console.WriteLine("Added job: " + n + " with nodes: " + nodes);
         }

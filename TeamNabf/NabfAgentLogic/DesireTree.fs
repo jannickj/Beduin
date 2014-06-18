@@ -47,11 +47,11 @@ module DesireTree =
     //                                )
     //                            )
                         Desire(shareKnowledge)
-    //
-    //                    ////Desire(postDefenceJob)
-    //
+    
+                        Desire(postDefenseJob)
+    
                         Desire(postAttackJob)
-    //
+    
     //                    ////Desire(postDisruptJob)
     //
                         Desire(getRepaired)

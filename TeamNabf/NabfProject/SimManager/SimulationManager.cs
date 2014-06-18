@@ -153,12 +153,12 @@ namespace NabfProject.SimManager
             }
         }
 
-        public bool CreateAndAddNotice(int simID, NoticeBoard.JobType type, int agentsNeeded, List<NodeKnowledge> whichNodes, List<NodeKnowledge> zoneNodes, string agentToRepair, int value)
+        public bool CreateAndAddNotice(int simID, NoticeBoard.JobType type, int agentsNeeded, List<NodeKnowledge> whichNodes, List<NodeKnowledge> zoneNodes, string agentToRepair, int timeStamp, int value)
         {
             NoticeBoard nb;
             TryGetNoticeBoard(simID, out nb);
 
-            bool ret = nb.CreateNotice(type, agentsNeeded, whichNodes, zoneNodes, agentToRepair, value);
+            bool ret = nb.CreateNotice(type, agentsNeeded, whichNodes, zoneNodes, agentToRepair, timeStamp, value);
 
             _sentJobCounter++;
             if (jobVerbose)
@@ -311,9 +311,8 @@ namespace NabfProject.SimManager
             if (_currentRoundNumber % 5 == 0 || _currentRoundNumber < 10)
                 Console.WriteLine("-------- Simulation " + simID + ", Round: " + _currentRoundNumber + " --------");
 
-            if (_currentRoundNumber % 2 == 0)
+            if (_currentRoundNumber % 3 == 0)
                 nb.AssignJobs();
-            //nb.ConsistencyChecker();
 
             if (reporting)
             {
@@ -322,6 +321,17 @@ namespace NabfProject.SimManager
                 {
                     KnowledgeManager km;
                     TryGetKnowledgeManager(simID, out km);
+                    Console.WriteLine("  ");
+                    Console.WriteLine("--- status on all current knowledge on round " + _currentRoundNumber + " ---");
+                    Console.WriteLine("Knowledge base size: " + km.KnowledgeBase.Length);
+                    Console.WriteLine("Total knowledge sent: " + _sentKnowledgeCounter);
+                    Console.WriteLine("Total redudant knowledge sent: " + (km._redudantEdgeKnowledgeCounter + km._redudantNodeKnowledgeCounter + km._redudantRoleKnowledgeCounter + km._redudantHeuristicKnowledgeCounter + km._redudantMessageKnowledgeCounter));
+                    Console.WriteLine("Total useful knowledge sent: " + (km._edgeKnowledgeCounter + km._nodeKnowledgeCounter + km._roleKnowledgeCounter + km._heuristicKnowledgeCounter + km._messageKnowledgeCounter));
+                    Console.WriteLine("Redudant knowledge sent. Edge: " + km._redudantEdgeKnowledgeCounter + ". Node " + km._redudantNodeKnowledgeCounter + ". Role " + km._redudantRoleKnowledgeCounter + ". Message " + km._redudantMessageKnowledgeCounter + ". Heuristic " + km._redudantHeuristicKnowledgeCounter);
+                    Console.WriteLine("Useful knowledge sent. Edge: " + km._edgeKnowledgeCounter + ". Node " + km._nodeKnowledgeCounter + ". Role " + km._roleKnowledgeCounter + ". Message " + km._messageKnowledgeCounter + ". Heuristic " + km._heuristicKnowledgeCounter);
+
+                    if (km.GetSubscribedAgentsCount() != 28)
+                        Console.WriteLine("WARNING! there is " + km.GetSubscribedAgentsCount() + " agents connected to Knowledge Manager");
                     Console.WriteLine("  ");
                     Console.WriteLine("--- status on all current jobs on round " + _currentRoundNumber + " ---");
                     Console.WriteLine("Total number of sent jobs: " + _sentJobCounter);
@@ -337,22 +347,9 @@ namespace NabfProject.SimManager
                     Console.WriteLine("Total number of received non-unique jobs: " + nb._nonUniqueJobsAttemptedToBeAdded);
 
                     if (nb.GetSubscribedAgents().Count != 28)
-                        Console.WriteLine("WARNING! there is only " + nb.GetSubscribedAgents().Count + " agents connected to Notice Board");
+                        Console.WriteLine("WARNING! there is " + nb.GetSubscribedAgents().Count + " agents connected to Notice Board");
 
                     Console.WriteLine("  ");
-
-                    Console.WriteLine("--- status on all current knowledge on round " + _currentRoundNumber + " ---");
-                    Console.WriteLine("Knowledge base size: " + km.KnowledgeBase.Length);
-                    Console.WriteLine("Total knowledge sent: " + _sentKnowledgeCounter);
-                    Console.WriteLine("Total redudant knowledge sent: " + (km._redudantEdgeKnowledgeCounter + km._redudantNodeKnowledgeCounter + km._redudantRoleKnowledgeCounter + km._redudantHeuristicKnowledgeCounter + km._redudantMessageKnowledgeCounter));
-                    Console.WriteLine("Total useful knowledge sent: " + (km._edgeKnowledgeCounter + km._nodeKnowledgeCounter + km._roleKnowledgeCounter + km._heuristicKnowledgeCounter + km._messageKnowledgeCounter));
-                    Console.WriteLine("Redudant knowledge sent. Edge: " + km._redudantEdgeKnowledgeCounter + ". Node " + km._redudantNodeKnowledgeCounter + ". Role " + km._redudantRoleKnowledgeCounter + ". Message " + km._redudantMessageKnowledgeCounter + ". Heuristic " + km._redudantHeuristicKnowledgeCounter);
-                    Console.WriteLine("Useful knowledge sent. Edge: " + km._edgeKnowledgeCounter + ". Node " + km._nodeKnowledgeCounter + ". Role " + km._roleKnowledgeCounter + ". Message " + km._messageKnowledgeCounter + ". Heuristic " + km._heuristicKnowledgeCounter);
-
-                    if (km.GetSubscribedAgentsCount() != 28)
-                        Console.WriteLine("WARNING! there is only " + km.GetSubscribedAgentsCount() + " agents connected to Knowledge Manager");
-                    Console.WriteLine("  ");
-
                     //Console.WriteLine(" --- Non-unique jobs --- ");
                     //foreach (Notice n in nb._nonUniqueJobs)
                     //{

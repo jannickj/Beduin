@@ -327,7 +327,9 @@ namespace NabfAgentLogic.IiLang
                         let nodes = List.map (fun (Identifier vertex) -> vertex) nodelist
                         let jobdata = 
                             match jt with
-                            | JobType.AttackJob -> AttackJob(nodes)
+                            | JobType.AttackJob -> 
+                                let [Function ("timeStamp", [Numeral round])] = optional
+                                AttackJob(nodes, int round)
                             | JobType.DisruptJob -> DisruptJob(nodes.Head)
                             | JobType.OccupyJob -> 
                                 let [Function ("zoneNodes", nodeData)] = optional
@@ -343,7 +345,7 @@ namespace NabfAgentLogic.IiLang
        
         let getNodesFromJob job = 
             match job with
-            | AttackJob nodes -> nodes
+            | AttackJob (nodes,_) -> nodes
             | DisruptJob nh -> [nh]
             | OccupyJob (nodes,_) -> nodes
             | RepairJob (nh,_) -> [nh]
@@ -406,7 +408,7 @@ namespace NabfAgentLogic.IiLang
                 | None -> []
             let (vl,optional) =
                 match jdata with
-                | AttackJob vl ->  (vertexToIdentifer vl),[]
+                | AttackJob (vl,_) ->  (vertexToIdentifer vl),[]
                 | OccupyJob (vl,zl) -> (vertexToIdentifer vl), [(Function ("zone",vertexToIdentifer zl))]
                 | RepairJob (vn,an) -> (vertexToIdentifer [vn]), [(Identifier an)]
                 | DisruptJob vn -> (vertexToIdentifer [vn]),[]
