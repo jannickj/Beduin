@@ -17,8 +17,13 @@ module SentinelTree =
                     Desire(selfDefence)
 
                     //Desire(workOnOccupyJobThenParryIfEnemiesClose)
+                                        
+                    Conditional
+                        (   notSurveyedEnough,
+                            Desire(surveyIfNeeded)
+                        )
 
-                    Desire(workOnOccupyJob)
+                    Desire(workOnOccupyJobWithSurvey)
 
                     Desire(applyToDisruptJob)
 

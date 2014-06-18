@@ -56,6 +56,8 @@ module Common =
             
     let exploringNotDone (s:State) = (float s.World.Count) < ( EXPLORE_FACTOR_DONE_EXPLORING * (float s.TotalNodeCount) )
 
+    let notSurveyedEnough (s:State) = s.SimulationStep < SURVEY_MY_NODE_UNTIL_THIS_TURN_IF_NEEDED
+
     ////////////////////////////////////////Logic////////////////////////////////////////////
 
     let unapplyFromJobsWhenDisabled (inputState:State) = 

@@ -40,6 +40,10 @@ module GoalSpecifications =
         else
             false
 
+    let surveyedNeighbourEdges state = 
+        let rangeOneEdges = state.World.[state.Self.Node].Edges          
+        0 = (Set.count <| Set.filter (fun (value,_) -> Option.isNone value) rangeOneEdges)
+
     let generateGoalCondition goal =
         match goal with
         | At vertex 
@@ -51,6 +55,7 @@ module GoalSpecifications =
         | Charged charge -> charged charge
         | AtMinValueNode value -> atMinValueNode value
         | Repaired agent -> agentRepaired agent
+        | Surveyed -> surveyedNeighbourEdges
 
     let distanceHeuristics vertex =
         distanceBetweenAgentAndNode vertex
@@ -69,7 +74,9 @@ module GoalSpecifications =
 
         | Charged _
         | AtMinValueNode _
+        | Surveyed
         | Parried-> fun _ -> 0
+
 
     let goalVertex goal state =
         match goal with

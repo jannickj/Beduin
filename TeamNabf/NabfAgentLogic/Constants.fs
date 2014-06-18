@@ -48,6 +48,12 @@
         let ATTACK_IMPORTANCE_MODIFIER = 1
         let VALUE_DECAY_PER_TURN = 2.0
 
+        //value related to sentinel survey
+        let SURVEY_NEEDED_FACTOR_RANGE1 = 0.6
+        let SURVEY_NEEDED_FACTOR_RANGE2 = 0.4
+        let SURVEY_MY_NODE_UNTIL_THIS_TURN_IF_NEEDED = 50
+        let ENERGY_FACTOR_TO_PREFER_SURVEY_OVER_RECHARGE = 0.75
+
         ///////////////////////////////
         /// Other constants
         ///////////////////////////////
