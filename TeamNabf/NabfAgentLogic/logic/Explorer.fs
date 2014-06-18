@@ -7,6 +7,8 @@ module Explorer =
     open Constants
     open Logging
     open LogicLib
+    open NabfAgentLogic.Search
+
     type ZoneVertex = 
         {   
             Vertex          : Vertex
@@ -18,6 +20,19 @@ module Explorer =
 
     ///////////////////////////////////Helper functions//////////////////////////////////////
         
+    ///Functions for finding islands///
+
+    //Check if this is an articulation point
+    let articulationPoint components = (List.length components) > 1
+
+    //Filter away unexplored components
+    let getExploredComponents (s:State) components = List.filter (fun nodeSet -> Set.forall (fun name -> s.World.ContainsKey name && not <| isUnexplored s name) nodeSet) components
+
+    //Function for filtering away probed islands. Should only be used for that (unsafe).
+    let getUnprobedComponents (s:State) components = List.filter (fun nodeSet -> Set.exists (fun name -> s.World.[name].Value.IsNone ) nodeSet) components
+
+    ///////////////////////////////////
+
 
     let rec mergeZones (zone:VertexName list) (overlapping:Job list) =
         match overlapping with
@@ -55,7 +70,7 @@ module Explorer =
 
     let nodeHostile (s:State) = false // Not implemented yet!
 
-    let newZoneFound (s:State) = (onHighValueNode s) && (not (nodePartOfZone s)) && (not (nodeHostile s))
+    let newZoneFound (s:State) = (onHighValueNode s) && (not (nodePartOfZone s)) && (not (nodeHostile s)) 
 
     let hasValueHigherThan node value (s:State) = s.World.[node].Value.IsSome && s.World.[node].Value.Value >= value
     
@@ -202,6 +217,19 @@ module Explorer =
         let n = state.World.[node] 
         n.Value.IsNone
 
+    let createIslandObjectives unprobedIslands = 
+        match unprobedIslands with
+        | island :: tail -> [MultiGoal( fun state -> List.map (Probed) <| Set.toList island);
+                                  Plan(fun state ->
+                                       let subGraph = List.map (fun n -> state.World.[n]) (Set.toList island)
+                                       let positions = findAgentPlacement subGraph state.World
+                                       let agentsNeeded = positions.Length
+                                       let value = calcZoneValue state agentsNeeded island
+                                       let islandAsList = Set.toList island
+                                       Some [Communicate( CreateJob( (None,value,JobType.OccupyJob,agentsNeeded),OccupyJob(positions,islandAsList) ) )]
+                                    )]
+        | [] -> []
+
     ////////////////////////////////////////Logic////////////////////////////////////////////
 
     let findNewZone (inputState:State) = 
@@ -214,18 +242,12 @@ module Explorer =
                     Activity,
                     [ MultiGoal(
                                 fun state -> 
-                                
                                 let zone = zoneToExplore state (Set.empty,Set [origin])
-                                let probed vertexName state = isProbed vertexName state.World
-                                let probedWithHeuristics vertexName =  Probed vertexName
-//                                    ((probed vertexName), Some(distanceBetweenAgentAndNode vertexName), ProbeGoal <| Some vertexName)
-
-                                List.map (probedWithHeuristics) <| Set.toList zone
+                                List.map (Probed) <| Set.toList zone
                             ); 
                    Plan(fun state ->
                         let exploredZone = zoneToExplore state (Set.empty,Set [origin])
                         let zone = Set.filter (fun z -> hasValueHigherThan z ZONE_BORDER_VALUE state) exploredZone
-                        //let zone = findZone Set.empty (Set [origin]) state
                         let overlapping = getOverlappingJobs state.Jobs (Set.toList zone)
                         match overlapping with
                         | [] -> 
@@ -247,6 +269,24 @@ module Explorer =
                    )])
         else
             None
+
+    let findNewIslandZone (inputState:State) =
+        let biconnectedComponents = Biconnected.find inputState.Self.Node inputState.World
+        let possibleIslands = List.tail <| List.rev (List.sortBy Set.count biconnectedComponents)
+        if articulationPoint biconnectedComponents 
+        then
+                let knownIslands = getExploredComponents inputState possibleIslands
+                let unprobedIslands = getUnprobedComponents inputState knownIslands
+                if unprobedIslands.Length = 0 
+                then
+                    Some <| normalIntention (
+                            sprintf "probe one of %A islands." unprobedIslands.Length, 
+                            Activity, 
+                            createIslandObjectives unprobedIslands)
+                else None
+        else None
+     
+       
 
     let findNodeToProbe (inputState:State) =
         let nearestUnprobed = nearestVertexSatisfying inputState nodeIsUnprobed
