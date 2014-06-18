@@ -35,6 +35,13 @@ module GoalSpecifications =
         | Some (agent) -> agent.Status = Normal
         | None -> false
         //state.LastAction = Repair agent
+    
+    let getCloseTo (agentName:AgentName) (state:State) =
+        match tryFindAgentsByName agentName state.FriendlyData with
+        | Some ({Node = vn},_) when vn <> ""-> 
+            let nodes = vn::(getNeighbourIds vn state.World)
+            List.exists ((=) state.Self.Node) nodes
+        | _ -> true
 
     let atMinValueNode value state = 
         let n = state.World.[state.Self.Node] 
@@ -54,6 +61,7 @@ module GoalSpecifications =
         | Charged charge -> charged charge
         | AtMinValueNode value -> atMinValueNode value
         | Repaired agent -> agentRepaired agent
+        | GetCloseTo agent -> getCloseTo agent
 
     let distanceHeuristics vertex =
         distanceBetweenAgentAndNode vertex
@@ -65,7 +73,8 @@ module GoalSpecifications =
         | Probed vertex
         | Inspected vertex -> 
             distanceHeuristics vertex
-
+        
+        | GetCloseTo agent
         | Attacked agent 
         | Repaired agent ->
             fun state -> distanceHeuristics (agentAt agent state) state

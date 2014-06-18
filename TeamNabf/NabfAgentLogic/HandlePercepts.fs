@@ -8,28 +8,11 @@ module HandlePercepts =
     open NabfAgentLogic.LogicLib
     open NabfAgentLogic.Search.HeuristicDijkstra
     open Constants
-    
+    open GeneralLib
 
     ///////////////////////////////////Helper functions//////////////////////////////////////
 
-    let getAgentName (a:Agent) = a.Name
-
-    let buildAgent name team =
-        { Energy      = None
-        ; Health      = None
-        ; MaxEnergy   = None
-        ; MaxEnergyDisabled = None
-        ; MaxHealth   = None
-        ; Name        = name
-        ; Node        = ""
-        ; Role        = None
-        ; RoleCertainty = 100
-        ; Strength    = None
-        ; Team        = team
-        ; VisionRange = None
-        ; Status      = Normal
-        }
-
+    
 
     let rec addListToMap mapToUpdate list =
         match list with 
@@ -425,29 +408,40 @@ module HandlePercepts =
         let (fresh,old) = Map.partition (fun mailRound _ ->  (state.SimulationStep - MAIL_EXPIRATION) <= mailRound) state.MailsReceived 
         { state with MailsReceived = fresh }    
     
-    let handleMail (state:State) ((sender,_,message):Mail) =
+    let inferMail (state:State) ((sender,_,message):Mail) =
         match message with
         | GoingToRepairYou ->
             { state with Relations = Map.add MyRepairer sender state.Relations  }
         | MyLocation vn ->
-            let friendly = List.partition (getAgentName >> ((=) sender)) state.FriendlyData
-            match friendly with
-            | ([agent],others) -> 
-                { state with FriendlyData = ({ agent with Node = vn })::others }
-            | ([],others) -> 
-                let agent = { buildAgent sender OUR_TEAM with Node = vn }
-                { state with FriendlyData = agent::others }
-            | _ -> 
-                logStateError state Perception <| sprintf "Multiple of same agent: %A in friendlyData" sender 
-                state        
+            let updatedFriendlyList = updateAgentPosition sender vn state.FriendlyData 
+            { state with FriendlyData = updatedFriendlyList }     
 
-    let rec handleMails (state:State) mailgroups =
+    let rec inferKnowlegdeMails  mailgroups (state:State) =
         if not <| Map.isEmpty mailgroups then
             let (round,mails) =  Set.minElement <| (Set.ofSeq <| Map.toSeq mailgroups)
-            let updatedState = Set.fold handleMail state mails
-            handleMails updatedState (Map.remove round mailgroups)
+            let updatedState = Set.fold inferMail state mails
+            inferKnowlegdeMails (Map.remove round mailgroups) updatedState
         else
             state
+
+    let rec inferKnowledgeJobs jobs state =
+        match jobs with
+        | job::rest ->
+            let newState = 
+                match job with
+                | (_,RepairJob(vn,agent)) -> 
+                    let updatedFriendlyList = updateAgentPosition agent vn state.FriendlyData 
+                    { state with  FriendlyData = updatedFriendlyList }
+
+                | _ -> state
+            inferKnowledgeJobs rest newState
+        | [] -> state
+    
+    let removeKnowledgeRelations (s:State) =
+        if s.Self.Status = Normal then
+            { s with Relations = Map.remove MyRepairer s.Relations }
+        else
+            s
 
 
     (* let updateState : State -> Percept list -> State *)
@@ -456,21 +450,30 @@ module HandlePercepts =
 
         let handlePercepts state percepts = List.fold handlePercept state percepts
 
-        let newRoundPercepts s = handlePercepts s percepts
-                                |> updateLastPos state
-                                |> updateProbeCount state
-                                |> updateExploredCount state
-                                |> updateTraversedEdgeCost state
-                                |> selectSharedPercepts percepts state
-                                |> updateHeuristicsMapSingle percepts state
-                                |> clearOldMails
+        let newRoundPercepts s = 
+            handlePercepts s percepts
+            |> updateLastPos state
+            |> updateProbeCount state
+            |> updateExploredCount state
+            |> updateTraversedEdgeCost state
+            |> selectSharedPercepts percepts state
+            |> updateHeuristicsMapSingle percepts state
+            |> clearOldMails
         
+        let inferKnowledge (s:State) = 
+            inferKnowledgeJobs s.Jobs s
+            |> inferKnowlegdeMails s.MailsReceived                  
+
+        let removeKnowledge s =
+            removeKnowledgeRelations s
+
         match percepts with
         | NewRoundPercept::_ -> 
-            let newState = handleMails clearedState clearedState.MailsReceived
-            newRoundPercepts newState                    
+            let newState = inferKnowledge clearedState
+            newRoundPercepts newState
+            |> removeKnowledge                
         | _ -> 
-            let newState = handleMails state state.MailsReceived
+            let newState = inferKnowledge state
             handlePercepts newState percepts
-
+            |> removeKnowledge 
         

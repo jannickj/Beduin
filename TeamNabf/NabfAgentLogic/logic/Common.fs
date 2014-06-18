@@ -15,7 +15,11 @@ module Common =
     //Calculate value of repairing of an agenttype
     let calculateRepairValue agentType =
         match agentType with
-        | Saboteur -> 
+        | Saboteur -> SABOTEUR_REPAIR_PRIORITY
+        | Repairer -> REPAIRER_REPAIR_PRIORITY 
+        | Sentinel -> SENTINEL_REPAIR_PRIORITY
+        | Explorer -> EXPLORER_REPAIR_PRIORITY
+        | Inspector -> INSPECTOR_REPAIR_PRIORITY
        
 
     //Calculate the desire to an occupy job
@@ -104,50 +108,46 @@ module Common =
                  )
         | _ -> None
 
+    //Posts or removes a repair job on the master server for repairing itself
     let postRepairJob (inputState:State) =
-        if inputState.Self.Status = Disabled then
-            match tryFindRepairJobForAgent inputState.Self.Name inputState.Jobs with
-            | None ->
+        match tryFindRepairJobForAgent inputState.Self.Name inputState.Jobs,inputState.Self.Status with
+            | None,Disabled ->
                 let myNode = inputState.Self.Node
                 let myName = inputState.Self.Name
-                let communicateJob = CreateJob ( (None,5,JobType.RepairJob,1),RepairJob(myNode,myName))
+                let jobPriority = calculateRepairValue inputState.Self.Role.Value
+                let numberOfAgentsNeeded = 1
+                let communicateJob = CreateJob ( (None,jobPriority,JobType.RepairJob,numberOfAgentsNeeded),RepairJob(myNode,myName))
+                normalIntention 
+                    ( "post repair job for me."
+                    , Communication
+                    , [ Plan <| fun _ -> Some [ Communicate <| communicateJob ]]
+                    )
+                |> Some
+            | Some ((Some id,_,_,_),_),Normal ->
+                normalIntention 
+                    ( "remove repair job for me."
+                    , Communication
+                    , [ Plan <| fun _ -> Some [ Communicate <| RemoveJob id ]]
+                    )
+                |> Some
+            | _ -> None    
 
-                Some  <| normalIntention ( "post repair job of me."
-                     , Activity
-                     , [ Plan <| fun _ -> Some [ Communicate <| communicateJob ]
-                       ; Requirement <| Charged None
-                       ]
-                     )
-            | _ -> None
-        else
-            None     
-
-    //When disabled, post a repair job, then recharge while waiting for a repairer. Temporary version to be updated later.
-    //Works by creating a plan to recharge one turn each turn.
+    //When disabled, tries to locate repairer if None found continue with normal duty
     let getRepaired (inputState:State) = 
-        if inputState.Self.Status = Disabled 
-        then
-            let j = tryFindRepairJob inputState inputState.Jobs
-            let myName = inputState.Self.Name
-            match j with
-            //I already created a job:
-            | Some(_,RepairJob(_,myName)) -> 
-                Some <| normalIntention ("wait for a repairer.",Activity,[Plan (fun s -> Some [Perform(Recharge)])])
-            //Otherwise, create the job, then start waiting
-            | _ -> 
-                let here = inputState.Self.Node
-                let communicateJob state = 
-                    Some [ Communicate <| CreateJob ( (None,5,JobType.RepairJob,1),RepairJob(state.Self.Node,state.Self.Name) ) ]
-                Some  <| normalIntention ( "get repaired."
-                     , Activity
-                     , [ Plan <| communicateJob
-                       ; Requirement <| Charged None
-                       ]
-                     )
-        else
-            None
+        match Map.tryFind MyRepairer inputState.Relations,inputState.Self.Status with
+        | Some an,Disabled ->
+            normalIntention 
+                (   "get repaired by "+an,
+                    Activity,
+                    [   Requirement (GetCloseTo an)
+                    ;   Plan (fun s -> if s.Self.Status = Disabled then Some [Perform(Recharge)] else None)
+                    ]
+                )
+            |> Some
+        | _ -> None
+
             
-    //Find a node of at leas value 8 to stand on.
+    //Find a node of at least value 8 to stand on.
     let generateSomeValue (inputState:State) = 
         Some  <| normalIntention ( "get some(8) value"
              , Activity
@@ -156,7 +156,7 @@ module Common =
                ]
              )
 
-    //Find a node of at leas value 6 to stand on.
+    //Find a node of at least value 6 to stand on.
     let generateLittleValue (inputState:State) = 
         Some  <| normalIntention ( "get little(6) value"
              , Activity
@@ -165,7 +165,7 @@ module Common =
                ]
              )
 
-    //Find a node of at leas value 4 to stand on.
+    //Find a node of at least value 4 to stand on.
     let generateLeastValue (inputState:State) = 
         Some  <| normalIntention ( "get least(4) value"
              , Activity
@@ -174,7 +174,7 @@ module Common =
                ]
              )
 
-    //Find a node of at leas value 2 to stand on.
+    //Find a node of at least value 2 to stand on.
     let generateMinimumValue (inputState:State) = 
         Some <| normalIntention  ( "get minimum(2) value"
              , Activity

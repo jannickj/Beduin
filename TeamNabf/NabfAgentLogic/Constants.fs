@@ -77,7 +77,7 @@
        
         let MAIL_EXPIRATION = 1
 
-        let OUR_TEAM = "Nabf"
+        let mutable OUR_TEAM = "Nabf"
         let EXPLORE_FACTOR_LIGHT = 0.9
         let MAX_PLANNING_TIME_MS = 1000L
 

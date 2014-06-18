@@ -49,7 +49,9 @@
     <Commandlineparameters>"localhost:12300" "Nabf1" "pass"</Commandlineparameters>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FSharp.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="FSharp.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -95,7 +97,7 @@
       <Name>XmasEngine</Name>
     </ProjectReference>
     <ProjectReference Include="..\NabfAgentLogic\NabfAgentLogic.fsproj">
-      <Project>{039EE1F6-4FD5-4DC7-97ED-4D3E5E8B9C20}</Project>
+      <Project>{039ee1f6-4fd5-4dc7-97ed-4d3e5e8b9c20}</Project>
       <Name>NabfAgentLogic</Name>
     </ProjectReference>
     <ProjectReference Include="..\NabfProject\NabfProject.csproj">

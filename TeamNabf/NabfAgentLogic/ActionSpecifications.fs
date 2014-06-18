@@ -370,7 +370,7 @@ module ActionSpecifications =
     let availableActions state  goal  =
         let actions = 
             match goal with
-            | At _ | Explored _ | AtMinValueNode _ -> 
+            | At _ | Explored _ | AtMinValueNode _ | GetCloseTo _-> 
                 gotoActions state
             | Attacked agent -> 
                 gotoActions state @ attackActions agent state

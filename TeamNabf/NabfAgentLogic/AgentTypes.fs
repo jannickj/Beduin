@@ -276,6 +276,7 @@ module AgentTypes =
         | Inspected of VertexName
         | Explored  of VertexName
         | AtMinValueNode of int
+        | GetCloseTo of AgentName
         | Parried
         | Charged   of int option
 

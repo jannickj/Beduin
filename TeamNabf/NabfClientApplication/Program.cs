@@ -33,13 +33,16 @@ namespace NabfClientApplication
 
             string master_server = args[masterinfo_pos];
             string mars_server = args[marsinfo_pos];
-            string username = args[marsinfo_pos+1];
-            string password = args[marsinfo_pos+2];
+            string team = args[marsinfo_pos + 1];
+            string username = args[marsinfo_pos+2];
+            string password = args[marsinfo_pos+3];
 			string debug = null;
-			if (args.Length == marsinfo_pos + 4)
-				debug = args[marsinfo_pos + 3];
+			if (args.Length == marsinfo_pos + 5)
+				debug = args[marsinfo_pos + 4];
 
-			
+
+            NabfAgentLogic.Constants.OUR_TEAM = team;
+
 			bool hasMaster = master_server.ToLower() != "no_master";
 
             Console.WriteLine("Got: Server: " + mars_server + ", Username: " + username + ", Password: " + password);
