@@ -411,7 +411,7 @@ module HandlePercepts =
         let (fresh,old) = Map.partition (fun mailRound _ ->  (state.SimulationStep - MAIL_EXPIRATION) <= mailRound) state.MailsReceived 
         { state with MailsReceived = fresh }    
     
-    let inferMail (state:State) ((sender,_,message):Mail) =
+    let readMail (state:State) ((sender,_,message):Mail) =
         match message with
         | GoingToRepairYou ->
             { state with Relations = Map.add MyRepairer sender state.Relations  }
@@ -422,7 +422,7 @@ module HandlePercepts =
     let rec inferKnowlegdeMails  mailgroups (state:State) =
         if not <| Map.isEmpty mailgroups then
             let (round,mails) =  Set.minElement <| (Set.ofSeq <| Map.toSeq mailgroups)
-            let updatedState = Set.fold inferMail state mails
+            let updatedState = Set.fold readMail state mails
             inferKnowlegdeMails (Map.remove round mailgroups) updatedState
         else
             state

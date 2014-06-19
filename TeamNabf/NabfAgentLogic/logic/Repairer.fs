@@ -37,12 +37,11 @@ module Repairer =
         match inputState.MyJobs with
         | (curJobId,_)::_ -> 
             match getJobFromJobID inputState curJobId with
-            | (_,RepairJob (_, an)) -> 
-                normalIntention ( "send my location to "+an, 
+            | (_,RepairJob (_, agentName)) -> 
+                normalIntention ( "send my location to "+agentName, 
                                   Communication, 
                                   [Plan (fun s -> 
-                                        [Communicate <| SendMail (s.Self.Name,an,MyLocation s.Self.Node)]
-                                        |> Some
+                                        Some [Communicate <| SendMail (s.Self.Name,agentName,MyLocation s.Self.Node)]
                                    )]
                                 )
                 |> Some
@@ -62,8 +61,8 @@ module Repairer =
                 )
 
     let applyToRepairJob (inputState:State) = 
-        let applicationListWithSelf = createApplicationList inputState JobType.RepairJob calculateDesireRepairJob
-        let isAppOfItSelf msg = 
+        let applicationList = createApplicationList inputState JobType.RepairJob calculateDesireRepairJob
+        let isMyRepairJob msg = 
             match msg with 
             | Communicate act ->
                 match act with
@@ -74,24 +73,27 @@ module Repairer =
                 | _ -> false
             | _ -> false
 
-        let applicationList = List.filter (fun msg -> not <| isAppOfItSelf msg) applicationListWithSelf
+        let applicationListWithoutSelf = List.filter (fun msg -> not <| isMyRepairJob msg) applicationList
         Some <| normalIntention (
                 "apply to all repair jobs"
                 , Communication
-                , [Plan (fun state -> Some applicationList)]
+                , [Plan (fun state -> Some applicationListWithoutSelf)]
             )
     
     let workOnRepairJob (inputState:State) = 
         let myJobs = List.map (fun (id,_) -> getJobFromJobID inputState id) inputState.MyJobs
         let myRepairJobs = getJobsByType JobType.RepairJob myJobs
         match myRepairJobs with
-        | ((id,_,_,_),_)::_ -> 
-            let (jobid,node) = List.find (fun (jid,_) -> id.Value = jid) inputState.MyJobs
-            let (_,RepairJob(_,agent)) = (getJobFromJobID inputState jobid) : Job
-            Some <| normalIntention 
-                    ( "repair agent " + agent + " on node " + node
-                    , Activity
-                    , [ Plan (fun s -> Some [Communicate <| SendMail (s.Self.Name,agent,GoingToRepairYou)]);
-                        Requirement (Repaired agent)]
-                    )
-        | [] -> None
+        | ((Some id,_,_,_),RepairJob(_,agentName))::_ -> 
+            let node = match tryFindAgentByName agentName inputState.FriendlyData with
+                       | Some agent -> agent.Node
+                       | None -> "unknown" 
+            
+            normalIntention 
+                ( "repair agent " + agentName + " on node " + node
+                , Activity
+                , [ Plan (fun s -> Some [Communicate <| SendMail (s.Self.Name,agentName,GoingToRepairYou)]);
+                    Requirement (Repaired agentName)]
+                )
+            |> Some
+        | _ -> None
