@@ -320,16 +320,18 @@ module Explorer =
                     Some<| normalIntention ("probe one more node.", Activity, [Requirement (Probed unprobed)])
                 | _ -> None
 
-    let probeThisAndAdjacentDeadEnds (state : State) =
-                
+
+
+    let probeThisAndAdjacentDeadEnds (state : State) =                
         if nodeIsUnprobed state state.Self.Node then
-            Some <| normalIntention ("probe this node", Activity, [Requirement <| Probed state.Self.Node])
+            None//Some <| normalIntention ("probe this node", Activity, [Requirement <| Probed state.Self.Node])
         else
             let unProbedDeadEnds = 
                 List.filter (fun vertex -> Option.isNone state.World.[vertex].Value) (adjacentDeadEnds state)
 
             if List.length (adjacentDeadEnds state) > 0 then
-                let requirements = List.map (Probed >> Requirement) unProbedDeadEnds
-                Some <| normalIntention ("probe a dead end.", Activity, requirements)
+//                let requirements = List.map (Probed >> Requirement) unProbedDeadEnds
+//                Some <| normalIntention ("probe a dead end.", Activity, requirements)
+                None//Some <| normalIntention ("probe a dead end.", Activity, [Requirement (Probed unProbedDeadEnds.Head)])
             else 
                 None
