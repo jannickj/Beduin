@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interfaceConfig scenario="mars2013" host="localhost" port="12300" scheduling="yes" times="no" notifications="no" queued="no" statisticsFile="no" statisticsShell="no" submitStatistic="no">
+  <entities>    
+    <entity name="connectionA1" username="GOAL-DTU1" password="pass" iilang="yes" xml="yes"/>
+	<entity name="connectionA2" username="GOAL-DTU2" password="pass" iilang="yes" xml="yes"/>
+	<entity name="connectionA3" username="GOAL-DTU3" password="pass" iilang="yes" xml="yes"/>
+	<entity name="connectionA4" username="GOAL-DTU4" password="pass" iilang="yes" xml="yes"/>
+	<entity name="connectionA5" username="GOAL-DTU5" password="pass" iilang="yes" xml="yes"/>
+	<entity name="connectionA6" username="GOAL-DTU6" password="pass" iilang="yes" xml="yes"/>
+	<entity name="connectionA7" username="GOAL-DTU7" password="pass" iilang="yes" xml="yes"/>
+	<entity name="connectionA8" username="GOAL-DTU8" password="pass" iilang="yes" xml="yes"/>
+	<entity name="connectionA9" username="GOAL-DTU9" password="pass" iilang="yes" xml="yes"/>
+	<entity name="connectionA10" username="GOAL-DTU10" password="pass" iilang="yes" xml="yes"/>
+	<entity name="connectionA11" username="GOAL-DTU11" password="pass" iilang="yes" xml="yes"/>
+	<entity name="connectionA12" username="GOAL-DTU12" password="pass" iilang="yes" xml="yes"/>
+	<entity name="connectionA13" username="GOAL-DTU13" password="pass" iilang="yes" xml="yes"/>
+	<entity name="connectionA14" username="GOAL-DTU14" password="pass" iilang="yes" xml="yes"/>
+	<entity name="connectionA15" username="GOAL-DTU15" password="pass" iilang="yes" xml="yes"/>
+	<entity name="connectionA16" username="GOAL-DTU16" password="pass" iilang="yes" xml="yes"/>
+	<entity name="connectionA17" username="GOAL-DTU17" password="pass" iilang="yes" xml="yes"/>
+	<entity name="connectionA18" username="GOAL-DTU18" password="pass" iilang="yes" xml="yes"/>
+	<entity name="connectionA19" username="GOAL-DTU19" password="pass" iilang="yes" xml="yes"/>
+	<entity name="connectionA20" username="GOAL-DTU20" password="pass" iilang="yes" xml="yes"/>
+	<entity name="connectionA21" username="GOAL-DTU21" password="pass" iilang="yes" xml="yes"/>
+	<entity name="connectionA22" username="GOAL-DTU22" password="pass" iilang="yes" xml="yes"/>
+	<entity name="connectionA23" username="GOAL-DTU23" password="pass" iilang="yes" xml="yes"/>
+	<entity name="connectionA24" username="GOAL-DTU24" password="pass" iilang="yes" xml="yes"/>
+	<entity name="connectionA25" username="GOAL-DTU25" password="pass" iilang="yes" xml="yes"/>
+	<entity name="connectionA26" username="GOAL-DTU26" password="pass" iilang="yes" xml="yes"/>
+	<entity name="connectionA27" username="GOAL-DTU27" password="pass" iilang="yes" xml="yes"/>
+	<entity name="connectionA28" username="GOAL-DTU28" password="pass" iilang="yes" xml="yes"/>
+  </entities>
+</interfaceConfig>
