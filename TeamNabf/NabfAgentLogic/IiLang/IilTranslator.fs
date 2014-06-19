@@ -419,7 +419,7 @@ namespace NabfAgentLogic.IiLang
                 | None -> []
             let (vl,optional) =
                 match jdata with
-                | AttackJob (vl,_) ->  (vertexToIdentifer vl),[]
+                | AttackJob (vl,timestamp) ->  (vertexToIdentifer vl),[Numeral (float timestamp)]
                 | OccupyJob (vl,zl) -> (vertexToIdentifer vl), [(Function ("zone",vertexToIdentifer zl))]
                 | RepairJob (vn,an) -> (vertexToIdentifer [vn]), [(Identifier an)]
                 | DisruptJob vn -> (vertexToIdentifer [vn]),[]
