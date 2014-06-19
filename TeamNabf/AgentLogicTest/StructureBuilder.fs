@@ -3,7 +3,7 @@ module StructureBuilder =
     open NabfAgentLogic.AgentTypes
     open NabfAgentLogic.Search.HeuristicDijkstra
 
-    let buildEnemyWithRole name node role =
+    let buildAgentWithRole name team node role =
         { Energy = None
         ; Health = Some 30
         ; MaxEnergy = None
@@ -14,13 +14,15 @@ module StructureBuilder =
         ; Role = role
         ; RoleCertainty = 100
         ; Strength = None
-        ; Team = "EnemyTeam"
+        ; Team = team
         ; Status = Normal
         ; VisionRange = None
         }
 
+    let buildEnemyWithRole name node role =
+        buildAgentWithRole name "EnemyTeam" node role
+
     let buildEnemy name node = buildEnemyWithRole name node None
-        
 
     let buildStateWithEnergy node role world energy = 
         {   World = world

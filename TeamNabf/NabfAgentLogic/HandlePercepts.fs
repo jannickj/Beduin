@@ -34,36 +34,31 @@ module HandlePercepts =
 (* handlePercept State -> Percept -> State *)
     let handlePercept state percept =
         match percept with
-            | EnemySeen enemy when enemy.Name <> state.Self.Name 
-                -> 
-                    let updateAgentData agentNew agentOld = 
-                        let oldUpdated = match agentNew.Role with
-                                            | Some role -> { agentOld with Role = agentNew.Role }
-                                            | None -> agentOld
-                            
-                        let oldUpdated = { oldUpdated with Node = agentNew.Node }
+            | EnemySeen enemy when enemy.Name <> state.Self.Name ->
+                let updateAgentData agentNew agentOld = 
+                    let oldUpdated = match agentNew.Role with
+                                        | Some role -> { agentOld with Role = agentNew.Role }
+                                        | None -> agentOld
+                        
+                    { oldUpdated with Node = agentNew.Node 
+                                      Team = agentNew.Team
+                                      Status = agentNew.Status 
+                                      RoleCertainty = agentNew.RoleCertainty
+                    }       
+                        
+                let updateAgentList agent alist = 
+                    let oldAgentData = List.filter (fun a -> a.Name = agent.Name) alist                            
+                    let others = List.filter (fun a -> a.Name <> agent.Name) alist
 
-                        let oldUpdated = { oldUpdated with Team = agentNew.Team }
+                    match oldAgentData with 
+                    | [] -> agent::others
+                    | [oldAgent] -> (updateAgentData agent oldAgent)::others
+                    | _ -> raise(System.Exception("Duplicate data in EnemyData or FriendlyData, in handle percept function"))                            
 
-                        let oldUpdated = { oldUpdated with Status = agentNew.Status }
-
-                        let oldUpdated = { oldUpdated with RoleCertainty = agentNew.RoleCertainty }
-
-                        oldUpdated          
-                            
-                    let updateAgentList agent alist = 
-                        let oldAgentData = List.filter (fun a -> a.Name = agent.Name) alist                            
-                        let others = List.filter (fun a -> a.Name <> agent.Name) alist
-
-                        match oldAgentData with 
-                        | [] -> agent::others
-                        | [oldAgent] -> (updateAgentData agent oldAgent)::others
-                        | _ -> raise(System.Exception("Duplicate data in EnemyData or FriendlyData, in handle percept function"))                            
-
-                    if enemy.Team = state.Self.Team then
-                        { state with FriendlyData = updateAgentList enemy state.FriendlyData }
-                    else
-                        { state with EnemyData = updateAgentList enemy state.EnemyData }
+                if enemy.Team = state.Self.Team then
+                    { state with FriendlyData = updateAgentList enemy state.FriendlyData }
+                else
+                    { state with EnemyData = updateAgentList enemy state.EnemyData }
             
             | EnemySeen _ -> state
                 
@@ -245,7 +240,7 @@ module HandlePercepts =
             
     let clearTempBeliefs (state:State) =
         let newEnemyData = List.map (fun enemy -> { enemy with Agent.Node = ""}) state.EnemyData
-        let newAllyData = List.map (fun ally -> { ally with Status = Disabled }) state.FriendlyData
+        let newAllyData = List.map (fun ally -> { ally with Status = Disabled; Node = "" }) state.FriendlyData
         { state with 
             NewEdges = []
 //            NewVertices = []
@@ -476,7 +471,7 @@ module HandlePercepts =
             let newState = 
                 newRoundPercepts inferedState
                 |> removeKnowledge     
-            logImportant Perception ("State finished updating now at step "+newState.SimulationStep.ToString())
+            logImportant Perception ("State finished updating now at step " + newState.SimulationStep.ToString())
             newState           
         | _ -> 
             let newState = inferKnowledge state

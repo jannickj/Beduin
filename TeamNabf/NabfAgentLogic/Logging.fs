@@ -24,9 +24,9 @@ module Logging =
             Planning
             ActionSpecifications
             Intentions
-            Perception
+//            Perception
             Agent
-            Parsing
+//            Parsing
         ] |> Set.ofList
 
     let logger = new Logger (sw, debugLevel);

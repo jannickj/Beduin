@@ -189,10 +189,18 @@ module ActionSpecifications =
 
     let repairAction (damagedAgent : AgentName) =
         let canRepair state = inRangeOfAgent state damagedAgent state.FriendlyData
+
         let isNotSelf (state:State) = 
             match state.Self.Name <> damagedAgent with
             | true -> Success
-            | false -> Failure "Unable to repairer itself"
+            | false -> Failure "Unable to repair self"
+
+        let isInRange state =
+            if isAgentHere damagedAgent state then
+                Success
+            else
+                Failure <| sprintf "Agent %A is not here" damagedAgent
+
         let repairCost state = 
             match state.Self.Status with
             | Normal   -> Constants.ACTION_COST_EXPENSIVE
@@ -208,7 +216,7 @@ module ActionSpecifications =
             }
 
         { ActionType    = Perform <| Repair damagedAgent
-        ; Preconditions = [ isNotSelf ;canRepair; fun state -> enoughEnergy (repairCost state) state ]
+        ; Preconditions = [ isInRange; isNotSelf; canRepair; fun state -> enoughEnergy (repairCost state) state ]
         ; Effect        = updateState
         ; Cost          = fun state -> turnCost state + repairCost state
         }
@@ -372,32 +380,29 @@ module ActionSpecifications =
         List.isEmpty <| unSatisfiedPreconditions state actionSpec
 
     let agentsAt node agentList =
-        List.filter (fun enemy -> enemy.Node = node) agentList
-        |> List.map (fun enemy -> enemy.Name)
+        List.filter (fun agent -> agent.Node = node) agentList
+        |> List.map (fun agent -> agent.Name)
 
     let gotoActions (state : State) = 
         List.map moveAction <| getNeighbourIds state.Self.Node state.World
     
-    let attackActions agent (state : State) = 
-        let agentsHere = agentsAt state.Self.Node state.EnemyData
-        if List.exists ((=) agent) agentsHere then
+    let attackActions agent state = 
+        if isAgentHere agent state then
             [attackAction agent]
-        else 
+        else
             []
-
 
     let rechargeActions state = [rechargeAction]
 
     let repairActions agent (state : State) = 
-        let agentsHere = agentsAt state.Self.Node state.FriendlyData
-        if List.exists ((=) agent) agentsHere then
+        if isAgentHere agent state then
             [repairAction agent]
-        else 
+        else
             []
 
     let probeActions vertex state = 
         let rangedActions = 
-            List.map (Some >> probeAction) (List.filter (isUnexplored state) <| adjacentDeadEnds state)
+            List.map (Some >> probeAction) (List.filter (isUnprobed state) <| adjacentDeadEnds state)
             
         if state.Self.Node = vertex then
             probeAction None :: rangedActions
