@@ -98,7 +98,7 @@ module Saboteur =
                 )
              
     let killAgentICanSee (inputState:State) =
-        let healthyEnemies = List.filter (fun a -> a.Status <> Disabled) inputState.EnemyData
+        let healthyEnemies = List.filter (fun a -> a.Status <> Disabled && a.Node <> "") inputState.EnemyData
         if List.length healthyEnemies > 0 then
             let closest = List.minBy (fun a -> distanceBetweenAgentAndNode a.Node inputState) healthyEnemies
             let killAgent = closest.Name

@@ -84,17 +84,16 @@ module Common =
   
 
     let giveMyLocationToMyRepairer (inputState:State) =
-        match (inputState.Self.Status,Map.tryFind MyRepairer inputState.Relations) with
-        | (Normal, Some repairer) -> 
-            Some <| normalIntention 
-                    ( "send my location to repairer "+repairer,
-                      Communication,
-                      [
-                        Plan (fun s -> 
-                            [Communicate <| SendMail (s.Self.Name,repairer,MyLocation s.Self.Node)]
-                            |> Some)
-                      ]
-                    )
+        match (inputState.Self.Status, Map.tryFind MyRepairer inputState.Relations) with
+        | (Disabled, Some repairer) -> 
+            normalIntention 
+                ( "send my location to repairer "+repairer,
+                  Communication,
+                  [
+                    Plan (fun s -> Some [Communicate <| SendMail (s.Self.Name,repairer,MyLocation s.Self.Node)])
+                  ]
+                )
+            |> Some
         | _ -> None 
 
     //Try to make it so the agent has explored one more node
@@ -125,22 +124,22 @@ module Common =
 
     //Posts or removes a repair job on the master server for repairing itself
     let postRepairJob (inputState:State) =
-        match tryFindRepairJobForAgent inputState.Self.Name inputState.Jobs,inputState.Self.Status with
-            | None,Disabled ->
+        match tryFindRepairJobForAgent inputState.Self.Name inputState.Jobs, inputState.Self.Status with
+            | None, Disabled ->
                 let myNode = inputState.Self.Node
                 let myName = inputState.Self.Name
                 let jobPriority = calculateRepairValue inputState.Self.Role.Value
                 let numberOfAgentsNeeded = 1
                 let communicateJob = CreateJob ( (None,jobPriority,JobType.RepairJob,numberOfAgentsNeeded),RepairJob(myNode,myName))
                 normalIntention 
-                    ( "post repair job for me."
+                    ( "post a repair job for me."
                     , Communication
                     , [ Plan <| fun _ -> Some [ Communicate <| communicateJob ]]
                     )
                 |> Some
             | Some ((Some id,_,_,_),_),Normal ->
                 normalIntention 
-                    ( "remove repair job for me."
+                    ( "remove the repair job for me."
                     , Communication
                     , [ Plan <| fun _ -> Some [ Communicate <| RemoveJob id ]]
                     )
