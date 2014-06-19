@@ -23,10 +23,13 @@ module Explorer =
     ///Functions for finding islands///
 
     //Check if this is an articulation point
-    let articulationPoint components = (List.length components) > 1
+    let isArticulationPoint components = (List.length components) > 1
 
     //Filter away unexplored components
-    let getExploredComponents (s:State) components = List.filter (fun nodeSet -> Set.forall (fun name -> s.World.ContainsKey name && not <| isUnexplored s name) nodeSet) components
+    let getExploredComponents (s:State) components = 
+        List.filter (fun nodeSet -> 
+                        Set.forall (fun name -> s.World.ContainsKey name && not <| isUnexplored s name) nodeSet
+                    ) components
 
     //Function for filtering away probed islands. Should only be used for that (unsafe).
     let getUnprobedComponents (s:State) components = List.filter (fun nodeSet -> Set.exists (fun name -> s.World.[name].Value.IsNone ) nodeSet) components
@@ -225,15 +228,18 @@ module Explorer =
     //Create the objectives list for findNewIslandZone
     let createIslandObjectives unprobedIslands = 
         match unprobedIslands with
-        | island :: tail -> [MultiGoal( fun state -> List.map (Probed) <| Set.toList island);
-                                  Plan(fun state ->
-                                       let subGraph = List.map (fun n -> state.World.[n]) (Set.toList island)
-                                       let positions = findAgentPlacement subGraph state.World
-                                       let agentsNeeded = positions.Length
-                                       let value = calcZoneValue state agentsNeeded island
-                                       let islandAsList = Set.toList island
-                                       Some [Communicate( CreateJob( (None,value,JobType.OccupyJob,agentsNeeded),OccupyJob(positions,islandAsList) ) )]
-                                    )]
+        | island :: tail -> 
+            [
+                  MultiGoal( fun state -> List.map (Probed) <| Set.toList island);
+                  Plan(fun state ->
+                       let subGraph = List.map (fun n -> state.World.[n]) (Set.toList island)
+                       let positions = findAgentPlacement subGraph state.World
+                       let agentsNeeded = positions.Length
+                       let value = calcZoneValue state agentsNeeded island
+                       let islandAsList = Set.toList island
+                       Some [Communicate( CreateJob( (None,value,JobType.OccupyJob,agentsNeeded),OccupyJob(positions,islandAsList) ) )]
+                      )
+            ]
         | [] -> []
     
     //Create the objectives list for findNewZone
@@ -282,11 +288,11 @@ module Explorer =
     let findNewIslandZone (inputState:State) =
         let biconnectedComponents = Biconnected.find inputState.Self.Node inputState.World
         let possibleIslands = List.tail <| List.rev (List.sortBy Set.count biconnectedComponents)
-        if articulationPoint biconnectedComponents 
+        if isArticulationPoint biconnectedComponents 
         then
                 let knownIslands = getExploredComponents inputState possibleIslands
                 let unprobedIslands = getUnprobedComponents inputState knownIslands
-                if unprobedIslands.Length = 0 
+                if unprobedIslands.Length > 0 
                 then
                     Some <| normalIntention (
                             sprintf "probe one of %A islands." unprobedIslands.Length, 
@@ -320,18 +326,16 @@ module Explorer =
                     Some<| normalIntention ("probe one more node.", Activity, [Requirement (Probed unprobed)])
                 | _ -> None
 
-
-
-    let probeThisAndAdjacentDeadEnds (state : State) =                
+    let probeThisAndAdjacentDeadEnds (state : State) =
+                
         if nodeIsUnprobed state state.Self.Node then
-            None//Some <| normalIntention ("probe this node", Activity, [Requirement <| Probed state.Self.Node])
+            Some <| normalIntention ("probe this node", Activity, [Requirement <| Probed state.Self.Node])
         else
             let unProbedDeadEnds = 
                 List.filter (fun vertex -> Option.isNone state.World.[vertex].Value) (adjacentDeadEnds state)
 
             if List.length (adjacentDeadEnds state) > 0 then
-//                let requirements = List.map (Probed >> Requirement) unProbedDeadEnds
-//                Some <| normalIntention ("probe a dead end.", Activity, requirements)
-                None//Some <| normalIntention ("probe a dead end.", Activity, [Requirement (Probed unProbedDeadEnds.Head)])
+                let requirements = List.map (Probed >> Requirement) unProbedDeadEnds
+                Some <| normalIntention ("probe a dead end.", Activity, requirements)
             else 
                 None
