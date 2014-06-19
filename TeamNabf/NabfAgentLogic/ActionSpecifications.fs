@@ -154,7 +154,7 @@ module ActionSpecifications =
             | None -> Failure "Not a neighbour"
 
         { ActionType    = Perform <| Goto destination
-        ; Preconditions = [ canMoveTo; isNotDisabled ]
+        ; Preconditions = [ canMoveTo ]
         ; Effect        = updateState
         ; Cost          = cost
         }
@@ -189,7 +189,10 @@ module ActionSpecifications =
 
     let repairAction (damagedAgent : AgentName) =
         let canRepair state = inRangeOfAgent state damagedAgent state.FriendlyData
-        
+        let isNotSelf (state:State) = 
+            match state.Self.Name <> damagedAgent with
+            | true -> Success
+            | false -> Failure "Unable to repairer itself"
         let repairCost state = 
             match state.Self.Status with
             | Normal   -> Constants.ACTION_COST_EXPENSIVE
@@ -205,7 +208,7 @@ module ActionSpecifications =
             }
 
         { ActionType    = Perform <| Repair damagedAgent
-        ; Preconditions = [ canRepair; fun state -> enoughEnergy (repairCost state) state ]
+        ; Preconditions = [ isNotSelf ;canRepair; fun state -> enoughEnergy (repairCost state) state ]
         ; Effect        = updateState
         ; Cost          = fun state -> turnCost state + repairCost state
         }
@@ -221,6 +224,19 @@ module ActionSpecifications =
             | None -> Success
             | Some _ -> Failure <| sprintf "Vertex %A is already probed" (realVertex state)
 
+        let inRange state =
+            let trueness = 
+                match vertexOption with
+                | Some vertex -> 
+                    Set.contains vertex (Set.ofList <| getNeighbourIds state.Self.Node state.World)
+                | None -> 
+                    realVertex state = state.Self.Node
+
+            if trueness then
+                Success
+            else
+                Failure <| sprintf "not at or adjacent to %A" (realVertex state)
+
         let updateState state = 
 //            logImportant "updating state probeAction"
             let vertex = (realVertex state)
@@ -232,8 +248,38 @@ module ActionSpecifications =
                     LastAction = Action.Probe vertexOption
             }
 
+        let cost state = 
+            match vertexOption with
+            | Some vertex -> turnCost state + Constants.ACTION_COST_CHEAP + 1
+            | None -> turnCost state + Constants.ACTION_COST_CHEAP
+
         { ActionType    = Perform <| Probe vertexOption
-        ; Preconditions = [ vertexUnProbed; enoughEnergy Constants.ACTION_COST_CHEAP; isNotDisabled ]
+        ; Preconditions = [ inRange; vertexUnProbed; enoughEnergy Constants.ACTION_COST_CHEAP; isNotDisabled ]
+        ; Effect        = updateState
+        ; Cost          = fun state -> turnCost state + Constants.ACTION_COST_CHEAP
+        }
+
+    let surveyAction =
+//        let edgesAreUnsurveyed state = 
+//            let rangeOneEdges = state.World.[state.Self.Node].Edges          
+//            
+//            match 0 = (Set.count <| Set.filter (fun (value,_) -> Option.isNone value) rangeOneEdges) with
+//            | false -> Success
+//            | true -> Failure <| sprintf "Edges around me is already surveyed"
+
+        let updateState state = 
+//            logImportant "updating state surveyAction"
+            let rangeOneEdges = state.World.[state.Self.Node].Edges 
+            let undirectedEdges = Set.map (fun (cost, toV) -> (cost, state.Self.Node, toV)) rangeOneEdges
+            let newWorld = Set.fold (fun graph edge -> addEdge edge graph) state.World undirectedEdges            
+            { state with 
+                    World = newWorld
+                    Self = deductEnergy Constants.ACTION_COST_CHEAP state
+                    LastAction = Action.Survey
+            }
+
+        { ActionType    = Perform <| Survey
+        ; Preconditions = [ enoughEnergy Constants.ACTION_COST_CHEAP; isNotDisabled ]
         ; Effect        = updateState
         ; Cost          = fun state -> turnCost state + Constants.ACTION_COST_CHEAP
         }
@@ -345,15 +391,18 @@ module ActionSpecifications =
     let repairActions agent (state : State) = 
         let agentsHere = agentsAt state.Self.Node state.FriendlyData
         if List.exists ((=) agent) agentsHere then
-            [attackAction agent]
+            [repairAction agent]
         else 
             []
 
     let probeActions vertex state = 
+        let rangedActions = 
+            List.map (Some >> probeAction) (List.filter (isUnexplored state) <| adjacentDeadEnds state)
+            
         if state.Self.Node = vertex then
-            [probeAction None]
+            probeAction None :: rangedActions
         else 
-            []
+            rangedActions
 
     let inspectActions vertex state = 
         let someUninspectedEnemy = 
@@ -384,6 +433,8 @@ module ActionSpecifications =
                 parryActions state
             | Charged _ -> 
                 rechargeActions state
+            | Surveyed ->
+                [surveyAction]
         rechargeAction :: actions
 
     let actionSpecification (action : AgentAction) =
@@ -399,5 +450,5 @@ module ActionSpecifications =
             | Recharge -> rechargeAction
             | Repair agent -> repairAction agent
             | Skip -> rechargeAction
-            | Survey -> failwith "survey does not have an actionspecification"
+            | Survey -> surveyAction//failwith "survey does not have an actionspecification"
 

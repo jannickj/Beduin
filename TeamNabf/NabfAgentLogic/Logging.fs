@@ -17,14 +17,16 @@ module Logging =
         | Intentions
         | Perception
         | Agent
+        | Parsing
 
     let allowFlags = 
         [ 
             Planning
-//            ActionSpecifications
-//            Intentions
-//            Perception
+            ActionSpecifications
+            Intentions
+            Perception
             Agent
+            Parsing
         ] |> Set.ofList
 
     let logger = new Logger (sw, debugLevel);

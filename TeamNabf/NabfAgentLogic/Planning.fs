@@ -27,7 +27,7 @@ module Planning =
 
     let wrappedGoalTest goalTest state = 
         try goalTest state with
-        | ex -> logStateError state Planning <| sprintf "goal test: %A \nfailed with:\n %A" goalTest ex
+        | ex -> logStateError state Planning <| sprintf "goal test: %A \nfailed with:\n %A\nstack trace:\n%A" goalTest ex.Message ex.StackTrace
                 false
 
     let distance (goals : Goal list) state cost =
@@ -101,16 +101,15 @@ module Planning =
 //        logImportant <| sprintf "Node: %A (%A)" state.Self.Node state.LastPosition
 //        logImportant <| sprintf "last action: %A (%A)" state.LastAction state.LastActionResult
         match state.LastActionResult with
-        | Successful | FailedRandom -> ()
+        | Successful | FailedRandom | FailedInRange | FailedParried -> ()
         | err -> logStateError state Planning <| sprintf "Last action result was %A, trying to repair plan anyway" err
 
         let tmpPlan = 
             match originalPlan with
-            | (action :: tail, objectives) when state.LastActionResult <> FailedRandom || action = skipAction -> 
+            | (action :: tail, objectives) when state.LastActionResult = Successful || action = skipAction ->
                 (tail, objectives)
-            | (action :: _, _) ->
+            | _ ->
                 originalPlan
-            | ([], _) -> originalPlan
 
         let plan = 
             match tmpPlan with
@@ -121,7 +120,7 @@ module Planning =
                 (rechargeAction :: action :: rest, objectives)
             | _ -> tmpPlan
 
-        logStateInfo state Planning <| sprintf "repairing plan %A" (List.map (fun action -> action.ActionType) (fst plan))
+        logStateImportant state Planning <| sprintf "repairing plan %A" (List.map (fun action -> action.ActionType) (fst plan))
 
         let rechargedState (state : State) = {state with Self = {state.Self with Energy = state.Self.MaxEnergy}}
 
@@ -166,12 +165,12 @@ module Planning =
 
             match makePlan fromState (snd plan) with
             | Some (path, objectives) ->
-//                logImportant <| sprintf "repaired plan: %A" (List.map (fun action -> action.ActionType) path)
+                logStateImportant state Planning <| sprintf "repaired plan: %A" (List.map (fun action -> action.ActionType) path)
                 Some (prunedPlan @ path, objectives)
             | None -> None
 
         | None -> 
-//            logImportant <| sprintf "kept plan: %A" (List.map (fun action -> action.ActionType) (fst plan))
+            logStateImportant state Planning <| sprintf "kept plan: %A" (List.map (fun action -> action.ActionType) (fst plan))
             Some plan
 
     let formulatePlan (state : State) intent = 
@@ -189,7 +188,7 @@ module Planning =
         | Some (path, objectives) -> Some (skipAction :: path, objectives)
         | None -> None
 
-    let solutionFinished state intent solution = 
+    let solutionFinished state intent (solution : Plan) = 
         match solution with
         | ([], [Plan _]) -> true
         | (_, [Plan _]) -> false
@@ -204,14 +203,17 @@ module Planning =
             Some (action.ActionType, (rest, (Plan p) :: restObjectives))
         | (action :: rest, goals) -> 
             Some (action.ActionType, (action :: rest, goals))
+        | ([], [] ) -> None
         | ([], objectives) ->
             let newObjectives = 
                 match objectives with
                 | (Plan p) :: tail -> 
                     tail
-                | objective :: tail when wrappedGoalTest (goalTest (goalFunc objective state)) state ->
+                | objective :: tail when wrappedGoalTest (goalTest (goalList objective state)) state ->
+                    logStateImportant state Planning <| sprintf "goalTest succeeded %A" objectives
                     tail
                 | objectives ->
+                    logStateImportant state Planning <| sprintf "goalTest failed %A" objectives
                     objectives
 
             match makePlan state newObjectives with
@@ -252,7 +254,7 @@ module Planning =
                     let oldintent = (intent.Label,intent.Type,intent.Objectives)
                     let plan = 
                         try formulatePlan state oldintent with
-                        | exn -> logStateError state Planning <| sprintf "Error encountered in formulatePlan: %A at %A" exn.Message exn.TargetSite
+                        | exn -> logStateError state Planning <| sprintf "Error encountered in formulatePlan: %A at %A" exn.Message exn.StackTrace
                                  None
                     plan
                 member self.RepairPlan (state, intent, solution) =
@@ -261,21 +263,21 @@ module Planning =
                         | (_, Plan _ :: _) -> Some solution
                         | _ -> 
                             try repairPlan state intent solution with
-                            | exn -> logStateError state Planning <| sprintf "Error encountered in repairPlan: %A at %A" exn.Message exn.TargetSite
+                            | exn -> logStateError state Planning <| sprintf "Error encountered in repairPlan: %A at %A" exn.Message exn.StackTrace
                                      None
                     plan
                     
                 member self.SolutionFinished (state, intent, solution) = 
                     let result = 
                         try solutionFinished state intent solution with
-                        | exn -> logStateError state Planning <| sprintf "Error encountered in solutionFinished: %A at %A" exn.Message exn.TargetSite
+                        | exn -> logStateError state Planning <| sprintf "Error encountered in solutionFinished: %A at %A" exn.Message exn.StackTrace
                                  false
                     result
                     
                 member self.NextAction (state, intent, solution) = 
                     let action = 
                         try nextAction state intent solution with
-                        | exn -> logStateError state Planning <| sprintf "Error encountered in nextAction: %A at %A" exn.Message exn.TargetSite
+                        | exn -> logStateError state Planning <| sprintf "Error encountered in nextAction: %A at %A" exn.Message exn.StackTrace
                                  None
                     action
 

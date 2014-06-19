@@ -47,19 +47,24 @@ module DesireTree =
     //                                )
     //                            )
                         Desire(shareKnowledge)
-    //
-    //                    ////Desire(postDefenceJob)
-    //
+    
+                        Desire(postDefenseJob)
+    
                         Desire(postAttackJob)
-    //
+    
     //                    ////Desire(postDisruptJob)
     //
+                        Desire(postRepairJob)
                         Desire(giveMyLocationToMyRepairer)
                         Desire(getRepaired)
     //
                         getRoleDesires
     //
-                        Desire exploreMap
+                        
+                        Conditional
+                            (   exploringNotDone,
+                                Desire exploreMap
+                            )
     //
                         Desire(generateSomeValue)
                         Desire(generateLittleValue)

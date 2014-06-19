@@ -88,6 +88,18 @@ namespace NabfProject.AI
             var action = transmitter.DeserializeMessage();
             var agent = (NabfAgent)this.Agent;
             var xaction = agentToMasterParser.ConvertToForeign(action);
+            //NabfAgent agentToReceive;
+            //if (xaction is AddKnowledgeAction)
+            //{
+            //    foreach (KnowledgeManagerModel.Knowledge k in ((AddKnowledgeAction)xaction).SentKnowledge)
+            //    {
+            //        if (k is KnowledgeManagerModel.MessageKnowledge)
+            //        {
+            //            //agentToReceive = ((KnowledgeManagerModel.MessageKnowledge)k).TargetedAgent
+            //            //agentToReceive.Raise(new NewKnowledgeEvent(k));
+            //        }
+            //    }
+            //}
             if (xaction is SubscribeSimulationAction)
                 lock (simLock)
                     this.simulationSubscribed = false;

@@ -309,7 +309,9 @@ namespace NabfAgentLogic.IiLang
             | Percept (name, data) -> 
                 match name with
                 | "inspectedEntities" -> List.map (parseIilAgent >> Percept.EnemySeen) data
-                | "probedVertices"    -> List.map (parseIilProbedVertex >> Percept.VertexProbed) data
+                | "probedVertices"    -> 
+                    logImportant Parsing <| sprintf "parsing: vertex %A" data
+                    List.map (parseIilProbedVertex >> Percept.VertexProbed) data
                 | "self"              -> parseIilSelf data
                 | "simulation"        -> [SimulationStep <| parseIilStep data]
                 | "surveyedEdges"     -> List.map (parseIilSurveyedEdge >> Percept.EdgeSeen) data
@@ -336,7 +338,9 @@ namespace NabfAgentLogic.IiLang
                         let nodes = List.map (fun (Identifier vertex) -> vertex) nodelist
                         let jobdata = 
                             match jt with
-                            | JobType.AttackJob -> AttackJob(nodes)
+                            | JobType.AttackJob -> 
+                                let [Function ("timeStamp", [Numeral round])] = optional
+                                AttackJob(nodes, int round)
                             | JobType.DisruptJob -> DisruptJob(nodes.Head)
                             | JobType.OccupyJob -> 
                                 let [Function ("zoneNodes", nodeData)] = optional
@@ -352,7 +356,7 @@ namespace NabfAgentLogic.IiLang
        
         let getNodesFromJob job = 
             match job with
-            | AttackJob nodes -> nodes
+            | AttackJob (nodes,_) -> nodes
             | DisruptJob nh -> [nh]
             | OccupyJob (nodes,_) -> nodes
             | RepairJob (nh,_) -> [nh]
@@ -415,7 +419,7 @@ namespace NabfAgentLogic.IiLang
                 | None -> []
             let (vl,optional) =
                 match jdata with
-                | AttackJob vl ->  (vertexToIdentifer vl),[]
+                | AttackJob (vl,_) ->  (vertexToIdentifer vl),[]
                 | OccupyJob (vl,zl) -> (vertexToIdentifer vl), [(Function ("zone",vertexToIdentifer zl))]
                 | RepairJob (vn,an) -> (vertexToIdentifer [vn]), [(Identifier an)]
                 | DisruptJob vn -> (vertexToIdentifer [vn]),[]

@@ -44,6 +44,9 @@
     <Compile Include="IiLang\MessageTranslator.fs" />
     <Compile Include="IiLang\IiLang.fs" />
     <Compile Include="IiLang\IilTranslator.fs" />
+    <Compile Include="Search\FloydWarshall.fs" />
+    <Compile Include="Search\HeuristicDijkstra.fs" />
+    <Compile Include="Search\Biconnected.fs" />
     <Compile Include="logic\LogicLib.fs" />
     <Compile Include="logic\Common.fs" />
     <Compile Include="logic\Explorer.fs" />
@@ -58,9 +61,6 @@
     <Compile Include="AgentTrees\SentinelTree.fs" />
     <Compile Include="DesireTree.fs" />
     <Compile Include="GoalSpecifications.fs" />
-    <Compile Include="Search\FloydWarshall.fs" />
-    <Compile Include="Search\HeuristicDijkstra.fs" />
-    <Compile Include="Search\Biconnected.fs" />
     <Compile Include="Planning.fs" />
     <Compile Include="MarsCommunicator.fs" />
     <Compile Include="MasterCommunicator.fs" />

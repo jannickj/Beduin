@@ -43,7 +43,7 @@ module StructureBuilder =
             ;   InspectedEnemies = Set.empty
             ;   SimulationStep = 0
             ;   LastPosition = ""
-            ;   NewVertices = []
+//            ;   NewVertices = []
             ;   NewEdges = []
             ;   LastStepScore = 0
             ;   Score = 0
@@ -64,6 +64,7 @@ module StructureBuilder =
             ;   GraphHeuristic = (Map.empty<string*string, _>,Map.empty)
             ;   MailsReceived = Map.empty
             ;   Relations = Map.empty
+            ;   NodesControlledByEnemy = Set.empty
             } : State
 
     let buildState node role world = buildStateWithEnergy node role world 30 

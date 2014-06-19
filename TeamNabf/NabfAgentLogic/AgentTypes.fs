@@ -88,7 +88,7 @@ module AgentTypes =
         | OccupyJob of VertexName list * VertexName list //(agentPositions,zone)
         | RepairJob of VertexName * AgentName
         | DisruptJob of VertexName
-        | AttackJob of VertexName list //Change to single vertex?
+        | AttackJob of VertexName list * int //the int is a timestamp
         | EmptyJob
     
     type AgentsNeededForJob = int
@@ -198,6 +198,7 @@ module AgentTypes =
             PlannerRepairedAgents  : AgentName Set
             PlannerInspectedEnemies : AgentName Set
             PlannerDisabledEnemies  : AgentName Set
+            EdgesOfCurrentPosSurveyed : bool
         }
 
     [<CustomEquality>]
@@ -211,7 +212,7 @@ module AgentTypes =
             InspectedEnemies : AgentName Set
             SimulationStep   : int
             LastPosition     : VertexName
-            NewVertices      : SeenVertex list
+            //NewVertices      : SeenVertex list
             NewEdges         : Edge list
             LastStepScore    : int
             Score            : int
@@ -228,6 +229,7 @@ module AgentTypes =
             MailsReceived    : Map<RoundNumber,Mail Set>
             GraphHeuristic   : (Map<VertexName*VertexName, (int*int)>* Map<VertexName,int>)
             Relations        : Map<Relation,AgentName>
+            NodesControlledByEnemy : VertexName Set
 
             ///USED FOR PLANNING ONLY DONT USE THEM IN INTENTION CHECKS
             PlannerProbed          : VertexName Set
@@ -246,6 +248,9 @@ module AgentTypes =
                 PlannerRepairedAgents = self.PlannerRepairedAgents
                 PlannerInspectedEnemies = self.PlannerInspectedEnemies
                 PlannerDisabledEnemies = self.PlannerDisabledEnemies
+                EdgesOfCurrentPosSurveyed =
+                    let rangeOneEdges = self.World.[self.Self.Node].Edges          
+                    0 = (Set.count <| Set.filter (fun (value,_) -> Option.isNone value) rangeOneEdges)
             }
             
         override self.GetHashCode() = self.GetSubSet.GetHashCode()
@@ -279,6 +284,7 @@ module AgentTypes =
         | GetCloseTo of AgentName
         | Parried
         | Charged   of int option
+        | Surveyed
 
     type Objective = 
         | Plan of (State -> (AgentAction list) option)

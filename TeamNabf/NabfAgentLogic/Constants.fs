@@ -10,48 +10,57 @@
         let SABOTEUR_REPAIR_PRIORITY = 20
         let EXPLORER_REPAIR_PRIORITY = 1
 
-        let STEPS_BEFORE_ROLE_DONT_MATTER_DISRUPT_TIER0 = 0.0
-        let STEPS_BEFORE_ROLE_DONT_MATTER_DISRUPT_TIER1 = 7.0
-        let STEPS_BEFORE_ROLE_DONT_MATTER_DISRUPT_TIER2 = 10.0
-        let STEPS_BEFORE_ROLE_DONT_MATTER_OCCUPY_TIER1 = 5.0
-        let STEPS_BEFORE_ROLE_DONT_MATTER_OCCUPY_TIER2 = 10.0
-
         //lower means distance between agent and job matters less
-        let DISTANCE_TO_OCCUPY_JOB_MOD = 0.7
+        let DISTANCE_TO_OCCUPY_JOB_MOD = 1.0
         let DISTANCE_TO_REPAIR_JOB_MOD = 1.0
-        let DISTANCE_TO_DISRUPT_JOB_MOD = 0.7
-        let DISTANCE_TO_ATTACK_JOB_MOD = 0.7
+        let DISTANCE_TO_DISRUPT_JOB_MOD = 1.0
+        let DISTANCE_TO_ATTACK_JOB_MOD = 1.0
+
+        let JOB_IMPORTANCE_MODIFIER_OCCUPY = 10.0
+        let JOB_IMPORTANCE_MODIFIER_ATTACK = 1.0
 
         let DESIRE_COST_OF_MOVING_THROUGH_ONE_ENEMY_NODE = 0.02 //distance to job will be (dist + number_of_enemy_nodes*this_constant), meaning
                                                                 //nodes with enemies on them on the route will be considered more expensive,
                                                                 // so that agents who have a safe path will desire a job more
                                                                 //This constant may not be negative and not exceed 1.0
 
-        //don't change these. Modify the above constants as what they actually do is clearly understood
+        //Use these if specific roles should have preference on a job. Compare it to the DISTANCE_TO modifier. 
+        //If role X should have preference over role Y at distance from job Z, given DIST mod of 1.0, then be sure that ROLE mod of X is Z larger than the ROLE mod of Y
 
 
         let REPAIRER_OCCUPYJOB_MOD = -0.0
-        let SENTINEL_OCCUPYJOB_MOD = 10.0 + (STEPS_BEFORE_ROLE_DONT_MATTER_OCCUPY_TIER1 / 10.0)
+        let SENTINEL_OCCUPYJOB_MOD = 10.0
         let INSPECTOR_OCCUPYJOB_MOD = 10.0
         let SABOTEUR_OCCUPYJOB_MOD = -0.0
-        let EXPLORER_OCCUPYJOB_MOD = 5.0
+        let EXPLORER_OCCUPYJOB_MOD = 10.0
 
-        //don't change these. Modify the above constants as what they actually do is clearly understood
+        //Use these if specific roles should have preference on a job. Compare it to the DISTANCE_TO modifier. 
+        //If role X should have preference over role Y at distance from job Z, given DIST mod of 1.0, then be sure that ROLE mod of X is Z larger than the ROLE mod of Y
         let REPAIRER_DISRUPTJOB_MOD = -0.0
-        let SENTINEL_DISRUPTJOB_MOD = 10.0 + (STEPS_BEFORE_ROLE_DONT_MATTER_DISRUPT_TIER2 / 10.0)
-        let INSPECTOR_DISRUPTJOB_MOD = 10.0 + (STEPS_BEFORE_ROLE_DONT_MATTER_DISRUPT_TIER1 / 10.0)
-        let SABOTEUR_DISRUPTJOB_MOD = 10.0 + (STEPS_BEFORE_ROLE_DONT_MATTER_DISRUPT_TIER0 / 10.0)
-        let EXPLORER_DISRUPTJOB_MOD = 10.0 + (STEPS_BEFORE_ROLE_DONT_MATTER_DISRUPT_TIER1 / 10.0)
+        let SENTINEL_DISRUPTJOB_MOD = 10.0
+        let INSPECTOR_DISRUPTJOB_MOD = 10.0
+        let SABOTEUR_DISRUPTJOB_MOD = 10.0
+        let EXPLORER_DISRUPTJOB_MOD = 10.0
 
-        
-        let SABOTEUR_ATTACKJOB_MOD = 0.0
-
-
+        //not used as we only have one role to apply for these job types
+        let SABOTEUR_ATTACKJOB_MOD = 0.0 
         let REPAIRER_REPAIRJOB_MOD = 0.0
+
 
         let SPONTANOUS_REPAIR_PERCENTAGE = 0.50
 
-        let NODE_VALUE_TO_ORDER_ATTACK = 8
+        let MIN_NODE_VALUE_TO_POST_ATTACK = 8
+
+        let DEFENSE_IMPORTANCE_MODIFIER = 2
+        let ATTACK_IMPORTANCE_MODIFIER = 1
+        let VALUE_DECAY_PER_TURN = 2.0
+
+        //value related to sentinel survey
+        let SURVEY_NEEDED_FACTOR_RANGE1 = 0.6
+        let SURVEY_NEEDED_FACTOR_RANGE2 = 0.8
+        let SURVEY_NEEDED_FACTOR_RANGE1_WHILE_ON_2 = 0.4
+        let SURVEY_MY_NODE_UNTIL_THIS_TURN_IF_NEEDED = 50
+        let ENERGY_FACTOR_TO_PREFER_SURVEY_OVER_RECHARGE = 0.75
 
         ///////////////////////////////
         /// Other constants
@@ -78,7 +87,8 @@
         let MAIL_EXPIRATION = 1
 
         let mutable OUR_TEAM = "Nabf"
-        let EXPLORE_FACTOR_LIGHT = 0.9
+        let EXPLORE_FACTOR_DONE_EXPLORING = 0.98
+        let PROBE_FACTOR_LIGHT = 0.9
         let MAX_PLANNING_TIME_MS = 1000L
 
         let NUMBER_OF_AGENTS = 28

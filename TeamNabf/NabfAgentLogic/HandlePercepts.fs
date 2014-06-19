@@ -1,4 +1,4 @@
-namespace NabfAgentLogic
+﻿namespace NabfAgentLogic
 module HandlePercepts =
     open FsPlanning.Agent
     open FsPlanning.Agent.Planning
@@ -67,10 +67,15 @@ module HandlePercepts =
             
             | EnemySeen _ -> state
                 
-            | VertexSeen seenVertex -> 
-                { state with NewVertices = seenVertex::state.NewVertices} 
+            | VertexSeen seenVertex ->
+//                { state with NewVertices = seenVertex::state.NewVertices }
+                match seenVertex with
+                | (nodeName,Some team) when team <> OUR_TEAM -> 
+                    { state with NodesControlledByEnemy = Set.add nodeName state.NodesControlledByEnemy }
+                | _ -> state
 
             | VertexProbed (name, value) ->
+                logStateImportant state Perception <| sprintf "vertex probed percept %A %A" name value
                 { state with 
                         World = addVertexValue name value state.World
                 }
@@ -221,10 +226,6 @@ module HandlePercepts =
                     | Some oldMails -> Set.add mail oldMails
                     | None -> Set [mail]
                 { state with MailsReceived = Map.add roundNr newMails state.MailsReceived }
-            | unhandled -> 
-                logStateError state Perception (sprintf "Unhandled percept: %A" unhandled) 
-                state
-
             | CommucationSent cs -> 
                 match cs with
                 | ShareKnowledge pl -> 
@@ -237,6 +238,7 @@ module HandlePercepts =
                     { state with MyJobs =  existingJobRemoved }
                 | _ -> state
 
+             
             | unhandled -> logStateError state Perception (sprintf "Unhandled percept: %A" unhandled) 
                            state //fix this later by handling remaining percepts
 
@@ -246,9 +248,10 @@ module HandlePercepts =
         let newAllyData = List.map (fun ally -> { ally with Status = Disabled }) state.FriendlyData
         { state with 
             NewEdges = []
-            NewVertices = []
+//            NewVertices = []
             EnemyData = newEnemyData
             FriendlyData = newAllyData
+            NodesControlledByEnemy = Set.empty
         }
 
     let updateTraversedEdgeCost (oldState : State) (newState : State) =
@@ -323,7 +326,7 @@ module HandlePercepts =
                     false
             else
                 true
-        | VertexSeen (vertexName, ownedBy) -> not (oldState.World.ContainsKey vertexName )
+        | VertexSeen (vertexName, ownedBy) -> not (oldState.World.ContainsKey vertexName ) 
         | EdgeSeen (edgeValue, node1, node2) ->
             if oldState.World.ContainsKey(node1) then
                 let edge = Set.filter (fun (_, endNode) -> endNode = node2) oldState.World.[node1].Edges
@@ -469,9 +472,12 @@ module HandlePercepts =
 
         match percepts with
         | NewRoundPercept::_ -> 
-            let newState = inferKnowledge clearedState
-            newRoundPercepts newState
-            |> removeKnowledge                
+            let inferedState = inferKnowledge clearedState
+            let newState = 
+                newRoundPercepts inferedState
+                |> removeKnowledge     
+            logImportant Perception ("State finished updating now at step "+newState.SimulationStep.ToString())
+            newState           
         | _ -> 
             let newState = inferKnowledge state
             handlePercepts newState percepts

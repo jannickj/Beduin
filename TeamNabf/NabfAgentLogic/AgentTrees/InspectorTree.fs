@@ -10,9 +10,9 @@ module InspectorTree =
     let getInspectorDesires : DesireTree<State,Intention> = 
             ManyDesires 
                 [
-                    Desire(spontaneousInspectAgentOnMyNode)
+                    Desire(unapplyFromJobsWhenDisabled)
 
-                    Desire(spontanousInspectAgent)
+                    Desire(spontaneousInspectAgentOnMyNode)
 
                     Desire(applyToOccupyJob INSPECTOR_OCCUPYJOB_MOD)
 
@@ -21,6 +21,4 @@ module InspectorTree =
                     Desire(applyToDisruptJob)
 
                     Desire(workOnDisruptJob)//Heuristic
-
-                    Desire(findAgentToInspect)
                 ]

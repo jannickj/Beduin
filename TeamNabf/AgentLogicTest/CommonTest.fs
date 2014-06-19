@@ -10,6 +10,7 @@ module CommonTest =
     open FsPlanning.Search
     open NabfAgentLogic.LogicLib
     open NabfAgentLogic.Common
+    open NabfAgentLogic.GeneralLib
 
     [<TestFixture>]
     type CommonTest() = 

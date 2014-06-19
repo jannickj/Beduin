@@ -1,12 +1,14 @@
-﻿namespace NabfAgentLogic
+namespace NabfAgentLogic
 module Explorer =
 
-    
     open AgentTypes
     open Graphing.Graph
     open Constants
     open Logging
     open LogicLib
+    open NabfAgentLogic.Search
+    open GeneralLib
+
     type ZoneVertex = 
         {   
             Vertex          : Vertex
@@ -18,6 +20,19 @@ module Explorer =
 
     ///////////////////////////////////Helper functions//////////////////////////////////////
         
+    ///Functions for finding islands///
+
+    //Check if this is an articulation point
+    let articulationPoint components = (List.length components) > 1
+
+    //Filter away unexplored components
+    let getExploredComponents (s:State) components = List.filter (fun nodeSet -> Set.forall (fun name -> s.World.ContainsKey name && not <| isUnexplored s name) nodeSet) components
+
+    //Function for filtering away probed islands. Should only be used for that (unsafe).
+    let getUnprobedComponents (s:State) components = List.filter (fun nodeSet -> Set.exists (fun name -> s.World.[name].Value.IsNone ) nodeSet) components
+
+    ///////////////////////////////////
+
 
     let rec mergeZones (zone:VertexName list) (overlapping:Job list) =
         match overlapping with
@@ -40,7 +55,7 @@ module Explorer =
         let l = List.filter (fun ((_,OccupyJob(_,vertices)):Job) -> (List.exists (fun (vn:VertexName) -> s.Self.Node = vn ) vertices)) occupyJobs
         l <> []
 
-    let lightExplorationDone (s:State) = (float s.ProbedCount) > ( EXPLORE_FACTOR_LIGHT * (float s.TotalNodeCount) )
+    let lightProbingDone (s:State) = (float s.ProbedCount) > ( PROBE_FACTOR_LIGHT * (float s.TotalNodeCount) )
 
     let onHighValueNode (s:State) = s.World.[s.Self.Node].Value.IsSome && s.World.[s.Self.Node].Value.Value >= ZONE_ORIGIN_VALUE
 
@@ -90,8 +105,13 @@ module Explorer =
             else 
                 getOverlappingVertices tail l
 
-    let getOverlappingJobs (occupyJobs:Job list) (zone:VertexName List) =
-        List.filter (fun ((_,OccupyJob(_,vertices)):Job) -> (getOverlappingVertices vertices zone) <> []) occupyJobs
+
+    let getOverlappingOccupyJobs (jobs:Job list) (zone:VertexName List) =
+        List.filter (fun job -> 
+                            match job with 
+                            | (_,OccupyJob(_,vertices)) -> (getOverlappingVertices vertices zone) <> []
+                            | _ -> false
+                        ) jobs
 
     let buildZoneVertex (vertex:Vertex) =
         {
@@ -202,51 +222,80 @@ module Explorer =
         let n = state.World.[node] 
         n.Value.IsNone
 
+    //Create the objectives list for findNewIslandZone
+    let createIslandObjectives unprobedIslands = 
+        match unprobedIslands with
+        | island :: tail -> [MultiGoal( fun state -> List.map (Probed) <| Set.toList island);
+                                  Plan(fun state ->
+                                       let subGraph = List.map (fun n -> state.World.[n]) (Set.toList island)
+                                       let positions = findAgentPlacement subGraph state.World
+                                       let agentsNeeded = positions.Length
+                                       let value = calcZoneValue state agentsNeeded island
+                                       let islandAsList = Set.toList island
+                                       Some [Communicate( CreateJob( (None,value,JobType.OccupyJob,agentsNeeded),OccupyJob(positions,islandAsList) ) )]
+                                    )]
+        | [] -> []
+    
+    //Create the objectives list for findNewZone
+    let createZoneObjectives origin = 
+        [ MultiGoal(
+                 fun state -> 
+                 let zone = zoneToExplore state (Set.empty,Set [origin])
+                 List.map (Probed) <| Set.toList zone
+             ); 
+             Plan(fun state ->
+                 let exploredZone = zoneToExplore state (Set.empty,Set [origin])
+                 let zone = Set.filter (fun z -> hasValueHigherThan z ZONE_BORDER_VALUE state) exploredZone
+                 let overlapping = getOverlappingOccupyJobs state.Jobs (Set.toList zone)
+                 match overlapping with
+                 | [] -> 
+                     let subGraph = List.map (fun n -> state.World.[n]) (Set.toList zone)
+                     let agentPositions = findAgentPlacement subGraph state.World
+                     let agentsNeeded = agentPositions.Length
+                     let zoneValue = calcZoneValue state agentsNeeded zone
+                     Some [Communicate( CreateJob( (None,zoneValue,JobType.OccupyJob,agentsNeeded),OccupyJob(agentPositions,Set.toList zone) ) )]
+                 | head::tail -> 
+                     let removeIds = List.map ( fun ((id:Option<JobID>,_,_,_),_) -> if id.IsSome then id.Value else -1) overlapping
+                     let merged = removeDuplicates (mergeZones (Set.toList zone) overlapping)
+                     let subGraph = List.map (fun n -> state.World.[n]) merged
+                     let agentPositions = findAgentPlacement subGraph state.World
+                     let agentsNeeded = agentPositions.Length
+                     let zoneValue = calcZoneValue state agentsNeeded (Set.ofList merged)
+                     let addZone = [Communicate( CreateJob( (None,zoneValue,JobType.OccupyJob,agentsNeeded),OccupyJob(agentPositions,merged) ) )] 
+                     let removeZones = List.map (fun id -> Communicate(RemoveJob(id))) removeIds
+                     Some (List.concat [removeZones; addZone])
+            )]
+        
+
     ////////////////////////////////////////Logic////////////////////////////////////////////
 
     let findNewZone (inputState:State) = 
         if (newZoneFound inputState)
         then
-            
-            let origin = inputState.Self.Node
             Some<| normalIntention 
                 (   "probe a new zone.",
                     Activity,
-                    [ MultiGoal(
-                                fun state -> 
-                                
-                                let zone = zoneToExplore state (Set.empty,Set [origin])
-                                let probed vertexName state = isProbed vertexName state.World
-                                let probedWithHeuristics vertexName =  Probed vertexName
-//                                    ((probed vertexName), Some(distanceBetweenAgentAndNode vertexName), ProbeGoal <| Some vertexName)
-
-                                List.map (probedWithHeuristics) <| Set.toList zone
-                            ); 
-                   Plan(fun state ->
-                        let exploredZone = zoneToExplore state (Set.empty,Set [origin])
-                        let zone = Set.filter (fun z -> hasValueHigherThan z ZONE_BORDER_VALUE state) exploredZone
-                        //let zone = findZone Set.empty (Set [origin]) state
-                        let overlapping = getOverlappingJobs state.Jobs (Set.toList zone)
-                        match overlapping with
-                        | [] -> 
-                            let subGraph = List.map (fun n -> state.World.[n]) (Set.toList zone)
-                            let agentPositions = findAgentPlacement subGraph state.World
-                            let agentsNeeded = agentPositions.Length
-                            let zoneValue = calcZoneValue state agentsNeeded zone
-                            Some [Communicate( CreateJob( (None,zoneValue,JobType.OccupyJob,agentsNeeded),OccupyJob(agentPositions,Set.toList zone) ) )]
-                        | head::tail -> 
-                            let removeIds = List.map ( fun ((id:Option<JobID>,_,_,_),_) -> if id.IsSome then id.Value else -1) overlapping
-                            let merged = removeDuplicates (mergeZones (Set.toList zone) overlapping)
-                            let subGraph = List.map (fun n -> state.World.[n]) merged
-                            let agentPositions = findAgentPlacement subGraph state.World
-                            let agentsNeeded = agentPositions.Length
-                            let zoneValue = calcZoneValue state agentsNeeded (Set.ofList merged)
-                            let addZone = [Communicate( CreateJob( (None,zoneValue,JobType.OccupyJob,agentsNeeded),OccupyJob(agentPositions,merged) ) )] 
-                            let removeZones = List.map (fun id -> Communicate(RemoveJob(id))) removeIds
-                            Some (List.concat [removeZones; addZone])
-                   )])
+                    createZoneObjectives inputState.Self.Node)
         else
             None
+
+    let findNewIslandZone (inputState:State) =
+        let biconnectedComponents = Biconnected.find inputState.Self.Node inputState.World
+        let possibleIslands = List.tail <| List.rev (List.sortBy Set.count biconnectedComponents)
+        if articulationPoint biconnectedComponents 
+        then
+                let knownIslands = getExploredComponents inputState possibleIslands
+                let unprobedIslands = getUnprobedComponents inputState knownIslands
+                if unprobedIslands.Length = 0 
+                then
+                    Some <| normalIntention (
+                            sprintf "probe one of %A islands." unprobedIslands.Length, 
+                            Activity, 
+                            createIslandObjectives unprobedIslands)
+                else None
+        else None
+     
+       
 
     let findNodeToProbe (inputState:State) =
         let nearestUnprobed = nearestVertexSatisfying inputState nodeIsUnprobed
@@ -269,3 +318,17 @@ module Explorer =
                 | Some unprobed ->
                     Some<| normalIntention ("probe one more node.", Activity, [Requirement (Probed unprobed)])
                 | _ -> None
+
+    let probeThisAndAdjacentDeadEnds (state : State) =
+                
+        if nodeIsUnprobed state state.Self.Node then
+            Some <| normalIntention ("probe this node", Activity, [Requirement <| Probed state.Self.Node])
+        else
+            let unProbedDeadEnds = 
+                List.filter (fun vertex -> Option.isNone state.World.[vertex].Value) (adjacentDeadEnds state)
+
+            if List.length (adjacentDeadEnds state) > 0 then
+                let requirements = List.map (Probed >> Requirement) unProbedDeadEnds
+                Some <| normalIntention ("probe a dead end.", Activity, requirements)
+            else 
+                None

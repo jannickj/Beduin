@@ -4,7 +4,7 @@
     open AgentTypes
     open JSLibrary.Data.GenericEvents;
 
-
+    open Logging
     
 
     type MarsCommunicator() =
@@ -23,7 +23,7 @@
             let ActuatorReadyEvent = new Event<EventHandler, EventArgs>()
             let NewActionEvent = new Event<UnaryValueHandler<int*Action>, UnaryValueEvent<int*Action>>()
 
-            let generateWaitForNewRound () = (Async.AwaitEvent NewPerceptsEvent.Publish) |> Async.Ignore
+            let generateWaitForNewRound () = (Async.AwaitEvent ActuatorReadyEvent.Publish) |> Async.Ignore
 
             let rec sendAction actionSender action =
                 lock performActionLock 
@@ -43,12 +43,14 @@
                 let reqid = lock requestLock (fun () -> requestedActId)
                 if reqid > actId then
                     ()
+                    logImportant Perception <| "Waited for id to change reqid: "+reqid.ToString()
                 else
                     Async.RunSynchronously waitNewRound
                     waitForActionToFinish actId
 
             let sendActionAndAwaitFinish actionSender action =
                 let sentId = sendAction actionSender action
+                logImportant Perception <| sprintf "Sent action %A for id: %A" action sentId
                 waitForActionToFinish sentId
 
             [<CLIEvent>]

@@ -6,6 +6,7 @@ module Saboteur =
     open LogicLib
     open Constants
     open Graphing.Graph
+    open GeneralLib
 
     ///////////////////////////////////Helper functions//////////////////////////////////////
     let calculateDesireAttackJob (j:Job) (s:State) = 
@@ -18,12 +19,18 @@ module Saboteur =
 
         let jobTargetNode = 
             match jobData with
-            | AttackJob (zone) -> zone.Head
+            | AttackJob (zone,_) -> zone.Head
             | _ -> "None"
         
         if jobTargetNode = "None" then
             -1
-        else
+        else   
+            let timeStamp = 
+                match jobData with
+                | AttackJob (_,roundnumber) -> roundnumber
+                | _ -> -1
+
+            let jobAge = float (s.SimulationStep - timeStamp);
 
             let distanceToJob = (distanceBetweenAgentAndNode jobTargetNode s)
         
@@ -38,7 +45,9 @@ module Saboteur =
                     1.0
 
             //final desire
-            int <| (((((float newValue) * personalValueMod) - (float oldJobValue))   +    (-((float distanceToJob) * DISTANCE_TO_ATTACK_JOB_MOD))) * isEnabled)
+            int <| ( JOB_IMPORTANCE_MODIFIER_ATTACK*(((float newValue) * personalValueMod) - (float oldJobValue))      
+                 +    (-((float distanceToJob) * DISTANCE_TO_ATTACK_JOB_MOD))
+                 - (jobAge * VALUE_DECAY_PER_TURN) ) * isEnabled 
 
 
     ////////////////////////////////////////Logic////////////////////////////////////////////
@@ -83,12 +92,24 @@ module Saboteur =
         | [] -> None
         | head::tail ->     
             Some <| normalIntention (
-                    "attack agent " + head.Name
+                    "spontanously attack agent " + head.Name
                     , Activity
                     , [Requirement (Attacked head.Name)] 
                 )
              
-    
+    let killAgentICanSee (inputState:State) =
+        let healthyEnemies = List.filter (fun a -> a.Status <> Disabled) inputState.EnemyData
+        if List.length healthyEnemies > 0 then
+            let closest = List.minBy (fun a -> distanceBetweenAgentAndNode a.Node inputState) healthyEnemies
+            let killAgent = closest.Name
+            Some <| 
+                normalIntention (
+                    ("attack agent " + killAgent + " that i see")
+                    , Activity
+                    , [Requirement (Attacked killAgent)] 
+                    )
+        else
+            None
     let applyToDisruptJob (inputState:State) = None //advanced feature
     
     let workOnDisruptJobThenParryIfEnemiesClose (inputState:State) = None //advanced feature
@@ -106,10 +127,10 @@ module Saboteur =
         then
             let index = rand.Next(0, List.length unExplored)
             let target = List.nth unExplored index
-            Some <| normalIntention ( "go to node " + target, Activity, [ Requirement <| At target ] )
+            Some <| normalIntention ( "find agent to destroy by going to random node " + target, Activity, [ Requirement <| At target ] )
         else
             let index = rand.Next(0, List.length explored)
             let target = List.nth explored index
-            Some <| normalIntention ( "go to node " + target, Activity, [ Requirement <| At target ] )
+            Some <| normalIntention ( "find agent to destroy by going to random node " + target, Activity, [ Requirement <| At target ] )
         
 

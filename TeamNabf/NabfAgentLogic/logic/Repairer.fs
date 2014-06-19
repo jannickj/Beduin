@@ -5,6 +5,7 @@ module Repairer =
     open AgentTypes
     open LogicLib
     open Constants
+    open GeneralLib
 
     ///////////////////////////////////Helper functions//////////////////////////////////////
     let calculateDesireRepairJob (j:Job) (s:State) = 
@@ -48,9 +49,9 @@ module Repairer =
             | _ -> None    
         | _ -> None
 
-    let spontanouslyRepairNearbyDamagedAgent (inputState:State) = 
-        //let nearbyDamagedAgent = List.filter (fun a -> (float a.Health.Value) < ((float a.MaxHealth.Value) * SPONTANOUS_REPAIR_PERCENTAGE)) (nearbyAllies inputState)
-        let nearbyDamagedAgent = List.filter (fun a -> a.Status = Disabled) ((nearbyAllies inputState)@[inputState.Self])
+
+    let spontanouslyRepairDamagedAgent (inputState:State) = 
+        let nearbyDamagedAgent = List.filter (fun a -> a.Status = Disabled) (alliesHere inputState inputState.Self.Node)
         match nearbyDamagedAgent with
         | [] -> None
         | head::tail ->     
@@ -61,7 +62,16 @@ module Repairer =
                 )
 
     let applyToRepairJob (inputState:State) = 
-        let applicationList = createApplicationList inputState JobType.RepairJob calculateDesireRepairJob
+        let applicationListWithSelf = createApplicationList inputState JobType.RepairJob calculateDesireRepairJob
+        let applicationList = List.filter 
+                                    (fun (Communicate msg) ->
+                                        match msg with
+                                        | ApplyJob (id,_) -> 
+                                            match getJobFromJobID inputState id with
+                                            | (_,RepairJob(_,an)) -> an <> inputState.Self.Name
+                                            | _ -> true
+                                        | _ -> true
+                                    ) applicationListWithSelf
         Some <| normalIntention (
                 "apply to all repair jobs"
                 , Communication

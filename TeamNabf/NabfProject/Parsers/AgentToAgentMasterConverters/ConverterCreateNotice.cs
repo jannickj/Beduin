@@ -42,6 +42,7 @@ namespace NabfProject.Parsers.AgentToAgentMasterConverters
 
             List<NodeKnowledge> zone = new List<NodeKnowledge>();
             string agentToRepair = "";
+            int timeStamp = 0;
             switch (jobType)
             {
                 case NoticeBoard.JobType.Occupy:
@@ -51,9 +52,12 @@ namespace NabfProject.Parsers.AgentToAgentMasterConverters
                 case NoticeBoard.JobType.Repair:
                     agentToRepair = ((IilIdentifier)bonusfunc.Parameters[5]).Value;
                     break;
+                case NoticeBoard.JobType.Attack:
+                    timeStamp = (int)((IilNumeral)bonusfunc.Parameters[5]).Value;
+                    break;
             }
 
-            CreateNoticeAction cna = new CreateNoticeAction(simId, (NoticeBoardModel.NoticeBoard.JobType)jobType, agentsNeeded, nodes, zone, agentToRepair, value);
+            CreateNoticeAction cna = new CreateNoticeAction(simId, (NoticeBoardModel.NoticeBoard.JobType)jobType, agentsNeeded, nodes, zone, agentToRepair, timeStamp, value);
 
             return cna;
         }

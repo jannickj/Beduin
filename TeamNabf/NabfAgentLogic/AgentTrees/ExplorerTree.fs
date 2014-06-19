@@ -10,19 +10,17 @@ module ExplorerTree =
     let getExplorerDesires : DesireTree<State,Intention> = 
             ManyDesires 
                 [
+                    Desire(unapplyFromJobsWhenDisabled)
+
                     Desire(workOnOccupyJob)
 
                     Desire(findNewZone)
                     
                     Conditional
-                        (   lightExplorationDone,
-                            ManyDesires
-                                [
-                                    Desire findNodeToProbe
-                                    Desire(applyToOccupyJob EXPLORER_OCCUPYJOB_MOD)
-                                ]
+                        (   lightProbingDone,
+                            Desire(applyToOccupyJob EXPLORER_OCCUPYJOB_MOD)
                         )
 
-
+                    Desire probeThisAndAdjacentDeadEnds
                     Desire(findNodeToProbe)
                 ]

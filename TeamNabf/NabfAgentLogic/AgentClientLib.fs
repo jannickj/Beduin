@@ -39,7 +39,7 @@ module AgentClientLib =
             ;   InspectedEnemies = Set.empty
             ;   SimulationStep = 0
             ;   LastPosition = ""
-            ;   NewVertices = []
+//            ;   NewVertices = []
             ;   NewEdges = []
             ;   LastStepScore = 0
             ;   Score = 0
@@ -60,4 +60,5 @@ module AgentClientLib =
             ;   GraphHeuristic = (Map.empty,Map.empty)
             ;   MailsReceived = Map.empty
             ;   Relations = Map.empty
+            ;   NodesControlledByEnemy = Set.empty
             } : State

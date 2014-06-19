@@ -266,12 +266,14 @@ namespace NabfProject.NoticeBoardModel
         {
             return NoticeBoard.JobType.Attack;
         }
+        public int TimeStamp;
 
-        public AttackJob(int agentsNeeded, List<NodeKnowledge> whichNodes, int value, Int64 id)
+        public AttackJob(int agentsNeeded, List<NodeKnowledge> whichNodes, int timeStamp, int value, Int64 id)
             : base(id)
         {
             AgentsNeeded = agentsNeeded;
             WhichNodes = whichNodes;
+            TimeStamp = timeStamp;
             Value = value;
         }
 		
