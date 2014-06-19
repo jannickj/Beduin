@@ -309,9 +309,7 @@ namespace NabfAgentLogic.IiLang
             | Percept (name, data) -> 
                 match name with
                 | "inspectedEntities" -> List.map (parseIilAgent >> Percept.EnemySeen) data
-                | "probedVertices"    -> 
-                    logImportant Parsing <| sprintf "parsing: vertex %A" data
-                    List.map (parseIilProbedVertex >> Percept.VertexProbed) data
+                | "probedVertices"    -> List.map (parseIilProbedVertex >> Percept.VertexProbed) data
                 | "self"              -> parseIilSelf data
                 | "simulation"        -> [SimulationStep <| parseIilStep data]
                 | "surveyedEdges"     -> List.map (parseIilSurveyedEdge >> Percept.EdgeSeen) data

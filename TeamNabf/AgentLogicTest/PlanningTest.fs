@@ -321,3 +321,20 @@ module PlanningTest =
             let assertion = fst actualPlan.Value = expectedPlan
 
             Assert.IsTrue (assertion)
+
+//        [<Test>]
+//        member self.FormulatePlanRepairAgent_DisabledAgentTwoEdgesAway_GoThereAndRepair() =
+//            let world = 
+//                [ ("a", {Identifier = "a"; Value = Some 10; Edges = [(Some 1, "b"); (Some 9, "d")] |> Set.ofList})
+//                ; ("b", {Identifier = "b"; Value = None; Edges = [(Some 1, "a"); (Some 1, "c"); (Some 9, "d")] |> Set.ofList})
+//                ; ("c", {Identifier = "c"; Value = Some 1; Edges = [(Some 1, "b"); (Some 1, "d")] |> Set.ofList})
+//                ; ("d", {Identifier = "d"; Value = None; Edges = [(Some 9, "a"); (Some 9, "b"); (Some 1, "c")] |> Set.ofList})
+//                ] |> Map.ofList 
+//
+//            let friend = 
+//            let friendlyData = [ { buildAgentWithRole "friend" "Team Love Unit testing" "c" with Self = ]
+//
+//            let state =
+//                { buildState "a" Repairer world with FriendlyData = friendlyData }
+
+            

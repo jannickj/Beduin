@@ -52,6 +52,8 @@ module Repairer =
 
     let spontanouslyRepairDamagedAgent (inputState:State) = 
         let nearbyDamagedAgent = List.filter (fun a -> a.Status = Disabled) (alliesHere inputState inputState.Self.Node)
+        logStateImportant inputState Logging.Intentions <| sprintf "nearby damaged agents: %A" nearbyDamagedAgent
+        logStateImportant inputState Logging.Intentions <| sprintf "friendly data: %A" inputState.FriendlyData
         match nearbyDamagedAgent with
         | [] -> None
         | head::tail ->     

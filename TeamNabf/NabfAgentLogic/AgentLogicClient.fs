@@ -70,8 +70,7 @@
                 match ServerMessage with
                 | Some (AgentServerMessage msg) ->
                     match msg with
-                    | _ ->  
-                            this.protectedExecute ("Reading Master Server message", (fun () -> MasterCom.SetMessage(msg)),(fun () -> ()))
+                    | _ ->  this.protectedExecute ("Reading Master Server message", (fun () -> MasterCom.SetMessage(msg)),(fun () -> ()))
                             ()
                 | Some (MarsServerMessage msg) ->
                     match msg with

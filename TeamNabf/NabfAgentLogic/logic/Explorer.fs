@@ -217,10 +217,6 @@ module Explorer =
             fullvalue / 2
         else
             fullvalue
-    
-    let nodeIsUnprobed (state:State) node =
-        let n = state.World.[node] 
-        n.Value.IsNone
 
     //Create the objectives list for findNewIslandZone
     let createIslandObjectives unprobedIslands = 
@@ -298,7 +294,7 @@ module Explorer =
        
 
     let findNodeToProbe (inputState:State) =
-        let nearestUnprobed = nearestVertexSatisfying inputState nodeIsUnprobed
+        let nearestUnprobed = nearestVertexSatisfying inputState isUnprobed
         if(nodeHasNoOtherFriendlyAgentsOnIt inputState inputState.Self.Node)
         then
             match nearestUnprobed with
@@ -322,11 +318,11 @@ module Explorer =
 
     let probeThisAndAdjacentDeadEnds (state : State) =
                 
-        if nodeIsUnprobed state state.Self.Node then
+        if isUnprobed state state.Self.Node then
             Some <| normalIntention ("probe this node", Activity, [Requirement <| Probed state.Self.Node])
         else
             let unProbedDeadEnds = 
-                List.filter (fun vertex -> Option.isNone state.World.[vertex].Value) (adjacentDeadEnds state)
+                List.filter (isUnprobed state) (adjacentDeadEnds state)
 
             if List.length (adjacentDeadEnds state) > 0 then
                 let requirements = List.map (Probed >> Requirement) unProbedDeadEnds

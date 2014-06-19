@@ -16,6 +16,11 @@ module GeneralLib =
     let enemiesHere state vertex = 
         agentsHere vertex state.EnemyData
 
+    let isAgentHere agent state =
+        let here = state.Self.Node
+        let agentsHereNames = List.map (fun agent -> agent.Name) <| (enemiesHere state here) @ (alliesHere state here)
+        Set.contains agent (Set.ofList agentsHereNames)
+
     let adjacentDeadEnds state =
         let neighbours = Set.ofList <| getNeighbourIds state.Self.Node state.World
         let isNeighbourOrThis name = Set.contains name neighbours || name = state.Self.Node
@@ -25,6 +30,11 @@ module GeneralLib =
 
     let isUnexplored state vertex = 
         (not (List.exists (fun (value, _) -> Option.isSome value) <| Set.toList state.World.[vertex].Edges)) && vertex <> state.Self.Node
+
+    let isUnprobed (state:State) node =
+        let n = state.World.[node] 
+        n.Value.IsNone
+    
     let getAgentName (a:Agent) = a.Name
 
     let buildAgent name team =

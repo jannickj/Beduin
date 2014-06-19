@@ -43,14 +43,14 @@
                 let reqid = lock requestLock (fun () -> requestedActId)
                 if reqid > actId then
                     ()
-                    logImportant Perception <| "Waited for id to change reqid: "+reqid.ToString()
+//                    logImportant Perception <| "Waited for id to change reqid: "+reqid.ToString()
                 else
                     Async.RunSynchronously waitNewRound
                     waitForActionToFinish actId
 
             let sendActionAndAwaitFinish actionSender action =
                 let sentId = sendAction actionSender action
-                logImportant Perception <| sprintf "Sent action %A for id: %A" action sentId
+//                logImportant Perception <| sprintf "Sent action %A for id: %A" action sentId
                 waitForActionToFinish sentId
 
             [<CLIEvent>]
