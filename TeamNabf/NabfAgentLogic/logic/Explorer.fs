@@ -226,20 +226,25 @@ module Explorer =
         n.Value.IsNone
 
     //Create the objectives list for findNewIslandZone
-    let createIslandObjectives unprobedIslands = 
+    let rec createIslandObjectives inputState unprobedIslands articulationPoint = 
         match unprobedIslands with
         | island :: tail -> 
-            [
+            let overlapping = getOverlappingOccupyJobs inputState.Jobs (Set.toList island)
+            match overlapping with
+            | [] ->
+                [
                   MultiGoal( fun state -> List.map (Probed) <| Set.toList island);
                   Plan(fun state ->
                        let subGraph = List.map (fun n -> state.World.[n]) (Set.toList island)
-                       let positions = findAgentPlacement subGraph state.World
-                       let agentsNeeded = positions.Length
+                       let position = [articulationPoint]
+                       let agentsNeeded = 1
                        let value = calcZoneValue state agentsNeeded island
                        let islandAsList = Set.toList island
-                       Some [Communicate( CreateJob( (None,value,JobType.OccupyJob,agentsNeeded),OccupyJob(positions,islandAsList) ) )]
+                       Some [Communicate( CreateJob( (None,value,JobType.OccupyJob,agentsNeeded),OccupyJob(position,islandAsList) ) )]
                       )
-            ]
+                ]
+            | _ -> createIslandObjectives inputState tail articulationPoint
+            
         | [] -> []
     
     //Create the objectives list for findNewZone
@@ -297,7 +302,7 @@ module Explorer =
                     Some <| normalIntention (
                             sprintf "probe one of %A islands." unprobedIslands.Length, 
                             Activity, 
-                            createIslandObjectives unprobedIslands)
+                            createIslandObjectives inputState unprobedIslands inputState.Self.Node)
                 else None
         else None
      
