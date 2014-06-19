@@ -22,6 +22,6 @@ module ExplorerTree =
                             Desire(applyToOccupyJob EXPLORER_OCCUPYJOB_MOD)
                         )
 
-                    Desire probeThisAndAdjacentDeadEnds
+                    Desire(probeThisAndAdjacentDeadEnds)
                     Desire(findNodeToProbe)
                 ]
