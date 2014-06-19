@@ -99,8 +99,8 @@ module Common =
 
     //Try to make it so the agent has explored one more node
     let exploreMap (inputState:State) = 
-        let otherAgentsOnMyNode = List.filter (fun a -> a.Node = inputState.Self.Node && not(a.Name = inputState.Self.Name)) inputState.FriendlyData
-
+        let othersOnMyNode = List.filter (fun a -> a.Node = inputState.Self.Node && not(a.Name = inputState.Self.Name)) inputState.FriendlyData
+        let otherAgentNames = List.map getAgentName othersOnMyNode
         let tryNearestUnexplored = nearestVertexSatisfying inputState isUnexplored
         match tryNearestUnexplored with
         | Some nearestUnexplored ->
@@ -108,7 +108,7 @@ module Common =
                 if (nodeHasNoOtherFriendlyAgentsOnIt inputState inputState.Self.Node) then
                     Explored nearestUnexplored
                 else
-                    if (myRankIsGreatest inputState.Self.Name otherAgentsOnMyNode) then
+                    if (myRankIsGreatest inputState.Self.Name otherAgentNames) then
                         let nextBest = findNextBestUnexplored inputState
                         match nextBest with
                         | Some vertex -> Explored vertex
@@ -148,13 +148,20 @@ module Common =
             | _ -> None    
 
     //When disabled, tries to locate repairer if None found continue with normal duty
-    let getRepaired (inputState:State) = 
-        match Map.tryFind MyRepairer inputState.Relations,inputState.Self.Status with
-        | Some an,Disabled ->
+    let getRepaired (inputState:State) =
+        let repairJob =
+            match inputState.MyJobs with
+            | (id,_)::_ -> Some (snd <| getJobFromJobID inputState id)
+            | _ -> None
+
+        match Map.tryFind MyRepairer inputState.Relations, inputState.Self.Status, repairJob with
+        | Some aName, Disabled, Some (RepairJob(_,rName)) when aName = rName && myRankIsGreatest inputState.Self.Name [rName] -> 
+            None
+        | Some aName,Disabled,_ ->
             normalIntention 
-                (   "get repaired by "+an,
+                (   "get repaired by "+aName,
                     Activity,
-                    [   Requirement (GetCloseTo an)
+                    [   Requirement (GetCloseTo aName)
                     ;   Plan (fun s -> if s.Self.Status = Disabled then Some [Perform(Recharge)] else None)
                     ]
                 )

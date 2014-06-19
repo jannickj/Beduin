@@ -63,15 +63,18 @@ module Repairer =
 
     let applyToRepairJob (inputState:State) = 
         let applicationListWithSelf = createApplicationList inputState JobType.RepairJob calculateDesireRepairJob
-        let applicationList = List.filter 
-                                    (fun (Communicate msg) ->
-                                        match msg with
-                                        | ApplyJob (id,_) -> 
-                                            match getJobFromJobID inputState id with
-                                            | (_,RepairJob(_,an)) -> an <> inputState.Self.Name
-                                            | _ -> true
-                                        | _ -> true
-                                    ) applicationListWithSelf
+        let isAppOfItSelf msg = 
+            match msg with 
+            | Communicate act ->
+                match act with
+                | ApplyJob (id,_) -> 
+                    match getJobFromJobID inputState id with
+                    | (_,RepairJob(_,an)) -> an = inputState.Self.Name
+                    | _ -> false
+                | _ -> false
+            | _ -> false
+
+        let applicationList = List.filter (fun msg -> not <| isAppOfItSelf msg) applicationListWithSelf
         Some <| normalIntention (
                 "apply to all repair jobs"
                 , Communication

@@ -202,8 +202,8 @@ module LogicLib =
             Some <| snd (List.head <| List.rev solution.Path)
         | None -> None
 
-    let myRankIsGreatest myName (other:Agent List) =
-        let qq = List.filter (fun a -> a.Name < myName) other
+    let myRankIsGreatest myName (other:AgentName List) =
+        let qq = List.filter (fun aName -> aName < myName) other
         qq.IsEmpty
 
 

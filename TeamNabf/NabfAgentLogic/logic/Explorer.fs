@@ -307,7 +307,8 @@ module Explorer =
             | _ -> None
         else
             let otherAgentsOnMyNode = List.filter (fun a -> a.Node = inputState.Self.Node && not(a.Name = inputState.Self.Name)) inputState.FriendlyData
-            if (myRankIsGreatest inputState.Self.Name otherAgentsOnMyNode)
+            let otherAgentNames = List.map getAgentName otherAgentsOnMyNode
+            if (myRankIsGreatest inputState.Self.Name otherAgentNames)
             then
                 let nextBest = findNextBestUnprobed inputState
                 match nextBest with
