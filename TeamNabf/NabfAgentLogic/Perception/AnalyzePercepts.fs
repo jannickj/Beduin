@@ -130,8 +130,22 @@ module AnalyzePercepts =
     let updateLastPos (lastState:State) (state:State) =
         { state with LastPosition = lastState.Self.Node }
 
- 
-    
+    let updateNodesInVision percepts (state:State) =
+        let updateNode s percept =
+            match percept with
+            | VertexSeen (vn,_) ->
+                { s with NodesInVisionRange = Set.add vn s.NodesInVisionRange }
+            | _ -> s
+        List.fold updateNode { state with NodesInVisionRange = Set.empty } percepts
+
+    let removeAgentPositionsForVisibleNodes (state:State) =
+        let removePos (agent:Agent) = 
+            if Set.contains agent.Node state.NodesInVisionRange then { agent with Node = ""} else agent    
+        { state with
+            FriendlyData = List.map removePos state.FriendlyData
+            EnemyData = List.map removePos state.EnemyData
+        }
+
     let removeVisibilityFromAgents (state:State) = 
         let removeVision (agent:Agent) = { agent with IsInVisionRange = false }
         { state with 
@@ -148,7 +162,9 @@ module AnalyzePercepts =
         match percepts with
         | NewRoundPercept::_ -> 
             let newState =
-                removeVisibilityFromAgents state
+                updateNodesInVision percepts state
+                |> removeAgentPositionsForVisibleNodes
+                |> removeVisibilityFromAgents
                 |> removedNodesControlledByEnemy
                 |> handlePercepts percepts
                 |> updateLastPos state

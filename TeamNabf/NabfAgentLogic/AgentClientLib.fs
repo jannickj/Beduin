@@ -43,6 +43,7 @@ module AgentClientLib =
         ;   GraphHeuristic = (Map.empty,Map.empty)
         ;   Relations = Map.empty
         ;   NodesControlledByEnemy = Set.empty
+        ;   NodesInVisionRange = Set.empty
         } : State
 
     let buildInitState name team (simData:SimStartData) =
