@@ -224,27 +224,64 @@ module Explorer =
             fullvalue
 
     //Create the objectives list for findNewIslandZone
-    let rec createIslandObjectives inputState unprobedIslands articulationPoint = 
-        match unprobedIslands with
-        | island :: tail -> 
-            let overlapping = getOverlappingOccupyJobs inputState.Jobs (Set.toList island)
-            match overlapping with
-            | [] ->
-                [
-                  MultiGoal( fun state -> List.map (Probed) <| Set.toList island);
-                  Plan(fun state ->
-                       let subGraph = List.map (fun n -> state.World.[n]) (Set.toList island)
-                       let position = [articulationPoint]
-                       let agentsNeeded = 1
-                       let value = calcZoneValue state agentsNeeded island
-                       let islandAsList = Set.toList island
-                       Some [Communicate( CreateJob( (None,value,JobType.OccupyJob,agentsNeeded),OccupyJob(position,islandAsList) ) )]
-                      )
-                ]
-            | _ -> createIslandObjectives inputState tail articulationPoint
-            
-        | [] -> []
+    let createIslandObjectives inputState island articulationPoint = 
+        let overlapping = getOverlappingOccupyJobs inputState.Jobs (Set.toList island)
+        match overlapping with
+        | [] ->
+            [
+              MultiGoal( fun state -> List.map (Probed) <| Set.toList island);
+              Plan(fun state ->
+                   let subGraph = List.map (fun n -> state.World.[n]) (Set.toList island)
+                   let position = [articulationPoint]
+                   let agentsNeeded = 1
+                   let value = calcZoneValue state agentsNeeded island
+                   let islandAsList = Set.toList island
+                   Some [Communicate( CreateJob( (None,value,JobType.OccupyJob,agentsNeeded),OccupyJob(position,islandAsList) ) )]
+                  )
+            ]
+        | [(Some id,_,_,_),OccupyJob(agentsPos,zone)] when Set.isSubset (Set zone) island && island <> (Set zone)->
+            [ MultiGoal( fun state -> List.map (Probed) <| Set.toList island);
+              Plan (fun state ->
+                    let subGraph = List.map (fun n -> state.World.[n]) (Set.toList island)
+                    let position = [articulationPoint]
+                    let agentsNeeded = 1
+                    let value = calcZoneValue state agentsNeeded island
+                    let islandAsList = Set.toList island
+                    Some [
+                        Communicate ( RemoveJob id ) ;
+                        Communicate( CreateJob( (None,value,JobType.OccupyJob,agentsNeeded),OccupyJob(position,islandAsList) ) )]
+                    )
+             ]
+        | [(Some id,value,_,needed),OccupyJob(agentsPos,zone)] when (Set.contains articulationPoint (Set zone)) ->
+            [ MultiGoal( fun state -> List.map (Probed) <| Set.toList island);
+              Plan (fun state ->
+                    let islandValue = calcZoneValue state 1 island
+                    let newZone = Set.toList <| Set.union island (Set zone)
+                    Some [
+                        Communicate ( RemoveJob id ) ;
+                        Communicate( CreateJob( (None,value,JobType.OccupyJob,needed),OccupyJob(agentsPos,newZone) ) )]
+                    ) 
+            ]
+        | [((Some id1,value1,_,needed1),OccupyJob(agentPos1,zone1));((Some id2,value2,_,needed2),OccupyJob(agentPos2,zone2))] ->
+            let firstIsIsland = agentPos1.Length = 1
+            let newPositions = if firstIsIsland then agentPos2 else agentPos1
+            let newAgentsNeeded = if firstIsIsland then needed2 else needed1
+            let newZone = zone1 @ zone2
+            [ Plan (fun state ->
+                    let value = value1 + value2
+                    Some [
+                        Communicate ( RemoveJob id1 ) ;
+                        Communicate ( RemoveJob id2 ) ;
+                        Communicate( CreateJob( (None,value,JobType.OccupyJob,newAgentsNeeded),OccupyJob(newPositions,newZone) ) )]
+                    )
+             ]
+        | [(_,_,_,_),OccupyJob(_,zone)] when (Set zone) = island -> []
+        | unhandled -> 
+            logStateError inputState Intentions <| sprintf "Unknown overlapping islands in jobs: %A" unhandled
+            []
     
+                    
+                //createIslandObjectives inputState tail articulationPoint
     //Create the objectives list for findNewZone
     let createZoneObjectives origin = 
         [ MultiGoal(
@@ -295,13 +332,16 @@ module Explorer =
         then
                 let knownIslands = getExploredComponents inputState possibleIslands
                 let unprobedIslands = getUnprobedComponents inputState knownIslands
-                if unprobedIslands.Length > 0 
-                then
-                    Some <| normalIntention (
-                            sprintf "probe one of %A islands." unprobedIslands.Length, 
-                            Activity, 
-                            createIslandObjectives inputState unprobedIslands inputState.Self.Node)
-                else None
+                match unprobedIslands with
+                | island::_ ->
+                    match createIslandObjectives inputState island inputState.Self.Node with
+                    | [] -> None
+                    | objectives ->
+                        Some <| normalIntention (
+                                sprintf "probe one of %A islands." unprobedIslands.Length, 
+                                Activity, 
+                                objectives)
+                | _ -> None
         else None
      
        

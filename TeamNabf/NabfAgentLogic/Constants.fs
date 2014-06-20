@@ -88,6 +88,7 @@
         let DEFENSE_IMPORTANCE_MODIFIER = 2
         let ATTACK_IMPORTANCE_MODIFIER = 1
         let VALUE_DECAY_PER_TURN = 2.0
+        let JOB_AGE_VALUE_DECREASE_FACTOR = 2.0
 
         //value related to sentinel survey
         let SURVEY_NEEDED_FACTOR_RANGE1 = 0.6
@@ -129,3 +130,5 @@
         let INFINITE_HEURISTIC = 10000
 
         let PERCEPT_TIME_BUFFER = 1000.0
+
+        let MINIMUM_ROLE_CERTAINTY = 50

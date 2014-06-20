@@ -47,7 +47,7 @@ module Saboteur =
             //final desire
             int <| ( JOB_IMPORTANCE_MODIFIER_ATTACK*(((float newValue) * personalValueMod) - (float oldJobValue))      
                  +    (-((float distanceToJob) * DISTANCE_TO_ATTACK_JOB_MOD))
-                 - (jobAge * VALUE_DECAY_PER_TURN) ) * isEnabled 
+                 - ((jobAge * VALUE_DECAY_PER_TURN)*JOB_AGE_VALUE_DECREASE_FACTOR) ) * isEnabled 
 
 
     ////////////////////////////////////////Logic////////////////////////////////////////////
@@ -61,14 +61,19 @@ module Saboteur =
             )
 
     let spontanouslyAttackAgentOnMyNode (inputState:State) = 
-        let ableEnemiesNearby = List.filter (fun a -> a.Node = inputState.Self.Node && a.Status = Normal) inputState.EnemyData
+        let shouldAttack (agent:Agent) =   
+               agent.Node = inputState.Self.Node 
+            && agent.Status = Normal 
+            && (not (agent.Role = Some Sentinel && agent.RoleCertainty >= MINIMUM_ROLE_CERTAINTY))
+
+        let ableEnemiesNearby = List.filter shouldAttack inputState.EnemyData
         match ableEnemiesNearby with
         | [] -> None
         | head::tail ->     
             Some <| normalIntention (
                     "attack agent " + head.Name
                     , Activity
-                    , [Requirement <| Attacked head.Name]
+                    , [Plan (fun _ -> Some [Perform <| Attack head.Name])]
                 )
     
     let workOnAttackJob (inputState:State) = 
@@ -98,7 +103,11 @@ module Saboteur =
                 )
              
     let killAgentICanSee (inputState:State) =
-        let healthyEnemies = List.filter (fun a -> a.Status <> Disabled && a.Node <> "") inputState.EnemyData
+        let shouldAttack (agent:Agent) =
+                agent.Status = Normal
+             && agent.IsInVisionRange
+             && (not (agent.Role = Some Sentinel) && agent.RoleCertainty >= MINIMUM_ROLE_CERTAINTY)
+        let healthyEnemies = List.filter shouldAttack inputState.EnemyData
         if List.length healthyEnemies > 0 then
             let closest = List.minBy (fun a -> distanceBetweenAgentAndNode a.Node inputState) healthyEnemies
             let killAgent = closest.Name

@@ -84,6 +84,7 @@ module AgentTypes =
         | RepairJob = 2
         | DisruptJob = 3
         | AttackJob = 4
+    
 
     type JobData =
         | OccupyJob of VertexName list * VertexName list //(agentPositions,zone)
@@ -99,7 +100,6 @@ module AgentTypes =
     type Job = JobHeader * JobData
 
     type SeenVertex = VertexName * TeamName option
-    type AgentRolePercept = AgentName * AgentRole * int
 
     type SimStartData =
         { SimId          :   int
@@ -142,7 +142,7 @@ module AgentTypes =
         
         | NodeKnowledge     of (VertexName * int)
         | EdgeKnowledge     of Edge
-        | AgentRolePercept  of AgentRolePercept
+        | AgentRolePercept  of AgentName * AgentRole * int
         | HeuristicUpdate   of VertexName * VertexName * (int*int)
         | CommucationSent   of CommunicationAction
         | MailPercept       of Mail
