@@ -9,6 +9,7 @@ module AgentClientLib =
     open IiLang.IilTranslator
     open Logging
     open Constants
+    open GeneralLib
 
     let parseIilPercepts (perceptCollection:IilPerceptCollection) : ServerMessage =
             let percepts = parsePerceptCollection perceptCollection
@@ -17,48 +18,33 @@ module AgentClientLib =
     let buildIilSendMessage ((id,act):SendMessage) =
         IiLang.IiLangDefinitions.buildIilAction (IiLang.IilTranslator.buildIilMetaAction act id)
 
-    let buildInitState (name, simData:SimStartData) =
-            
-            {   World = Map.empty<string, Vertex>
-            ;   Self =  {   Energy = Some 0                        
-                        ;   Health = Some 0
-                        ;   MaxEnergy = Some 0
-                        ;   MaxEnergyDisabled = Some 0
-                        ;   MaxHealth = Some 0
-                        ;   Name = name
-                        ;   Node = ""
-                        ;   Role = Some (simData.SimRole)
-                        ;   RoleCertainty = 100
-                        ;   Strength = Some 0
-                        ;   Team = OUR_TEAM
-                        ;   Status = Normal
-                        ;   VisionRange = Some 0
-                        }
-            ;   FriendlyData = []
-            ;   EnemyData = List.Empty
-            ;   InspectedEnemies = Set.empty
-            ;   SimulationStep = 0
-            ;   LastPosition = ""
-//            ;   NewVertices = []
-            ;   NewEdges = []
-            ;   LastStepScore = 0
-            ;   Score = 0
-            ;   ThisZoneScore = 0
-            ;   LastActionResult = Successful
-            ;   LastAction = Skip
-            ;   TeamZoneScore = 0
-            ;   Jobs = []
-            ;   MyJobs = []
-            ;   TotalNodeCount = simData.SimVertices
-            ;   MyExploredCount = 0
-            ;   ProbedCount = 0  
-            ;   NewKnowledge = []
-            ;   PlannerProbed = Set.empty
-            ;   PlannerRepairedAgents = Set.empty
-            ;   PlannerInspectedEnemies = Set.empty
-            ;   PlannerDisabledEnemies = Set.empty
-            ;   GraphHeuristic = (Map.empty,Map.empty)
-            ;   MailsReceived = Map.empty
-            ;   Relations = Map.empty
-            ;   NodesControlledByEnemy = Set.empty
-            } : State
+
+    let buildState name team = 
+        {   World = Map.empty<string, Vertex>
+        ;   Self =  buildAgent name team true
+        ;   FriendlyData = []
+        ;   EnemyData = List.Empty
+        ;   SimulationStep = 0
+        ;   LastPosition = ""
+        ;   LastStepScore = 0
+        ;   Score = 0
+        ;   ThisZoneScore = 0
+        ;   LastActionResult = Successful
+        ;   LastAction = Skip
+        ;   TeamZoneScore = 0
+        ;   Jobs = []
+        ;   MyJobs = []
+        ;   TotalNodeCount = 0
+        ;   NewKnowledge = []
+        ;   PlannerProbed = Set.empty
+        ;   PlannerRepairedAgents = Set.empty
+        ;   PlannerInspectedEnemies = Set.empty
+        ;   PlannerDisabledEnemies = Set.empty
+        ;   GraphHeuristic = (Map.empty,Map.empty)
+        ;   Relations = Map.empty
+        ;   NodesControlledByEnemy = Set.empty
+        } : State
+
+    let buildInitState name team (simData:SimStartData) =
+        let state = buildState name team
+        { state with Self = { state.Self with Role = Some simData.SimRole; RoleCertainty = 100}; TotalNodeCount = simData.SimVertices }

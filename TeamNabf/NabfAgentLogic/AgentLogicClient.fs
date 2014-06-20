@@ -15,6 +15,7 @@
     open IiLang.IiLangDefinitions
     open AgentClientLib
     open Planning
+    open Constants
 
     type public AgentLogicClient(name) as this = class 
         
@@ -80,7 +81,7 @@
                         let subscribeAction = buildIilSendMessage (simID, SimulationSubscribe)
                         SendAgentServerEvent.Trigger(this, new UnaryValueEvent<IilAction>(subscribeAction))
                         
-                        let initState = buildInitState (name, sData)
+                        let initState = buildInitState name OUR_TEAM sData
                         let desireTree = DesireTree.getTree
                         let planner = new AgentPlanner()
                         this.agent <- new BDIAgentImpl(initState, desireTree, planner)

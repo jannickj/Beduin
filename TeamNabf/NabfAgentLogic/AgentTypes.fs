@@ -37,19 +37,20 @@ module AgentTypes =
         | Disabled
 
     type Agent =
-        { Energy      : Option<int>
-        ; Health      : Option<int>
-        ; MaxEnergy   : Option<int>
+        { Energy            : Option<int>
+        ; Health            : Option<int>
+        ; MaxEnergy         : Option<int>
         ; MaxEnergyDisabled : Option<int>
-        ; MaxHealth   : Option<int>
-        ; Name        : string
-        ; Node        : string
-        ; Role        : Option<AgentRole>
-        ; RoleCertainty : int //Percent chance that this is the role we think
-        ; Strength    : Option<int>
-        ; Team        : string
-        ; VisionRange : Option<int>
-        ; Status      : EntityStatus
+        ; MaxHealth         : Option<int>
+        ; Name              : string
+        ; Node              : string
+        ; Role              : Option<AgentRole>
+        ; RoleCertainty     : int 
+        ; Strength          : Option<int>
+        ; Team              : string
+        ; VisionRange       : Option<int>
+        ; Status            : EntityStatus
+        ; IsInVisionRange   : bool
         }
 
     type TeamState =
@@ -124,9 +125,9 @@ module AgentTypes =
         | FiredFrom of JobID 
     
     type RoundNumber = int
-
     type Percept =
-        | EnemySeen         of Agent
+        | VisibleEntity     of AgentName*TeamName*VertexName*EntityStatus
+        | InspectedEntity   of Agent
         | VertexSeen        of SeenVertex
         | VertexProbed      of VertexName * int
         | EdgeSeen          of Edge
@@ -137,13 +138,16 @@ module AgentTypes =
         | ZoneScore         of int
         | Team              of TeamState
         | Self              of Agent
-        | NewRoundPercept
+        | NewRoundPercept        
+        
+        | NodeKnowledge     of (VertexName * int)
+        | EdgeKnowledge     of Edge
         | AgentRolePercept  of AgentRolePercept
-        | KnowledgeSent     of Percept list
         | HeuristicUpdate   of VertexName * VertexName * (int*int)
         | CommucationSent   of CommunicationAction
         | MailPercept       of Mail
         | JobPercept        of JobPercept
+
     and CommunicationAction =
         | CreateJob of Job
         | RemoveJob of JobID
@@ -209,11 +213,8 @@ module AgentTypes =
             Self             : Agent
             FriendlyData     : Agent list     
             EnemyData        : Agent list
-            InspectedEnemies : AgentName Set
             SimulationStep   : int
             LastPosition     : VertexName
-            //NewVertices      : SeenVertex list
-            NewEdges         : Edge list
             LastStepScore    : int
             Score            : int
             ThisZoneScore    : int
@@ -224,9 +225,6 @@ module AgentTypes =
             MyJobs           : (JobID * VertexName) list
             TotalNodeCount   : int
             NewKnowledge     : Percept list
-            MyExploredCount  : int
-            ProbedCount      : int
-            MailsReceived    : Map<RoundNumber,Mail Set>
             GraphHeuristic   : (Map<VertexName*VertexName, (int*int)>* Map<VertexName,int>)
             Relations        : Map<Relation,AgentName>
             NodesControlledByEnemy : VertexName Set

@@ -40,23 +40,12 @@ namespace NabfProject.Parsers.KnowledgeConverters
 
         public override IilElement BeginConversionToForeign(EdgeKnowledge gobj)
         {
-            if (gobj.Weight == 0)
-            {
-                return new IilPerceptCollection(new IilPercept("visibleEdges",
-					new IilFunction("visibleEdge"
-						, new IilFunction("node1", new IilIdentifier(gobj.Node1))
-						, new IilFunction("node2", new IilIdentifier(gobj.Node2)))
+            return new IilPerceptCollection(new IilPercept("edgeKnowledges"
+                    , new IilFunction("edgeKnowledge"
+                        , new IilFunction("node1", new IilIdentifier(gobj.Node1))
+                        , new IilFunction("node2", new IilIdentifier(gobj.Node2))
+                        , new IilFunction("weight", new IilNumeral(gobj.Weight)))
                     ));
-            }
-            else
-            {
-				return new IilPerceptCollection(new IilPercept("surveyedEdges"
-					, new IilFunction ("surveyedEdge"
-	                    , new IilFunction("node1", new IilIdentifier(gobj.Node1))
-	                    , new IilFunction("node2", new IilIdentifier(gobj.Node2))
-						, new IilFunction("weight", new IilNumeral(gobj.Weight)))
-	                ));
-            }
         }
     }
 }

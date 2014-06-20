@@ -64,6 +64,7 @@ namespace NabfAgentLogic.IiLang
                    ; Team        = team
                    ; VisionRange = Some (int visionRange)
                    ; Status      = deriveStatusFromHealth <| int health
+                   ; IsInVisionRange = true
                    }
             | _ -> raise <| InvalidIilException ("Agent", [iilData])
 
@@ -74,7 +75,8 @@ namespace NabfAgentLogic.IiLang
               ; Function ("timestamp", [Numeral timestamp])
               ] -> (uint32 deadline, uint32 timestamp, int id) : ActionRequestData
             | _ -> raise <| InvalidIilException ("ActionRequest", iilData)
-
+        
+        
         let parseIilProbedVertex iilData =
             match iilData with
             | Function ("probedVertex", [ Function ("name", [Identifier name])
@@ -110,6 +112,7 @@ namespace NabfAgentLogic.IiLang
             | (Identifier "inspect", Identifier agentName) -> Inspect <| stringToOption agentName
             | (Identifier "repair", Identifier agentName)  -> Repair agentName
             | (Identifier "attack", Identifier agentName)  -> Attack agentName
+            | (Identifier "parry", _)                      -> Parry
             //| (Identifier "buy", upgrade)                  -> Buy <| parseIilUpgrade upgrade
             | _ -> raise <| InvalidIilException ("iilAction", [iilAction; iilActionParam])
 
@@ -160,6 +163,7 @@ namespace NabfAgentLogic.IiLang
                           ; Team = ""
                           ; VisionRange = Some (int visRange)
                           ; Status = deriveStatusFromHealth <| int health
+                          ; IsInVisionRange = true
                           }
                    ]
             | _ -> raise <| InvalidIilException ("iilSelf", iilSelf)
@@ -177,6 +181,26 @@ namespace NabfAgentLogic.IiLang
                         ; Function ("weight", [Numeral weight])
                         ]) -> (Some (int weight), node1, node2) : Edge
             | _ -> raise <| InvalidIilException ("surveyedEdge", [iilData])
+
+        let parseIilEdgeKnowledge iilData =
+            match iilData with
+            | Function ("edgeKnowledge",
+                        [ Function ("node1", [Identifier node1])
+                        ; Function ("node2", [Identifier node2])
+                        ; Function ("weight", [Numeral weight])
+                        ])-> 
+                        let realWeight = if weight = 0.0 then None else Some (int weight)
+                        (realWeight, node1, node2) 
+            | _ -> raise <| InvalidIilException ("edgeKnowledge", [iilData])
+        
+        let parseIilNodeKnowledge iilData =
+            match iilData with
+            | Function ("nodeKnowledge", 
+                         [ Function ("name", [Identifier name])
+                         ; Function ("value", [Numeral value])
+                         ]) -> (name, int value)
+            | _ -> raise <| InvalidIilException ("nodeKnowledge", [iilData])
+
 
         let parseIilHeuristic iilData =
             match iilData with
@@ -252,20 +276,7 @@ namespace NabfAgentLogic.IiLang
                         ; Function ("team", [Identifier team])
                         ; Function ("node", [Identifier node])
                         ; Function ("status", [status])
-                        ]) -> { Energy = None
-                              ; Health = None
-                              ; MaxEnergy = None
-                              ; MaxEnergyDisabled = None
-                              ; MaxHealth = None
-                              ; Name = name
-                              ; Node = node
-                              ; Role = None
-                              ; RoleCertainty = 0
-                              ; Strength = None
-                              ; Team = team
-                              ; VisionRange = None
-                              ; Status = parseIilStatus status
-                              }
+                        ]) -> (name, team, node,  parseIilStatus status)
             | _ -> raise <| InvalidIilException ("visibleEntity", [visibleEntity])
         
         let parseIilTeamName teamName =
@@ -308,16 +319,18 @@ namespace NabfAgentLogic.IiLang
             match iilPercept with
             | Percept (name, data) -> 
                 match name with
-                | "inspectedEntities" -> List.map (parseIilAgent >> Percept.EnemySeen) data
+                | "inspectedEntities" -> List.map (parseIilAgent >> InspectedEntity) data
                 | "probedVertices"    -> List.map (parseIilProbedVertex >> Percept.VertexProbed) data
                 | "self"              -> parseIilSelf data
                 | "simulation"        -> [SimulationStep <| parseIilStep data]
                 | "surveyedEdges"     -> List.map (parseIilSurveyedEdge >> Percept.EdgeSeen) data
                 | "team"              -> [Team <| parseIilTeam data]
                 | "visibleEdges"      -> List.map (parseIilVisibleEdge >> Percept.EdgeSeen) data
-                | "visibleEntities"   -> List.map (parseIilVisibleEntity >> EnemySeen) data
+                | "visibleEntities"   -> List.map (parseIilVisibleEntity >> VisibleEntity) data
                 | "visibleVertices"   -> List.map (parseIilVisibleVertex >> VertexSeen) data
                 | "roleKnowledge"     -> [parseIilAgentRole data]
+                | "edgeKnowledges"    -> List.map (parseIilEdgeKnowledge >> EdgeKnowledge) data //[parseIilEdgeKnowledge data]
+                | "nodeKnowledges"    -> List.map (parseIilNodeKnowledge >> NodeKnowledge) data //[parseIilNodeKnowledge data]
                 | "heuristicUpdate"   -> [parseIilHeuristic data]
                 | "message"           -> [parseIilMailMessage data]
                 | _ -> raise <| InvalidIilException ("iilPercept", data)
@@ -436,7 +449,7 @@ namespace NabfAgentLogic.IiLang
             | VertexSeen (vn,_) -> [Function ("nodeKnowledge", [Identifier vn; Numeral 0.0])]
             | EdgeSeen (Some cost,vn1,vn2) -> [Function ("edgeKnowledge", [Identifier vn1; Identifier vn2; Numeral (float cost)])]
             | EdgeSeen (None,vn1,vn2) -> [Function ("edgeKnowledge", [Identifier vn1; Identifier vn2; Numeral 0.0])]
-            | EnemySeen { Role = Some role; Name = name } -> [Function ("roleKnowledge", [Identifier (sprintf "%A" role); Identifier name; Numeral (float 100)])]
+            | InspectedEntity { Role = Some role; Name = name } -> [Function ("roleKnowledge", [Identifier (sprintf "%A" role); Identifier name; Numeral (float 100)])]
             | HeuristicUpdate (n1,n2,(cost,dist)) -> [Function ("heuristicKnowledge", [Identifier n1; Identifier n2; Numeral (float cost); Numeral (float dist)])]
             | _ -> []
 

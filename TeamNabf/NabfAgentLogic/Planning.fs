@@ -222,7 +222,7 @@ module Planning =
            
     let updateGoalHeuristic goal state =
         match goalVertex goal state with
-        | Some vertex -> updateHeuristic state vertex
+        | Some vertex -> updateHeuristic vertex state
         | None -> state
 
     let updateStateBeforePlanning initstate (intent:Intention) = 

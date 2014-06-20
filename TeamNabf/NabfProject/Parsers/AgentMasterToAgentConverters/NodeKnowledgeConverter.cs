@@ -40,24 +40,12 @@ namespace NabfProject.Parsers.KnowledgeConverters
 
         public override IilElement BeginConversionToForeign(NodeKnowledge gobj)
         {
-            if (gobj.Value == 0)
-            {
-                return new IilPerceptCollection(
-					new IilPercept("visibleVertices"
-							,new IilFunction("visibleVertex"
-									, new IilFunction("name"
-										, new IilIdentifier(gobj.Name))))
-                    );
-            }
-            else
-            {
-                return new IilPerceptCollection(
-					new IilPercept("probedVertices"
-						,new IilFunction("probedVertex"
-							, new IilFunction("name", new IilIdentifier(gobj.Name))
-							, new IilFunction("value", new IilNumeral(gobj.Value)))
+            return new IilPerceptCollection(
+                    new IilPercept("nodeKnowledges"
+                        , new IilFunction("nodeKnowledge"
+                            , new IilFunction("name", new IilIdentifier(gobj.Name))
+                            , new IilFunction("value", new IilNumeral(gobj.Value)))
                     ));
-            }
         }
     }
 }

@@ -4,7 +4,7 @@
     open AgentTypes
     open Graphing.Graph
     open NabfAgentLogic.Logging
-    open HandlePercepts
+    open NabfAgentLogic.Perception
     open NabfAgentLogic.Planning
     open NabfAgentLogic.Search.HeuristicDijkstra
 
@@ -13,7 +13,7 @@
            
             inherit BDIAgent<Percept,State,AgentAction,Intention,Plan>(State,DesireTree,Planner)
                 override this.AnalyzePercept(percepts, state) = 
-                    let newstate = updateState state percepts
+                    let newstate = AnalyzePercepts.updateState state percepts
                     newstate
             
                 override this.FilterIntention(intA, intB) = 

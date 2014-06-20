@@ -43,16 +43,17 @@ module HeuristicDijkstra =
         let all = List.map (fun a -> (a,(allDistances world a))) <| List.map fst (Map.toList world)
         List.fold folder Map.empty all
 
-    let updateHeuristic (state:State) forNode =
+    let updateHeuristic forNode (state:State) =
         let (heuMap,countMap) = state.GraphHeuristic
-        match Map.tryFind forNode countMap with
-        | Some nodeCount when nodeCount = state.World.Count -> 
+        match (Map.containsKey forNode state.World), (Map.tryFind forNode countMap) with
+        | _, Some nodeCount when nodeCount = state.World.Count -> 
             {state with GraphHeuristic = (heuMap, countMap)}
-        | _ -> 
+        | true, _ -> 
             let allDist = allDistancesMap state.World forNode
             let newHeu = Map.fold   (fun hMap (v1,v2) heuNum -> 
                                         let [vA; vB] = List.sort [v1;v2]
                                         Map.add (vA,vB) heuNum hMap
                                     ) heuMap allDist
             {state with GraphHeuristic = (newHeu,Map.add forNode state.World.Count countMap)}
+        | _ -> state
         

@@ -37,21 +37,22 @@ module GeneralLib =
     
     let getAgentName (a:Agent) = a.Name
 
-    let buildAgent name team =
-        { Energy      = None
-        ; Health      = None
-        ; MaxEnergy   = None
-        ; MaxEnergyDisabled = None
-        ; MaxHealth   = None
-        ; Name        = name
-        ; Node        = ""
-        ; Role        = None
-        ; RoleCertainty = 100
-        ; Strength    = None
-        ; Team        = team
-        ; VisionRange = None
-        ; Status      = Normal
-        }
+    let buildAgent name team canSeeAgent =
+        {   Energy = None                        
+        ;   Health = None 
+        ;   MaxEnergy = None 
+        ;   MaxEnergyDisabled = None 
+        ;   MaxHealth = None 
+        ;   Name = name
+        ;   Node = ""
+        ;   Role = None
+        ;   RoleCertainty = 0
+        ;   Strength = None
+        ;   Team = team
+        ;   Status = Normal
+        ;   VisionRange = None
+        ;   IsInVisionRange = canSeeAgent
+        } 
     
     //Returns a tuple of the agent with the given name and the other agents
     let tryPartionAgentsByName name agentList =
@@ -68,10 +69,9 @@ module GeneralLib =
         | Some ans -> Some <| fst ans
         | None -> None
 
-    let updateAgentPosition agentName vertexName agentList =
-        let friendly = tryPartionAgentsByName agentName agentList
-        match friendly with
-        | Some (agent,others) -> 
-            ({ agent with Node = vertexName })::others
-        | None -> 
-            { (buildAgent agentName OUR_TEAM) with Node = vertexName }::agentList
+
+
+
+    let getJobId (job:Job) =
+        let ((id,_,_,_),_) = job
+        Option.get id

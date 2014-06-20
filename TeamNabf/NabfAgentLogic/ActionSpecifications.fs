@@ -7,21 +7,7 @@ module ActionSpecifications =
     open Logging
     open GeneralLib
 
-    let buildAgent name node =
-        { Energy = None
-        ; Health = Some 30
-        ; MaxEnergy = None
-        ; MaxEnergyDisabled = None
-        ; MaxHealth = None
-        ; Name = name
-        ; Node = node
-        ; Role = Some Explorer
-        ; RoleCertainty = 100
-        ; Strength = None
-        ; Team = "EnemyTeam"
-        ; Status = Normal
-        ; VisionRange = None
-        }
+
 
     type ConditionResult = 
         | Success
@@ -309,12 +295,6 @@ module ActionSpecifications =
             match res with
             | true -> Success
             | false -> Failure <| sprintf "No uninspected agents present"
-
-        //Make some fake agents from names. Used by the planner when inspecting.
-        let rec buildAgents state names =
-            match names with
-            | head :: tail -> (buildAgent head state.Self.Node) :: (buildAgents state tail)
-            | [] -> []
 
         let newEnemyData state =
             let vertex = whichVertex state

@@ -64,7 +64,11 @@
     <Compile Include="Planning.fs" />
     <Compile Include="MarsCommunicator.fs" />
     <Compile Include="MasterCommunicator.fs" />
-    <Compile Include="HandlePercepts.fs" />
+    <Compile Include="Perception\PerceptionLib.fs" />
+    <Compile Include="Perception\AnalyzeJobs.fs" />
+    <Compile Include="Perception\AnalyzeMails.fs" />
+    <Compile Include="Perception\DetermineSharedPercepts.fs" />
+    <Compile Include="Perception\AnalyzePercepts.fs" />
     <Compile Include="BDIAgentImpl.fs" />
     <Compile Include="AgentInterfaces.fs" />
     <Compile Include="AgentClientLib.fs" />

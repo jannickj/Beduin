@@ -57,8 +57,10 @@ module Explorer =
         let occupyJobs = List.filter (fun (((_,_,jobtype,_),data):Job) -> jobtype = JobType.OccupyJob) s.Jobs
         let l = List.filter (fun ((_,OccupyJob(_,vertices)):Job) -> (List.exists (fun (vn:VertexName) -> s.Self.Node = vn ) vertices)) occupyJobs
         l <> []
+    
+    let numberOfNodesProbed (world:Graph) =List.length (List.filter (fun (_,vertex) -> Option.isSome vertex.Value) <|Map.toList world)
 
-    let lightProbingDone (s:State) = (float s.ProbedCount) > ( PROBE_FACTOR_LIGHT * (float s.TotalNodeCount) )
+    let lightProbingDone (s:State) = (float (numberOfNodesProbed s.World)) > ( PROBE_FACTOR_LIGHT * (float s.TotalNodeCount) )
 
     let onHighValueNode (s:State) = s.World.[s.Self.Node].Value.IsSome && s.World.[s.Self.Node].Value.Value >= ZONE_ORIGIN_VALUE
 
@@ -334,7 +336,7 @@ module Explorer =
             let unProbedDeadEnds = 
                 List.filter (isUnprobed state) (adjacentDeadEnds state)
 
-            if List.length (adjacentDeadEnds state) > 0 then
+            if List.length unProbedDeadEnds > 0 then
 //                let requirements = List.map (Probed >> Requirement) unProbedDeadEnds
 //                Some <| normalIntention ("probe a dead end.", Activity, requirements)
                 Some <| normalIntention ("probe a dead end.", Activity, [Requirement (Probed unProbedDeadEnds.Head)])
