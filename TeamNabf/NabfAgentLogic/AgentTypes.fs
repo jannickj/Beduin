@@ -84,6 +84,7 @@ module AgentTypes =
         | RepairJob = 2
         | DisruptJob = 3
         | AttackJob = 4
+    
 
     type JobData =
         | OccupyJob of VertexName list * VertexName list //(agentPositions,zone)
