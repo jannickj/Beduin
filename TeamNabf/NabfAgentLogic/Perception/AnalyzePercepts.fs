@@ -24,7 +24,6 @@ module AnalyzePercepts =
                 updateAgentListsOnState name team updater state 
 
             | VisibleEntity (name,_,_,_) -> 
-                logImportant Perception ("IT GETS A VISBLE ENTITY OF ITSELF" + name)
                 state
             
             | InspectedEntity agent ->
@@ -67,14 +66,18 @@ module AnalyzePercepts =
                                     Team = state.Self.Team
                                     Role = state.Self.Role
                 }
+
                 let newSelfDisabled = { self with 
                                             Name = state.Self.Name
                                             Team = state.Self.Team
                                             Role = state.Self.Role
                                             MaxEnergy = self.MaxEnergyDisabled
                 }
+
                 match self.Status with
-                | EntityStatus.Disabled -> { state with Self = newSelfDisabled }
+                | EntityStatus.Disabled -> 
+                    logImportant Perception <| sprintf "Max Energy (when disabled): %A (%A)" self.MaxEnergy self.MaxEnergyDisabled
+                    { state with Self = newSelfDisabled }
                 | _ -> { state with Self = newSelf }
                     
                     

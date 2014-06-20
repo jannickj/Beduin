@@ -69,9 +69,6 @@ module GeneralLib =
         | Some ans -> Some <| fst ans
         | None -> None
 
-
-
-
     let getJobId (job:Job) =
         let ((id,_,_,_),_) = job
         Option.get id
