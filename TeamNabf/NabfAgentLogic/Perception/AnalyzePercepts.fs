@@ -74,7 +74,9 @@ module AnalyzePercepts =
                                         MaxEnergy = self.MaxEnergyDisabled
             }
             match self.Status with
-            | EntityStatus.Disabled -> { state with Self = newSelfDisabled }
+            | EntityStatus.Disabled -> 
+                logImportant Perception <| sprintf "Max Energy (when disabled): %A (%A)" self.MaxEnergy self.MaxEnergyDisabled
+                { state with Self = newSelfDisabled }
             | _ -> { state with Self = newSelf }
                 
                 

@@ -1,6 +1,40 @@
 ﻿namespace NabfAgentLogic
     module Constants = 
         
+        (*
+        *   Agent Properties
+        *)
+
+        let EXPLORER_MAX_ENERGY = 35
+        let REPAIRER_MAX_ENERGY = 25
+        let SABOTEUR_MAX_ENERGY = 20
+        let SENTINEL_MAX_ENERGY = 30
+        let INSPECTOR_MAX_ENERGY = 25
+
+        let EXPLORER_MAX_ENERGY_DISABLED = 35
+        let REPAIRER_MAX_ENERGY_DISABLED = 25
+        let SABOTEUR_MAX_ENERGY_DISABLED = 20
+        let SENTINEL_MAX_ENERGY_DISABLED = 30
+        let INSPECTOR_MAX_ENERGY_DISABLED = 25
+
+        let EXPLORER_MAX_HEALTH = 4
+        let REPAIRER_MAX_HEALTH = 6
+        let SABOTEUR_MAX_HEALTH = 3
+        let SENTINEL_MAX_HEALTH = 1
+        let INSPECTOR_MAX_HEALTH = 6
+
+        let EXPLORER_VISION_RANGE = 2
+        let REPAIRER_VISION_RANGE = 1
+        let SABOTEUR_VISION_RANGE = 1
+        let SENTINEL_VISION_RANGE = 3
+        let INSPECTOR_VISION_RANGE = 1
+
+        let EXPLORER_STRENGTH = 0
+        let REPAIRER_STRENGTH = 0
+        let SABOTEUR_STRENGTH = 3
+        let SENTINEL_STRENGTH = 0
+        let INSPECTOR_STRENGTH = 0
+        
         ///////////////////////////////
         /// Agent constants
         ///////////////////////////////
@@ -54,6 +88,7 @@
         let DEFENSE_IMPORTANCE_MODIFIER = 2
         let ATTACK_IMPORTANCE_MODIFIER = 1
         let VALUE_DECAY_PER_TURN = 2.0
+        let JOB_AGE_VALUE_DECREASE_FACTOR = 2.0
 
         //value related to sentinel survey
         let SURVEY_NEEDED_FACTOR_RANGE1 = 0.6

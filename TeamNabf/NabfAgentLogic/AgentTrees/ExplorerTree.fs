@@ -14,7 +14,7 @@ module ExplorerTree =
 
                     Desire(workOnOccupyJob)
 
-                    //Desire(findNewIslandZone)
+                    Desire(findNewIslandZone)
                     Desire(findNewZone)
                     
                     Conditional
