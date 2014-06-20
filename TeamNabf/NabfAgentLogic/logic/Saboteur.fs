@@ -47,7 +47,7 @@ module Saboteur =
             //final desire
             int <| ( JOB_IMPORTANCE_MODIFIER_ATTACK*(((float newValue) * personalValueMod) - (float oldJobValue))      
                  +    (-((float distanceToJob) * DISTANCE_TO_ATTACK_JOB_MOD))
-                 - (jobAge * VALUE_DECAY_PER_TURN) ) * isEnabled 
+                 - ((jobAge * VALUE_DECAY_PER_TURN)*JOB_AGE_VALUE_DECREASE_FACTOR) ) * isEnabled 
 
 
     ////////////////////////////////////////Logic////////////////////////////////////////////

@@ -281,25 +281,25 @@ module Common =
                 else
                     List.maxBy (fun vertexName -> inputState.World.[vertexName].Value) (Set.toList valuableEnemyControlledNodes)
 
-            let jobExists = (
-                                List.filter 
-                                    (fun (_,jobtype) -> 
-                                        match jobtype with
-                                        | AttackJob (vertexList,_) -> vertexList.Head = node                                         
-                                        | _ -> false
-                                    ) 
-
-                                    inputState.Jobs
-                            ).Length > 0
-
-            if (jobExists) then
-                None
-            else
-                let nodeValue = inputState.World.[node].Value.Value * ATTACK_IMPORTANCE_MODIFIER
+            let isAttackJobOnNode onNode job =
+                match job with
+                | (_,AttackJob(attackNode::_,_)) -> attackNode = onNode
+                | _ -> false
+                
+                
+            let jobValue = inputState.World.[node].Value.Value * ATTACK_IMPORTANCE_MODIFIER
+            match List.tryFind (isAttackJobOnNode node) inputState.Jobs with
+            | Some ((id,_,_,_),_) ->
+                Some <| normalIntention 
+                        ( "update attack job on node " + node
+                        , Communication
+                        , [ Plan <| fun state -> Some [Communicate( UpdateJob((id,jobValue,JobType.AttackJob,1),AttackJob([node],inputState.SimulationStep) ))]]
+                        )
+            | None ->
                 Some <| normalIntention 
                         ( "post attack job on node " + node
                          , Communication
-                         , [ Plan <| fun state -> Some [Communicate( CreateJob( (None,nodeValue,JobType.AttackJob,1),AttackJob([node],inputState.SimulationStep) ))]]
+                         , [ Plan <| fun state -> Some [Communicate( CreateJob( (None,jobValue,JobType.AttackJob,1),AttackJob([node],inputState.SimulationStep) ))]]
                          )
         else
             None
@@ -321,23 +321,29 @@ module Common =
         if (agentsOnMyNodeWhileImOnOccupyJob.IsNone) then
             None
         else
-            let node = agentsOnMyNodeWhileImOnOccupyJob.Value.Head.Node
-            let jobValue = inputState.World.[node].Value.Value * DEFENSE_IMPORTANCE_MODIFIER
-            let jobExists = (
-                                List.filter 
-                                    (fun (_,jobtype) -> 
-                                        match jobtype with
-                                        | AttackJob (vertexList,_) -> vertexList.Head = node                                         
-                                        | _ -> false
-                                    ) 
-                                    inputState.Jobs
-                            ).Length > 0
+            match inputState.MyJobs.Head with
+            | (_,vertex) when vertex <> inputState.Self.Node-> None //if we have not arrived at the job yet, dont post defense
+            | _ -> 
+                let node = agentsOnMyNodeWhileImOnOccupyJob.Value.Head.Node
+                let jobValue = inputState.World.[node].Value.Value * DEFENSE_IMPORTANCE_MODIFIER
+                let isAttackJobOnNode onNode job =
+                    match job with
+                    | (_,AttackJob(attackNode::_,_)) -> attackNode = onNode
+                    | _ -> false
+                
 
-            if (jobExists) then
-                None
-            else
-                Some <| normalIntention 
-                        ( "post defense job on node " + node
+                match List.tryFind (isAttackJobOnNode node) inputState.Jobs with
+                | Some ((id,_,_,_),_) ->
+                    Some <| normalIntention 
+                            ( "update defense job on node " + node
+                            , Communication
+                            , [ Plan <| fun state -> Some [Communicate( UpdateJob((id,jobValue,JobType.AttackJob,1),AttackJob([node],inputState.SimulationStep) ))]]
+                            )
+                | None ->
+                    Some <| normalIntention 
+                            ( "post defense job on node " + node
                             , Communication
                             , [ Plan <| fun state -> Some [Communicate( CreateJob( (None,jobValue,JobType.AttackJob,1),AttackJob([node],inputState.SimulationStep) ))]]
                             )
+
+
