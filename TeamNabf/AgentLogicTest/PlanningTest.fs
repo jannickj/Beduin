@@ -385,7 +385,7 @@ module PlanningTest =
             Assert.IsTrue (assertion)
 
         [<Test>]
-        member self.RepairPlan_NotEnoughEnergyForPreLaidPlan_PrependRechargeAction () =
+        member self.RepairPreLaidPlan_NotEnoughEnergyForPreLaidPlan_PrependRechargeAction () =
             let world = [ ("a", {Identifier = "a"; Value = None; Edges = set []}) ] |> Map.ofList
             let enemyData = [buildEnemyWithRole "enemy" "a" (Some Saboteur)]
             let state = { buildStateWithEnergy "a" Sentinel world 0 with EnemyData = enemyData }

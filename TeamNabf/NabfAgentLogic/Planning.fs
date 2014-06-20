@@ -222,10 +222,7 @@ module Planning =
     
     let rec nextAction state (intent : Intention) (plan : Plan) =
         match plan with
-        | (action :: rest, (Plan p) :: restObjectives) -> 
-            Some (action.ActionType, (rest, (Plan p) :: restObjectives))
-        | (action :: rest, goals) -> 
-            Some (action.ActionType, (action :: rest, goals))
+        | (action :: rest, objectives) -> Some (action.ActionType, (action :: rest, objectives))
         | ([], [] ) -> None
         | ([], objectives) ->
             let newObjectives = 
