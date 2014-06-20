@@ -207,7 +207,7 @@ module Planning =
 
 //        makePlan state goals
         match makePlan state goals with
-        | Some (path, Plan p :: objectives) -> Some (path, Plan p :: objectives)
+        | Some (path, Plan p :: objectives) -> Some (skipAction :: path, Plan p :: objectives)
         | Some (path, objectives) -> Some (skipAction :: path, objectives)
         | None -> None
 
@@ -222,7 +222,8 @@ module Planning =
     
     let rec nextAction state (intent : Intention) (plan : Plan) =
         match plan with
-        | (action :: rest, objectives) -> Some (action.ActionType, (action :: rest, objectives))
+        | (action :: rest, objectives) -> 
+            Some (action.ActionType, (action :: rest, objectives))
         | ([], [] ) -> None
         | ([], objectives) ->
             let newObjectives = 
@@ -230,10 +231,8 @@ module Planning =
                 | (Plan p) :: tail -> 
                     tail
                 | objective :: tail when wrappedGoalTest (goalTest (goalList objective state)) state ->
-                    logStateImportant state Planning <| sprintf "goalTest succeeded %A" objectives
                     tail
                 | objectives ->
-                    logStateImportant state Planning <| sprintf "goalTest failed %A" objectives
                     objectives
 
             match makePlan state newObjectives with
