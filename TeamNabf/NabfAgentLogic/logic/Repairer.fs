@@ -59,7 +59,7 @@ module Repairer =
             Some <| normalIntention (
                     "repair agent " + head.Name
                     , Activity
-                    , [Requirement (Repaired head.Name)]
+                    , [Plan (fun _ -> Some [Perform <| Repair head.Name])]
                 )
 
     let applyToRepairJob (inputState:State) = 

@@ -450,6 +450,7 @@ namespace NabfAgentLogic.IiLang
             | EdgeSeen (Some cost,vn1,vn2) -> [Function ("edgeKnowledge", [Identifier vn1; Identifier vn2; Numeral (float cost)])]
             | EdgeSeen (None,vn1,vn2) -> [Function ("edgeKnowledge", [Identifier vn1; Identifier vn2; Numeral 0.0])]
             | InspectedEntity { Role = Some role; Name = name } -> [Function ("roleKnowledge", [Identifier (sprintf "%A" role); Identifier name; Numeral (float 100)])]
+            | AgentRolePercept (name, role, certainty) -> [Function ("roleKnowledge", [Identifier (sprintf "%A" role); Identifier name; Numeral (float certainty)])]
             | HeuristicUpdate (n1,n2,(cost,dist)) -> [Function ("heuristicKnowledge", [Identifier n1; Identifier n2; Numeral (float cost); Numeral (float dist)])]
             | _ -> []
 
