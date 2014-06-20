@@ -27,7 +27,7 @@ namespace NabfProject.SimManager
         private bool _jobsFoundForThisRound = false;
         private int _numberOfAgentsFinishedApplying = 0;
 
-        private const bool knowledgeVerbose = false;
+        private const bool knowledgeVerbose = true;
         private const bool jobVerbose = true;
         private const bool reporting = true;
         //Status reporting
@@ -38,7 +38,6 @@ namespace NabfProject.SimManager
         private int _unappliesReceivedCounter = 0;
         private int _noticesRemovedCounter = 0;
         private int _sentKnowledgeCounter = 0;
-        private bool _notPrintedSentKnowledgeCounterThisRound = true;
         private int _sentOccupyJobCounter = 0;
         private int _sentRepairJobCounter = 0;
         private int _sentDisruptJobCounter = 0;
@@ -141,16 +140,6 @@ namespace NabfProject.SimManager
             km.SendKnowledgeToManager(sentKnowledge, sender);
 
             _sentKnowledgeCounter += sentKnowledge.Count;
-            if (knowledgeVerbose)
-            {
-                if (_currentRoundNumber % 20 == 0 && _notPrintedSentKnowledgeCounterThisRound)
-                {
-                    Console.WriteLine("Total numbers of sent knowledge is: " + _sentKnowledgeCounter);
-                    _notPrintedSentKnowledgeCounterThisRound = false;
-                }
-                else if (_currentRoundNumber % 9 == 0)
-                    _notPrintedSentKnowledgeCounterThisRound = true;
-            }
         }
 
         public bool CreateAndAddNotice(int simID, NoticeBoard.JobType type, int agentsNeeded, List<NodeKnowledge> whichNodes, List<NodeKnowledge> zoneNodes, string agentToRepair, int timeStamp, int value)
@@ -313,6 +302,11 @@ namespace NabfProject.SimManager
 
             if (_currentRoundNumber % 3 == 0)
                 nb.AssignJobs();
+
+            if (knowledgeVerbose && _currentRoundNumber % 20 == 0)
+            {
+                Console.WriteLine("Total numbers of sent knowledge is: " + _sentKnowledgeCounter);
+            }
 
             if (reporting)
             {
