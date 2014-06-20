@@ -45,7 +45,7 @@ module GoalSpecifications =
             let nodes = vn::(getNeighbourIds vn state.World)
             List.exists ((=) state.Self.Node) nodes
         | _ -> 
-            failwith ("Cannot reach state get close "+agentName+" as it does not exist")
+            failwith ("Cannot reach state get close to "+agentName+" as it does not exist")
             false    
 
     let atMinValueNode value state = 

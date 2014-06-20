@@ -10,9 +10,45 @@ module PlanningTest =
     open NabfAgentLogic.ActionSpecifications
     open FsPlanning.Search
     open NabfAgentLogic.Inspector
+    open NabfAgentLogic.Common
 
     [<TestFixture>]
     type IntentionBuildingTests () =
+//    let repairJob =
+//            match inputState.MyJobs with
+//            | (id,_)::_ -> Some (snd <| getJobFromJobID inputState id)
+//            | _ -> None
+//
+//        match Map.tryFind MyRepairer inputState.Relations, inputState.Self.Status, repairJob with
+//        | Some aName, Disabled, Some (RepairJob(_,rName)) when aName = rName && myRankIsGreatest inputState.Self.Name [rName] -> 
+//            None
+//        | Some aName,Disabled,_ ->
+//            normalIntention 
+        [<Test>]
+        member self.FormulatePlanCommon_IntentToRechargeIfDisabled_PlanToRechargeIfDisabled () =     
+            //repairer and repairee is on same node     
+            let world = 
+                [ ("a", {Identifier = "a"; Value = None; Edges = [(None, "b")] |> Set.ofList})
+                ; ("b", {Identifier = "b"; Value = None; Edges = [(None, "a")] |> Set.ofList})
+                ] |> Map.ofList  
+            let state = buildState "a" Inspector world
+            let stateAsDisabled = {state with Self = {state.Self with Status = EntityStatus.Disabled} }
+            let stateWithRelations = {stateAsDisabled with Relations = Map.add MyRepairer "carlos" stateAsDisabled.Relations }
+            let stateWithCarlos = {stateWithRelations with FriendlyData = [(buildAgentWithRole "carlos" "Team Love Unit testing" "a" (Some AgentRole.Repairer))] }
+
+            let intention = getRepaired stateWithCarlos                                
+            let intentionTuple = (intention.Value.Label, intention.Value.Type, intention.Value.Objectives)
+
+            let expectedPlan = [rechargeAction]
+
+            let actualPlan = formulatePlan stateWithCarlos intentionTuple
+
+            let assertion = 
+                match actualPlan with
+                | Some (plan, _) -> plan = expectedPlan
+                | None -> false
+
+            Assert.IsTrue (assertion)
         
         [<Test>]
         member self.FormulatePlanInspector_IntentToInspectVertex_PlanToInspectVertex () =
