@@ -81,21 +81,6 @@ module Common =
                             )
 
 
-  
-
-    let giveMyLocationToMyRepairer (inputState:State) =
-        match (inputState.Self.Status, Map.tryFind MyRepairer inputState.Relations) with
-        | (Disabled, Some repairer) -> 
-            normalIntention 
-                ( "send my location to repairer "+repairer,
-                  Communication,
-                  [
-                    Plan (fun s -> Some [Communicate <| SendMail (s.Self.Name,repairer,MyLocation s.Self.Node)])
-                  ]
-                )
-            |> Some
-        | _ -> None 
-
     //Try to make it so the agent has explored one more node
     let exploreMap (inputState:State) = 
         let othersOnMyNode = List.filter (fun a -> a.Node = inputState.Self.Node && not(a.Name = inputState.Self.Name)) inputState.FriendlyData
@@ -166,6 +151,19 @@ module Common =
                 )
             |> Some
         | _ -> None
+
+    let giveMyLocationToMyRepairer (inputState:State) =
+        match (inputState.Self.Status, Map.tryFind MyRepairer inputState.Relations) with
+        | (Disabled, Some repairer) -> 
+            normalIntention 
+                ( "send my location to repairer "+repairer,
+                  Communication,
+                  [
+                    Plan (fun s -> Some [Communicate <| SendMail (s.Self.Name,repairer,MyLocation s.Self.Node)])
+                  ]
+                )
+            |> Some
+        | _ -> None 
 
             
     //Find a node of at least value 8 to stand on.
