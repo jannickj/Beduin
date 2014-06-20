@@ -97,30 +97,45 @@ module Planning =
                 None
         | [] -> Some ([], [])
 
-    let repairPlan (state : State) intent (originalPlan : Plan) = 
+    let maybePrependRechargeAction state plan = 
+        match plan with
+        | action :: _ when isApplicable state action ->
+            Some plan
+        | action :: rest when isApplicable (rechargeAction.Effect state) action ->
+            Some <| rechargeAction :: plan
+        | _ -> 
+            None
+              
+    let maybeSkipFirstAction state plan = 
+        match plan with 
+        | action :: rest ->
+            match action.ActionType with
+            | Communicate _ -> rest
+            | Perform _ when state.LastActionResult = Successful || action = skipAction ->
+                rest
+            | _ -> plan
+        | [] -> plan
+
+    let preprocessPlan state plan =
+        maybeSkipFirstAction state plan 
+        |> maybePrependRechargeAction state
+
+
+    let repairNormalPlan (state : State) (originalPlan : Plan) = 
 //        logImportant <| sprintf "Node: %A (%A)" state.Self.Node state.LastPosition
 //        logImportant <| sprintf "last action: %A (%A)" state.LastAction state.LastActionResult
         match state.LastActionResult with
         | Successful | FailedRandom | FailedInRange | FailedParried -> ()
         | err -> logStateError state Planning <| sprintf "Last action result was %A, trying to repair plan anyway" err
 
-        let tmpPlan = 
-            match originalPlan with
-            | (action :: tail, objectives) when state.LastActionResult = Successful || action = skipAction ->
-                (tail, objectives)
-            | _ ->
-                originalPlan
+        let objectives = snd originalPlan
+
+        let tmpPlan = maybeSkipFirstAction state (fst originalPlan)
 
         let plan = 
-            match tmpPlan with
-            | (action :: rest, _) when isApplicable state action ->
-//                logImportant <| sprintf "applicable: (action, cost, energy) (%A, %A, %A)" action.ActionType (action.Cost state) state.Self.Energy
-                tmpPlan
-            | (action :: rest, objectives) when isApplicable (rechargeAction.Effect state) action ->
-                (rechargeAction :: action :: rest, objectives)
-            | _ -> tmpPlan
-
-        logStateImportant state Planning <| sprintf "repairing plan %A" (List.map (fun action -> action.ActionType) (fst plan))
+            match maybePrependRechargeAction state tmpPlan with
+            | Some plan -> (plan, objectives)
+            | None -> (tmpPlan, objectives)
 
         let rechargedState (state : State) = {state with Self = {state.Self with Energy = state.Self.MaxEnergy}}
 
@@ -172,6 +187,14 @@ module Planning =
         | None -> 
             logStateImportant state Planning <| sprintf "kept plan: %A" (List.map (fun action -> action.ActionType) (fst plan))
             Some plan
+
+    let repairPlan state solution =
+        match solution with
+        | (plan, Plan p :: rest) -> 
+            match maybeSkipFirstAction state plan |> maybePrependRechargeAction state with
+            | Some plan -> Some (plan, Plan p :: rest)
+            | None -> None
+        | _ -> repairNormalPlan state solution
 
     let formulatePlan (state : State) intent = 
         let (name, inttype, goals) = intent
@@ -259,12 +282,9 @@ module Planning =
                     plan
                 member self.RepairPlan (state, intent, solution) =
                     let plan = 
-                        match solution with
-                        | (_, Plan _ :: _) -> Some solution
-                        | _ -> 
-                            try repairPlan state intent solution with
-                            | exn -> logStateError state Planning <| sprintf "Error encountered in repairPlan: %A at %A" exn.Message exn.StackTrace
-                                     None
+                        try repairPlan state solution with
+                        | exn -> logStateError state Planning <| sprintf "Error encountered in repairPlan: %A at %A" exn.Message exn.StackTrace
+                                 None
                     plan
                     
                 member self.SolutionFinished (state, intent, solution) = 
@@ -282,7 +302,6 @@ module Planning =
                     action
 
                 member self.UpdateStateBeforePlanning (state, intent) = 
-                    //let oldintent = (intent.Label,intent.Type,intent.Objectives)
                     let newState = 
                         try updateStateBeforePlanning state intent with
                         | exn -> logStateError state Planning <| sprintf "Error encountered in updateStateBeforePlanning: %A at %A" exn.Message exn.TargetSite
