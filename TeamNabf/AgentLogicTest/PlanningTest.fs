@@ -168,11 +168,11 @@ module PlanningTest =
             let plan = [skipAction; probeAction None]
 
             let objectives = [Requirement <| Probed "a"]
-            let intention = ("", Activity, objectives)
+//            let intention = ("", Activity, objectives)
 
             let expectedPlan = [rechargeAction; probeAction None]
 
-            let actualPlan = repairPlan state intention (plan, objectives)
+            let actualPlan = repairPlan state (plan, objectives)
             let assertion = (fst actualPlan.Value) = expectedPlan
             Assert.IsTrue (assertion)
 
@@ -183,10 +183,10 @@ module PlanningTest =
             let plan = [probeAction None]
 
             let objectives = [Requirement <| Probed "a"]
-            let intention = ("", Activity, objectives)
+//            let intention = ("", Activity, objectives)
 
             let expectedPlan = plan
-            let actualPlan = repairPlan state intention (plan, objectives)
+            let actualPlan = repairPlan state (plan, objectives)
 
             let assertion = (fst actualPlan.Value) = expectedPlan
             Assert.IsTrue (assertion)
@@ -198,10 +198,10 @@ module PlanningTest =
             let plan = [probeAction None]
 
             let objectives = [Requirement <| Probed "a"]
-            let intention = ("", Activity, objectives)
+//            let intention = ("", Activity, objectives)
 
             let expectedPlan = [rechargeAction; probeAction None]
-            let actualPlan = repairPlan state intention (plan, objectives)
+            let actualPlan = repairPlan state (plan, objectives)
 
             let assertion = (fst actualPlan.Value) = expectedPlan
             Assert.IsTrue (assertion)
@@ -243,7 +243,7 @@ module PlanningTest =
             let enemy' = { enemy with Node = "c" }
             let state' = { state with EnemyData = [enemy'] }
 
-            let plan' = repairPlan state' intention plan.Value
+            let plan' = repairPlan state' plan.Value
             let actualPath = [for action in fst plan'.Value -> action.ActionType]
 
             let expectedPath = [Perform <| Goto "c"; Perform <| Attack "enemy"]
@@ -283,14 +283,14 @@ module PlanningTest =
                 buildState "a" Explorer world 
                 |> enhanceStateWithGraphHeuristics
 
-            let intention = ("probe zone", Activity, [objective])
+//            let intention = ("probe zone", Activity, [objective])
 
             let expectedPlan = 
                 [ moveAction "c"
                 ; probeAction None
                 ]
 
-            let actualPlan = repairPlan state intention (originalPlan, [objective])
+            let actualPlan = repairPlan state (originalPlan, [objective])
 
             let assertion = expectedPlan = (fst actualPlan.Value)
 
@@ -330,7 +330,7 @@ module PlanningTest =
                 ]
 
             let objective = MultiGoal (fun _ -> [Probed "c"; Probed "d"])
-            let intention = ("probe zone", Activity, [objective])
+//            let intention = ("probe zone", Activity, [objective])
 
             let expectedPlan =
                 [ moveAction "b"
@@ -338,7 +338,7 @@ module PlanningTest =
                 ; moveAction "d"; probeAction None
                 ]
 
-            let actualPlan = repairPlan state (Some intention) (originalPlan, [objective])
+            let actualPlan = repairPlan state (originalPlan, [objective])
             let assertion = (fst actualPlan.Value) = expectedPlan
 
             Assert.IsTrue(assertion)
@@ -380,31 +380,33 @@ module PlanningTest =
                 ]
 
             let objective = MultiGoal (fun _ -> [Probed "b"; Probed "d"])
-            let intention = ("probe zone", Activity, [objective])
+//            let intention = ("probe zone", Activity, [objective])
 
             let expectedPlan =
                 [ moveAction "b"; probeAction None
                 ; moveAction "d"; probeAction None
                 ]
             
-            let actualPlan = repairPlan state (Some intention) (originalPlan, [objective])
+            let actualPlan = repairPlan state (originalPlan, [objective])
             let assertion = fst actualPlan.Value = expectedPlan
 
             Assert.IsTrue (assertion)
 
-//        [<Test>]
-//        member self.FormulatePlanRepairAgent_DisabledAgentTwoEdgesAway_GoThereAndRepair() =
-//            let world = 
-//                [ ("a", {Identifier = "a"; Value = Some 10; Edges = [(Some 1, "b"); (Some 9, "d")] |> Set.ofList})
-//                ; ("b", {Identifier = "b"; Value = None; Edges = [(Some 1, "a"); (Some 1, "c"); (Some 9, "d")] |> Set.ofList})
-//                ; ("c", {Identifier = "c"; Value = Some 1; Edges = [(Some 1, "b"); (Some 1, "d")] |> Set.ofList})
-//                ; ("d", {Identifier = "d"; Value = None; Edges = [(Some 9, "a"); (Some 9, "b"); (Some 1, "c")] |> Set.ofList})
-//                ] |> Map.ofList 
-//
-//            let friend = 
-//            let friendlyData = [ { buildAgentWithRole "friend" "Team Love Unit testing" "c" with Self = ]
-//
-//            let state =
-//                { buildState "a" Repairer world with FriendlyData = friendlyData }
+        [<Test>]
+        member self.RepairPlan_NotEnoughEnergyForPreLaidPlan_PrependRechargeAction () =
+            let world = [ ("a", {Identifier = "a"; Value = None; Edges = set []}) ] |> Map.ofList
+            let enemyData = [buildEnemyWithRole "enemy" "a" (Some Saboteur)]
+            let state = { buildStateWithEnergy "a" Sentinel world 0 with EnemyData = enemyData }
 
-            
+            let originalPlan = [skipAction; parryAction]
+
+            let actual = repairPlan state (originalPlan, [Plan (fun _ -> Some [])])
+
+            let expected = 
+                [ rechargeAction
+                ; parryAction
+                ]
+
+            let assertion = expected = fst actual.Value
+
+            Assert.IsTrue (assertion)
