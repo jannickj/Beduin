@@ -25,7 +25,7 @@ module PlanningTest =
 //        | Some aName,Disabled,_ ->
 //            normalIntention 
         [<Test>]
-        member self.FormulatePlanCommon_IntentToRechargeIfDisabled_PlanToRechargeIfDisabled () =     
+        member self.FormulatePlanCommon_IntentToRechargeIfDisabled_PlanToRechargeIfDisabled_SameNode () =     
             //repairer and repairee is on same node     
             let world = 
                 [ ("a", {Identifier = "a"; Value = None; Edges = [(None, "b")] |> Set.ofList})
@@ -40,6 +40,32 @@ module PlanningTest =
             let intentionTuple = (intention.Value.Label, intention.Value.Type, intention.Value.Objectives)
 
             let expectedPlan = [rechargeAction]
+
+            let actualPlan = formulatePlan stateWithCarlos intentionTuple
+
+            let assertion = 
+                match actualPlan with
+                | Some (plan, _) -> plan = expectedPlan
+                | None -> false
+
+            Assert.IsTrue (assertion)
+
+        [<Test>]
+        member self.FormulatePlanCommon_IntentToRechargeIfDisabled_PlanToRechargeIfDisabled_NotSameNode () =     
+            //repairer and repairee is NOT on same node     
+            let world = 
+                [ ("a", {Identifier = "a"; Value = None; Edges = [(None, "b")] |> Set.ofList})
+                ; ("b", {Identifier = "b"; Value = None; Edges = [(None, "a")] |> Set.ofList})
+                ] |> Map.ofList  
+            let state = buildState "a" Inspector world
+            let stateAsDisabled = {state with Self = {state.Self with Status = EntityStatus.Disabled} }
+            let stateWithRelations = {stateAsDisabled with Relations = Map.add MyRepairer "carlos" stateAsDisabled.Relations }
+            let stateWithCarlos = {stateWithRelations with FriendlyData = [(buildAgentWithRole "carlos" "Team Love Unit testing" "b" (Some AgentRole.Repairer))] }
+
+            let intention = getRepaired stateWithCarlos                                
+            let intentionTuple = (intention.Value.Label, intention.Value.Type, intention.Value.Objectives)
+
+            let expectedPlan = [moveAction "a"; rechargeAction]
 
             let actualPlan = formulatePlan stateWithCarlos intentionTuple
 
