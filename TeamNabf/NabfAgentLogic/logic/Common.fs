@@ -311,8 +311,8 @@ module Common =
             match inputState.MyJobs with
             | (jobid,_)::tail -> 
                 match (getJobFromJobID inputState jobid) with
-                | ((_,_,jobtype,_),_) when jobtype = JobType.OccupyJob -> 
-                    match List.filter (fun a -> a.Node = inputState.Self.Node && a.Status = EntityStatus.Normal) inputState.EnemyData with
+                | (_,OccupyJob(_,zoneList)) -> 
+                    match List.filter (fun a -> (List.exists (fun n -> n = a.Node) zoneList) && a.Status = EntityStatus.Normal) inputState.EnemyData with
                     | h::t -> Some (h::t)
                     | _ -> None
                 | _ -> None
