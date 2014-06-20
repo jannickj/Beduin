@@ -320,7 +320,7 @@ module Common =
             
         if (agentsOnMyNodeWhileImOnOccupyJob.IsNone) then
             None
-        else
+        else 
             if (agentsOnMyNodeWhileImOnOccupyJob.Value.Head.Role.IsSome 
             && agentsOnMyNodeWhileImOnOccupyJob.Value.Head.Role.Value = AgentRole.Sentinel 
             && agentsOnMyNodeWhileImOnOccupyJob.Value.Head.RoleCertainty >= 50) then
