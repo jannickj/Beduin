@@ -321,29 +321,34 @@ module Common =
         if (agentsOnMyNodeWhileImOnOccupyJob.IsNone) then
             None
         else
-            match inputState.MyJobs.Head with
-            | (_,vertex) when vertex <> inputState.Self.Node-> None //if we have not arrived at the job yet, dont post defense
-            | _ -> 
-                let node = agentsOnMyNodeWhileImOnOccupyJob.Value.Head.Node
-                let jobValue = inputState.World.[node].Value.Value * DEFENSE_IMPORTANCE_MODIFIER
-                let isAttackJobOnNode onNode job =
-                    match job with
-                    | (_,AttackJob(attackNode::_,_)) -> attackNode = onNode
-                    | _ -> false
+            if (agentsOnMyNodeWhileImOnOccupyJob.Value.Head.Role.IsSome 
+            && agentsOnMyNodeWhileImOnOccupyJob.Value.Head.Role.Value = AgentRole.Sentinel 
+            && agentsOnMyNodeWhileImOnOccupyJob.Value.Head.RoleCertainty >= 50) then
+                None
+            else
+                match inputState.MyJobs.Head with
+                | (_,vertex) when vertex <> inputState.Self.Node-> None //if we have not arrived at the job yet, dont post defense
+                | _ -> 
+                    let node = agentsOnMyNodeWhileImOnOccupyJob.Value.Head.Node
+                    let jobValue = inputState.World.[node].Value.Value * DEFENSE_IMPORTANCE_MODIFIER
+                    let isAttackJobOnNode onNode job =
+                        match job with
+                        | (_,AttackJob(attackNode::_,_)) -> attackNode = onNode
+                        | _ -> false
                 
 
-                match List.tryFind (isAttackJobOnNode node) inputState.Jobs with
-                | Some ((id,_,_,_),_) ->
-                    Some <| normalIntention 
-                            ( "update defense job on node " + node
-                            , Communication
-                            , [ Plan <| fun state -> Some [Communicate( UpdateJob((id,jobValue,JobType.AttackJob,1),AttackJob([node],inputState.SimulationStep) ))]]
-                            )
-                | None ->
-                    Some <| normalIntention 
-                            ( "post defense job on node " + node
-                            , Communication
-                            , [ Plan <| fun state -> Some [Communicate( CreateJob( (None,jobValue,JobType.AttackJob,1),AttackJob([node],inputState.SimulationStep) ))]]
-                            )
+                    match List.tryFind (isAttackJobOnNode node) inputState.Jobs with
+                    | Some ((id,_,_,_),_) ->
+                        Some <| normalIntention 
+                                ( "update defense job on node " + node
+                                , Communication
+                                , [ Plan <| fun state -> Some [Communicate( UpdateJob((id,jobValue,JobType.AttackJob,1),AttackJob([node],inputState.SimulationStep) ))]]
+                                )
+                    | None ->
+                        Some <| normalIntention 
+                                ( "post defense job on node " + node
+                                , Communication
+                                , [ Plan <| fun state -> Some [Communicate( CreateJob( (None,jobValue,JobType.AttackJob,1),AttackJob([node],inputState.SimulationStep) ))]]
+                                )
 
 
