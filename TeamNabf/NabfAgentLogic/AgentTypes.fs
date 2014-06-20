@@ -228,7 +228,7 @@ module AgentTypes =
             GraphHeuristic   : (Map<VertexName*VertexName, (int*int)>* Map<VertexName,int>)
             Relations        : Map<Relation,AgentName>
             NodesControlledByEnemy : VertexName Set
-
+            NodesInVisionRange :VertexName Set
             ///USED FOR PLANNING ONLY DONT USE THEM IN INTENTION CHECKS
             PlannerProbed          : VertexName Set
             PlannerRepairedAgents  : AgentName Set
