@@ -39,16 +39,24 @@ module PlanningTest =
             let intention = getRepaired stateWithCarlos                                
             let intentionTuple = (intention.Value.Label, intention.Value.Type, intention.Value.Objectives)
 
-            let expectedPlan = [rechargeAction]
+            //let expectedPlan = Some [skipAction; rechargeAction]
+            //let expectedPlan = [skipAction; rechargeAction]
 
             let actualPlan = formulatePlan stateWithCarlos intentionTuple
+            let realPlan = repairPlan stateWithCarlos intentionTuple actualPlan.Value
+            let myNextAction = nextAction stateWithCarlos intention.Value realPlan.Value
 
-            let assertion = 
-                match actualPlan with
-                | Some (plan, _) -> plan = expectedPlan
-                | None -> false
+//            let assertion = 
+//                match actualPlan with
+//                | Some (plan, _) -> plan = expectedPlan
+//                | None -> false
+//
+//            Assert.IsTrue(assertion)
+            //Assert.AreEqual(expectedPlan, actualPlan)
 
-            Assert.IsTrue (assertion)
+            match myNextAction with
+            | Some (action,_) -> Assert.AreEqual(rechargeAction, action)
+            
 
         [<Test>]
         member self.FormulatePlanCommon_IntentToRechargeIfDisabled_PlanToRechargeIfDisabled_NotSameNode () =     
@@ -65,7 +73,7 @@ module PlanningTest =
             let intention = getRepaired stateWithCarlos                                
             let intentionTuple = (intention.Value.Label, intention.Value.Type, intention.Value.Objectives)
 
-            let expectedPlan = [moveAction "a"; rechargeAction]
+            let expectedPlan = [skipAction; moveAction "a"; rechargeAction]
 
             let actualPlan = formulatePlan stateWithCarlos intentionTuple
 
