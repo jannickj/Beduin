@@ -170,7 +170,7 @@ module Common =
     let generateSomeValue (inputState:State) = 
         Some  <| normalIntention ( "get some(8) value"
              , Activity
-             , [ Requirement <| AtMinValueNode SOME_VALUE_VALUE
+             , [ Requirement <| AtMinValueNodeNotPartOfZone SOME_VALUE_VALUE
                ; Plan <| fun _ -> Some ([Perform Recharge]) 
                ]
              )
@@ -179,7 +179,7 @@ module Common =
     let generateLittleValue (inputState:State) = 
         Some  <| normalIntention ( "get little(6) value"
              , Activity
-             , [ Requirement <| AtMinValueNode LITTLE_VALUE_VALUE
+             , [ Requirement <| AtMinValueNodeNotPartOfZone LITTLE_VALUE_VALUE
                ; Plan <| fun _ -> Some ([Perform Recharge]) 
                ]
              )
@@ -188,7 +188,7 @@ module Common =
     let generateLeastValue (inputState:State) = 
         Some  <| normalIntention ( "get least(4) value"
              , Activity
-             , [ Requirement <| AtMinValueNode LEAST_VALUE_VALUE
+             , [ Requirement <| AtMinValueNodeNotPartOfZone LEAST_VALUE_VALUE
                ; Plan <| fun _ -> Some ([Perform Recharge]) 
                ]
              )
@@ -197,7 +197,7 @@ module Common =
     let generateMinimumValue (inputState:State) = 
         Some <| normalIntention  ( "get minimum(2) value"
              , Activity
-             , [ Requirement <| AtMinValueNode MINIMUM_VALUE_VALUE
+             , [ Requirement <| AtMinValueNodeNotPartOfZone MINIMUM_VALUE_VALUE
                ; Plan <| fun _ -> Some ([Perform Recharge]) 
                ]
              )

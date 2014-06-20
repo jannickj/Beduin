@@ -48,9 +48,12 @@ module GoalSpecifications =
             failwith ("Cannot reach state get close to "+agentName+" as it does not exist")
             false    
 
-    let atMinValueNode value state = 
+    let atMinValueNodeNotPartOfZone value state = 
         let n = state.World.[state.Self.Node] 
-        if (n.Value.IsSome && nodeHasNoOtherFriendlyAgentsOnIt state n.Identifier) then
+        let occupyJobs = List.filter (fun ((_,_,jobtype,_),_) -> jobtype = JobType.OccupyJob) state.Jobs
+        let zonesOfOccupyJob = List.map (fun (_,OccupyJob(_,zoneList))-> zoneList) occupyJobs
+        let allNodesInOccupyJobs = List.concat zonesOfOccupyJob
+        if (n.Value.IsSome && not (List.exists (fun name -> name = n.Identifier) allNodesInOccupyJobs) && nodeHasNoOtherFriendlyAgentsOnIt state n.Identifier) then
             n.Value.Value >= value
         else
             false
@@ -68,7 +71,7 @@ module GoalSpecifications =
         | Inspected vertex -> vertexInspected vertex
         | Parried -> parried
         | Charged charge -> charged charge
-        | AtMinValueNode value -> atMinValueNode value
+        | AtMinValueNodeNotPartOfZone value -> atMinValueNodeNotPartOfZone value
         | Repaired agent -> agentRepaired agent
         | GetCloseTo agent -> getCloseTo agent
         | Surveyed -> surveyedNeighbourEdges
@@ -96,7 +99,7 @@ module GoalSpecifications =
             agentDistanceHeuristics agent
 
         | Charged _
-        | AtMinValueNode _
+        | AtMinValueNodeNotPartOfZone _
         | Surveyed
         | Parried-> fun _ -> 0
 
