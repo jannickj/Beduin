@@ -39,16 +39,15 @@ module PlanningTest =
             let intention = getRepaired stateWithCarlos                                
             let intentionTuple = (intention.Value.Label, intention.Value.Type, intention.Value.Objectives)
 
-            let expectedPlan = [rechargeAction]
 
             let actualPlan = formulatePlan stateWithCarlos intentionTuple
+            let realPlan = repairPlan stateWithCarlos actualPlan.Value
+            let myNextAction = nextAction stateWithCarlos intention.Value realPlan.Value
 
-            let assertion = 
-                match actualPlan with
-                | Some (plan, _) -> plan = expectedPlan
-                | None -> false
 
-            Assert.IsTrue (assertion)
+            match myNextAction with
+            | Some (action,_) -> Assert.AreEqual(Perform Recharge, action)
+            
 
         [<Test>]
         member self.FormulatePlanCommon_IntentToRechargeIfDisabled_PlanToRechargeIfDisabled_NotSameNode () =     
@@ -56,25 +55,23 @@ module PlanningTest =
             let world = 
                 [ ("a", {Identifier = "a"; Value = None; Edges = [(None, "b")] |> Set.ofList})
                 ; ("b", {Identifier = "b"; Value = None; Edges = [(None, "a")] |> Set.ofList})
+                ; ("c", {Identifier = "c"; Value = None; Edges = [(None, "b")] |> Set.ofList})
                 ] |> Map.ofList  
             let state = buildState "a" Inspector world
             let stateAsDisabled = {state with Self = {state.Self with Status = EntityStatus.Disabled} }
             let stateWithRelations = {stateAsDisabled with Relations = Map.add MyRepairer "carlos" stateAsDisabled.Relations }
-            let stateWithCarlos = {stateWithRelations with FriendlyData = [(buildAgentWithRole "carlos" "Team Love Unit testing" "b" (Some AgentRole.Repairer))] }
+            let stateWithCarlos = {stateWithRelations with FriendlyData = [(buildAgentWithRole "carlos" "Team Love Unit testing" "c" (Some AgentRole.Repairer))] }
 
             let intention = getRepaired stateWithCarlos                                
             let intentionTuple = (intention.Value.Label, intention.Value.Type, intention.Value.Objectives)
-
-            let expectedPlan = [moveAction "a"; rechargeAction]
-
+            
             let actualPlan = formulatePlan stateWithCarlos intentionTuple
+            let realPlan = repairPlan stateWithCarlos actualPlan.Value
+            let myNextAction = nextAction stateWithCarlos intention.Value realPlan.Value
 
-            let assertion = 
-                match actualPlan with
-                | Some (plan, _) -> plan = expectedPlan
-                | None -> false
 
-            Assert.IsTrue (assertion)
+            match myNextAction with
+            | Some (action,rem) -> Assert.AreEqual(Perform (Goto "b"), action)
         
         [<Test>]
         member self.FormulatePlanInspector_IntentToInspectVertex_PlanToInspectVertex () =

@@ -212,7 +212,8 @@ module Common =
 //                                                
 //                                                Set.add p ps) ss s.NewKnowledge
 //                                    ()
-//                                    )               
+//                                    )          
+        logInfo Intentions <| sprintf "length of newKnowledge: %A" inputState.NewKnowledge.Length     
         Some<| normalIntention 
                 (   "share my knowledge", 
                     Communication, 
