@@ -24,7 +24,7 @@ module Logging =
             Planning
             ActionSpecifications
             Intentions
-//            Perception
+            Perception
             Agent
 //            Parsing
         ] |> Set.ofList
