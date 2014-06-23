@@ -66,6 +66,7 @@
     <Compile Include="HeuristicTest.fs" />
     <Compile Include="CommonTest.fs" />
     <Compile Include="BiconnectedTest.fs" />
+    <Compile Include="IntentionTest.fs" />
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>

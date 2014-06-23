@@ -196,8 +196,8 @@ module Planning =
             | None -> None
         | _ -> repairNormalPlan state solution
 
-    let formulatePlan (state : State) intent = 
-        let (name, inttype, goals) = intent
+    let formulatePlan (state : State) (intent:Intention) = 
+        let (name, inttype, goals) = (intent.Label, intent.Type, intent.Objectives)
         match inttype with
         | Communication -> 
             logStateInfo state Planning ("Sending message " + name)
@@ -270,9 +270,8 @@ module Planning =
         class
             interface Planner<State, AgentAction, Intention, Plan> with 
                 member self.FormulatePlan (state, intent) = 
-                    let oldintent = (intent.Label,intent.Type,intent.Objectives)
                     let plan = 
-                        try formulatePlan state oldintent with
+                        try formulatePlan state intent with
                         | exn -> logStateError state Planning <| sprintf "Error encountered in formulatePlan: %A at %A" exn.Message exn.StackTrace
                                  None
                     plan

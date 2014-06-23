@@ -11,6 +11,8 @@ module PlanningTest =
     open FsPlanning.Search
     open NabfAgentLogic.Inspector
     open NabfAgentLogic.Common
+    open NabfAgentLogic.GeneralLib
+    open NabfAgentLogic.LogicLib
 
     [<TestFixture>]
     type IntentionBuildingTests () =
@@ -37,7 +39,7 @@ module PlanningTest =
             let stateWithCarlos = {stateWithRelations with FriendlyData = [(buildAgentWithRole "carlos" "Team Love Unit testing" "a" (Some AgentRole.Repairer))] }
 
             let intention = getRepaired stateWithCarlos                                
-            let intentionTuple = (intention.Value.Label, intention.Value.Type, intention.Value.Objectives)
+            let intentionTuple =normalIntention (intention.Value.Label, intention.Value.Type, intention.Value.Objectives)
 
 
             let actualPlan = formulatePlan stateWithCarlos intentionTuple
@@ -63,7 +65,7 @@ module PlanningTest =
             let stateWithCarlos = {stateWithRelations with FriendlyData = [(buildAgentWithRole "carlos" "Team Love Unit testing" "c" (Some AgentRole.Repairer))] }
 
             let intention = getRepaired stateWithCarlos                                
-            let intentionTuple = (intention.Value.Label, intention.Value.Type, intention.Value.Objectives)
+            let intentionTuple = normalIntention (intention.Value.Label, intention.Value.Type, intention.Value.Objectives)
             
             let actualPlan = formulatePlan stateWithCarlos intentionTuple
             let realPlan = repairPlan stateWithCarlos actualPlan.Value
@@ -91,7 +93,7 @@ module PlanningTest =
             let state = { buildState "a" Inspector world with EnemyData = [enemy] }
 
             let intention = spontanousInspectAgent state
-            let intentionTuple = (intention.Value.Label, intention.Value.Type, intention.Value.Objectives)
+            let intentionTuple =normalIntention (intention.Value.Label, intention.Value.Type, intention.Value.Objectives)
 
             let expectedPlan = [skipAction; moveAction "b"; inspectAction None]
 
@@ -222,11 +224,13 @@ module PlanningTest =
                 |> enhanceStateWithGraphHeuristics
 
             let intention = 
-                ( "attack agent " + enemyName
-                , Activity
-                , [Requirement (Attacked enemyName)] 
-                )
-
+                normalIntention
+                    ( "attack agent " + enemyName
+                    , Activity
+                    , [Requirement (Attacked enemyName)] 
+                    )
+           
+            
             let plan = formulatePlan state intention
 
             let enemy' = { enemy with Node = "c" }
@@ -284,6 +288,61 @@ module PlanningTest =
             let assertion = expectedPlan = (fst actualPlan.Value)
 
             Assert.IsTrue (assertion)
+
+        [<Test>] 
+        member self.MultipleObjectives_TwoGotoGoals_SolveFirstThenTheOther() =
+            let world = 
+                [ ("a", {Identifier = "a"; Value = None; Edges = Set [(None, "b")] })
+                ; ("b", {Identifier = "b"; Value = None; Edges = Set [(None, "a");(None, "c")]})
+                ; ("c", {Identifier = "c"; Value = None; Edges = Set [(None, "b")]})
+                ] |> Map.ofList 
+
+            let state = 
+                buildState "a" Explorer world
+                |> enhanceStateWithGraphHeuristics
+            let intention = normalIntention("testIntention",Activity,[Requirement(At "b"); Requirement(At "c")])
+            
+            let (Some plan) = formulatePlan state intention
+            let (Some updatedPlan) = repairPlan state plan
+            let (Some (action,remPlan)) = nextAction state intention updatedPlan
+            
+            Assert.AreEqual(Perform <| Goto "b",action)
+
+            let updateState = { state with Self = {state.Self with Node = "b" }}
+            let (Some updatedPlan2) = repairPlan updateState remPlan
+            let (Some (action2,remPlan2)) = nextAction updateState intention updatedPlan2
+            
+            Assert.AreEqual(Perform <| Goto "c",action2)
+            
+            let updateState2 = { state with Self = {state.Self with Node = "c" }}
+            let solFinished = solutionFinished updateState2 intention remPlan2
+            Assert.IsTrue (solFinished)
+            ()
+
+        [<Test>] 
+        member self.MultipleObjectives_CommunicateThenRepairGoals_SolveFirstThenTheOther() =
+            let world = 
+                [ ("a", {Identifier = "a"; Value = None; Edges = Set.empty })
+                ] |> Map.ofList 
+
+            let state = 
+                buildState "a" Explorer world
+                |> enhanceStateWithGraphHeuristics
+            let state = {state with FriendlyData = [{ buildAgent "A1" state.Self.Team true with Node = "a"}]}
+            let mail = (state.Self.Name,"A1",GoingToRepairYou)
+            let intention = normalIntention("testIntention",Activity,[Plan(fun _ -> Some [Communicate <| SendMail mail]); Requirement (Repaired("A1"))])
+            
+            let (Some plan) = formulatePlan state intention
+            let (Some updatedPlan) = repairPlan state plan
+            let (Some (action,remPlan)) = nextAction state intention updatedPlan
+            
+            Assert.AreEqual(Communicate <| SendMail mail,action)
+
+            let (Some updatedPlan2) = repairPlan state remPlan
+            let (Some (action2,remPlan2)) = nextAction state intention updatedPlan2
+            
+            Assert.AreEqual(Perform <| Repair "A1",action2)
+            ()
 
         [<Test>]
         member self.RepairPlanProbeZone_VertexInPathIsProbed_RemoveProbeAction() =

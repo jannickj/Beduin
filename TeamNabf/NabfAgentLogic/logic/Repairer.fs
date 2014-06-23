@@ -51,8 +51,7 @@ module Repairer =
 
     let spontanouslyRepairDamagedAgent (inputState:State) = 
         let nearbyDamagedAgent = List.filter (fun a -> a.Status = Disabled) (alliesHere inputState inputState.Self.Node)
-        logStateImportant inputState Logging.Intentions <| sprintf "nearby damaged agents: %A" nearbyDamagedAgent
-        logStateImportant inputState Logging.Intentions <| sprintf "friendly data: %A" inputState.FriendlyData
+        //logStateImportant inputState Logging.Intentions <| sprintf "nearby damaged agents: %A" nearbyDamagedAgent
         match nearbyDamagedAgent with
         | [] -> None
         | head::tail ->     
@@ -83,6 +82,7 @@ module Repairer =
             )
     
     let workOnRepairJob (inputState:State) = 
+        //logStateImportant inputState Logging.Intentions <| sprintf "friendly data: %A" inputState.FriendlyData
         let myJobs = List.map (fun (id,_) -> getJobFromJobID inputState id) inputState.MyJobs
         let myRepairJobs = getJobsByType JobType.RepairJob myJobs
         match myRepairJobs with
