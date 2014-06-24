@@ -328,7 +328,7 @@ module PlanningTest =
             let state = 
                 buildState "a" Repairer world
                 |> enhanceStateWithGraphHeuristics
-            let state = {state with FriendlyData = [{ buildAgent "A1" state.Self.Team true with Node = "a"}]}
+            let state = {state with FriendlyData = [{ buildAgent "A1" state.Self.Team true with Node = "a"; Status=Disabled}]}
             let mail = (state.Self.Name,"A1",GoingToRepairYou)
             let intention = normalIntention("testIntention",Activity,[Plan(fun _ -> Some [Communicate <| SendMail mail]); Requirement (Repaired("A1"))])
             

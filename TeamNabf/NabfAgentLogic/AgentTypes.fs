@@ -73,6 +73,8 @@ module AgentTypes =
         | Attack    of AgentName
         | Parry
         | Repair    of AgentName
+        override self.ToString() = sprintf "%A" self
+
 
     type JobID = int
     type JobValue = int

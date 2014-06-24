@@ -9,6 +9,8 @@
     <RootNamespace>AgentLogicTest</RootNamespace>
     <AssemblyName>AgentLogicTest</AssemblyName>
     <Name>AgentLogicTest</Name>
+    <ProductVersion>12.0.0</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -66,6 +68,7 @@
     <Compile Include="HeuristicTest.fs" />
     <Compile Include="CommonTest.fs" />
     <Compile Include="BiconnectedTest.fs" />
+    <Compile Include="AnalyzePerceptsTest.fs" />
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
