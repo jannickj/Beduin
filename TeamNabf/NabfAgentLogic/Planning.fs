@@ -103,6 +103,7 @@ module Planning =
             Some plan
         | action :: rest when isApplicable (rechargeAction.Effect state) action ->
             Some <| rechargeAction :: plan
+        | [] -> Some plan
         | _ -> 
             None
               

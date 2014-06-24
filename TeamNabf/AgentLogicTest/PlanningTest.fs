@@ -326,7 +326,7 @@ module PlanningTest =
                 ] |> Map.ofList 
 
             let state = 
-                buildState "a" Explorer world
+                buildState "a" Repairer world
                 |> enhanceStateWithGraphHeuristics
             let state = {state with FriendlyData = [{ buildAgent "A1" state.Self.Team true with Node = "a"}]}
             let mail = (state.Self.Name,"A1",GoingToRepairYou)
@@ -342,6 +342,36 @@ module PlanningTest =
             let (Some (action2,remPlan2)) = nextAction state intention updatedPlan2
             
             Assert.AreEqual(Perform <| Repair "A1",action2)
+            ()
+
+        [<Test>] 
+        member self.MultipleObjectives_CommunicateThenMoveGoals_SolveFirstThenTheOther() =
+            let world = 
+                [ ("a", {Identifier = "a"; Value = None; Edges = set [(None, "b")] })
+                ; ("b", {Identifier = "b"; Value = None; Edges = set [(None, "a")] })
+                ] |> Map.ofList 
+
+            let state = 
+                buildState "a" Explorer world
+                |> enhanceStateWithGraphHeuristics
+            let state = {state with FriendlyData = [{ buildAgent "A1" state.Self.Team true with Node = "a"}]}
+            let mail = (state.Self.Name,"A1",GoingToRepairYou)
+            let intention = normalIntention 
+                                ("testIntention"
+                                , Activity
+                                , [Plan(fun _ -> Some [Communicate <| SendMail mail]); Requirement (At "b")]
+                                )
+            
+            let (Some plan) = formulatePlan state intention
+            let (Some updatedPlan) = repairPlan state plan
+            let (Some (action,remPlan)) = nextAction state intention updatedPlan
+            
+            Assert.AreEqual(Communicate <| SendMail mail,action)
+
+            let (Some updatedPlan2) = repairPlan state remPlan
+            let (Some (action2,remPlan2)) = nextAction state intention updatedPlan2
+            
+            Assert.AreEqual(Perform <| Goto "b", action2)
             ()
 
         [<Test>]
