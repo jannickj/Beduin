@@ -7,48 +7,23 @@ module Saboteur =
     open Constants
     open Graphing.Graph
     open GeneralLib
+    open Common
 
     ///////////////////////////////////Helper functions//////////////////////////////////////
     let calculateDesireAttackJob (j:Job) (s:State) = 
-        let ((_,newValue,_,_),(jobData)) = j      
-        let oldJobValue = 
-                            if (s.MyJobs.IsEmpty) then
-                                0
-                            else
-                                (getJobValueFromJoblist s.MyJobs s)
-
-        let jobTargetNode = 
-            match jobData with
-            | AttackJob (zone,_) -> zone.Head
-            | _ -> "None"
-        
-        if jobTargetNode = "None" then
-            -1
-        else   
-            let timeStamp = 
+        let normalJobDesire = calculateJobDesire JOB_IMPORTANCE_MODIFIER_ATTACK DISTANCE_TO_ATTACK_JOB_MOD 0.0 j s
+        let ((_,newValue,_,_),(jobData)) = j
+        let timeStamp = 
                 match jobData with
                 | AttackJob (_,roundnumber) -> roundnumber
-                | _ -> -1
+                | _ -> failwith "Attack job: %A does not have a round number" j
 
-            let jobAge = float (s.SimulationStep - timeStamp);
+        let jobAge = float (s.SimulationStep - timeStamp)
 
-            let distanceToJob = (distanceBetweenAgentAndNode jobTargetNode s)
+        let ageDesire = (jobAge * VALUE_DECAY_PER_TURN)*JOB_AGE_VALUE_DECREASE_FACTOR
+
+        normalJobDesire - (int ageDesire)
         
-            let personalValueMod = 1 |> float//if an agent has some kind of "personal" preference 
-                                                //that modifies how much it desires the new job, using the input modifier 
-        
-             
-            let isEnabled =
-                if (s.Self.Status = EntityStatus.Disabled) then
-                    0.0
-                else
-                    1.0
-
-            //final desire
-            int <| ( JOB_IMPORTANCE_MODIFIER_ATTACK*(((float newValue) * personalValueMod) - (float oldJobValue))      
-                 +    (-((float distanceToJob) * DISTANCE_TO_ATTACK_JOB_MOD))
-                 - ((jobAge * VALUE_DECAY_PER_TURN)*JOB_AGE_VALUE_DECREASE_FACTOR) ) * isEnabled 
-
 
     ////////////////////////////////////////Logic////////////////////////////////////////////
 
@@ -77,7 +52,7 @@ module Saboteur =
                 )
     
     let workOnAttackJob (inputState:State) = 
-        let myJobs = List.map (fun (id,_) -> getJobFromJobID inputState id) inputState.MyJobs
+        let myJobs = List.map (fun (id,_) -> getJobFromJobID inputState.Jobs id) inputState.MyJobs
         let myAttackJobs = getJobsByType JobType.AttackJob myJobs
         match myAttackJobs with
         | ((Some id,_,_,_),_)::_ -> 

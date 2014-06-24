@@ -24,7 +24,8 @@ module AnalyzePercepts =
             updateAgentListsOnState name team updater state 
 
         | VisibleEntity (name,_,_,_) -> 
-            logImportant Perception ("IT GETS A VISBLE ENTITY OF ITSELF" + name)
+            //Ignore percept of itself
+            //logImportant Perception ("IT GETS A VISBLE ENTITY OF ITSELF" + name)
             state
         
         | InspectedEntity agent ->

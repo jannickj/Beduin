@@ -56,38 +56,63 @@ module LogicLib =
                                                                                 | ((_, _, jt, _), _) when jt = jobtype -> true
                                                                                 | _ -> false
                                                                         ) list
+    
+    let getJobValue (j:Job) = 
+        let ((_,jobValue,_,_),(_)) = j
+        jobValue
 
     let getJobId (job:Job) =
         let ((id, _, _, _),_) = job
-        id
+        match id with
+        | Some jid -> jid
+        | None -> failwith <| sprintf "Job: %A, does not have an id" job
 
-    let getJobFromJobID (s:State) (jid:JobID) : Job =
-        (List.filter (fun j -> (getJobId j).Value = jid) s.Jobs).Head
+    let getJobFromJobID  (jobs:Job list) (jid:JobID) =
+        match List.filter (getJobId >> ((=) jid)) jobs with
+        | job::_ -> job
+        | [] -> failwith <| sprintf "No job with id: %A exists" jid
+    
+    let getMyJobs (s:State) =
+        List.map (fst >> (getJobFromJobID s.Jobs)) s.MyJobs
+    
+    let myBestCurrentJob (s:State) = 
+        match getMyJobs s with
+        | [] -> None
+        | myJobs ->
+            Some <| List.maxBy getJobValue myJobs
 
-    let excludeLesserJobs (s:State) calculateDesire (jobs:Job list) =
-        if (s.MyJobs.IsEmpty) then
-            jobs
-        else
-            let (id,_) = s.MyJobs.Head
-            List.filter (fun j -> (calculateDesire j s) > (calculateDesire (getJobFromJobID s id) s)) jobs
+    //Filters a list of jobs to only contain jobs that are better than my current best job
+    let selectBestJobs (s:State) (jobs:Job list) =
+        match myBestCurrentJob s with
+        | Some bestJob ->
+            let currentValue = getJobValue bestJob
+            let isBetter job = 
+                let value = getJobValue job
+                value > currentValue
+            List.filter isBetter jobs
+        | None -> jobs
 
+        //match List.tryFind 
+//        if (s.MyJobs.IsEmpty) then
+//            jobs
+//        else
+//            let (id,_) = s.MyJobs.Head
+//            List.filter (fun j -> (calculateDesire j s) > (calculateDesire (getJobFromJobID s id) s)) jobs
 
-    let createApplication id desire = 
-        Communicate(ApplyJob(id,desire))     
-        
+   
+    
+    let createApplication calculateDesire state (job:Job) = 
+        let id = getJobId job
+        let desire = (calculateDesire job state)
+        Communicate(ApplyJob(id,desire))
+
     let createApplicationList state jobtype calculateDesire = 
-        List.map (
-                    fun (job:Job) -> 
-                        let id = (getJobId job).Value
-                        let desire = (calculateDesire job state)
-                        (createApplication id desire)
-                 ) 
-                 (excludeLesserJobs state calculateDesire (getJobsByType jobtype state.Jobs))
+        let jobsOfProperType = getJobsByType jobtype state.Jobs
+        let wantedJobs = selectBestJobs state jobsOfProperType
+        let appCreater = createApplication calculateDesire state
+        List.map appCreater wantedJobs
+                 
 
-    let getJobValueFromJoblist (list:(JobID*_) list) (s:State) : int =
-        let (id,_) = list.Head
-        let ((_,value,_,_),_) = (getJobFromJobID s id)
-        value
 
 
     //let isPartOfOccupyJob n (s:State) = List.exists (fun (j:Job) -> j ) s.Jobs

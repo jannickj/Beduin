@@ -288,6 +288,27 @@ module PlanningTest =
             let assertion = expectedPlan = (fst actualPlan.Value)
 
             Assert.IsTrue (assertion)
+        
+        [<Test>] 
+        member self.RepairPlan_MissingEnergy_PerformActionsThenDeclarePlanFinished() =
+            let world = 
+                [ ("a", {Identifier = "a"; Value = None; Edges = Set.empty })
+                ] |> Map.ofList 
+
+            let state = buildState "a" Explorer world
+            let noEnergyState = { state with Self = { state.Self with Energy = Some 0 } }
+
+            let intention = normalIntention("testIntention",Activity,[Plan (fun _ -> Some [Perform Parry])])
+            let (Some plan) = formulatePlan noEnergyState intention
+            let (Some updatedPlan) = repairPlan noEnergyState plan
+            let (Some (action,remPlan)) = nextAction noEnergyState intention updatedPlan
+            let (Some updatedPlan2) = repairPlan state remPlan
+            let (Some (action2,remPlan2)) = nextAction noEnergyState intention updatedPlan2
+            Assert.AreEqual(Perform Recharge, action)
+            Assert.AreEqual(Perform Parry, action2)
+            let finished = solutionFinished noEnergyState intention remPlan2
+            Assert.True (finished)
+            ()
 
         [<Test>] 
         member self.MultipleObjectives_TwoGotoGoals_SolveFirstThenTheOther() =

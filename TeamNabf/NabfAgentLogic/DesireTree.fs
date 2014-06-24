@@ -53,6 +53,7 @@ module DesireTree =
                         //Desire(postAttackJob)
     
     //                    ////Desire(postDisruptJob)
+                        Desire(onlyHaveOneJob)
     //
                         Desire(postRepairJob)
                         Desire(giveMyLocationToMyRepairer)

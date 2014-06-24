@@ -22,31 +22,25 @@ module Common =
        
 
     //Calculate the desire to an occupy job
-    let calculateDesireOccupyJob  modifier (j:Job) (s:State)= 
-        let ((_,newValue,_,_),(jobData)) = j      
-        let oldJobValue = 
-                            if (s.MyJobs.IsEmpty) then
-                                0
-                            else
-                                (getJobValueFromJoblist s.MyJobs s)
-
-        let jobTargetNode = 
+    let calculateJobDesire importanceModifier distanceModifier (roleModifier:float) (j:Job) (s:State)= 
+        let ((_,jobValue,_,_),(jobData)) = j      
+        let targetNode = 
             match jobData with
-            | OccupyJob (_,zone) -> zone.Head
+            | OccupyJob (_,n::_) -> n
+            | RepairJob (n,_) -> n
+            | DisruptJob (n) -> n
+            | AttackJob (n::_,_) -> n
+            | _ -> failwith <| sprintf "Can't calculate distance desire as %A has no target node" j
 
-        let distanceToJob = (distanceBetweenAgentAndNode jobTargetNode s)
+        let distanceToJob = (distanceBetweenAgentAndNode targetNode s)
         
-        let personalValueMod = 1 |> float//if an agent has some kind of "personal" preference 
-                                         //that modifies how much it desires the new job, using the input modifier 
-        
-        let isEnabled =
-            if (s.Self.Status = EntityStatus.Disabled) then
-                0.0
-            else
-                1.0
+        let importance = importanceModifier * (float jobValue)
 
+        let distanceAndRole = distanceModifier * (float (distanceToJob - (int roleModifier)))
         //final desire
-        int <| (( (JOB_IMPORTANCE_MODIFIER_OCCUPY*(((float newValue) * personalValueMod) - (float oldJobValue)))   +    (-((float distanceToJob) * DISTANCE_TO_OCCUPY_JOB_MOD))   +    modifier) * isEnabled)
+        int <| importance - distanceAndRole
+
+
     //Try to find any repair jobs for a specific agent
     let tryFindRepairJobForAgent (agentName) (jobs:Job list) =
         List.tryFind (fun (_,job) -> 
@@ -68,6 +62,16 @@ module Common =
     let notSurveyedEnough (s:State) = s.SimulationStep < SURVEY_MY_NODE_UNTIL_THIS_TURN_IF_NEEDED
 
     ////////////////////////////////////////Logic////////////////////////////////////////////
+
+    let onlyHaveOneJob (inputState:State) =
+        match myBestCurrentJob inputState with
+        | Some myBestJob -> 
+            match List.filter (fun (id,_) -> getJobId myBestJob <> id) inputState.MyJobs with 
+            | [] -> None
+            | otherJobs -> 
+                let unapplyOtherJobs = List.map (fun (id,_) -> Communicate <| UnapplyJob(id)) otherJobs
+                Some <| normalIntention ("only have one job", Communication,[Plan (fun _ -> Some <| unapplyOtherJobs)] )
+        | None -> None
 
     let unapplyFromJobsWhenDisabled (inputState:State) = 
         if inputState.MyJobs.Length = 0 || inputState.Self.Status = EntityStatus.Normal then
@@ -135,7 +139,7 @@ module Common =
     let getRepaired (inputState:State) =
         let repairJob =
             match inputState.MyJobs with
-            | (id,_)::_ -> Some (snd <| getJobFromJobID inputState id)
+            | (id,_)::_ -> Some (snd <| getJobFromJobID inputState.Jobs id)
             | _ -> None
 
         match Map.tryFind MyRepairer inputState.Relations, inputState.Self.Status, repairJob with
@@ -229,17 +233,26 @@ module Common =
     
     
     let applyToOccupyJob  modifier (inputState:State) = 
-        let applicationList = createApplicationList inputState JobType.OccupyJob (calculateDesireOccupyJob modifier)
-        Some <| normalIntention ( 
-                "apply to all occupy jobs"
-                 , Communication
-                 , [Plan (fun state -> Some applicationList)]
-             )
+        logStateImportant inputState Jobs <| sprintf "Agent has %A jobs" inputState.MyJobs.Length
+        if inputState.Self.Status = Normal then
+            let desireCalc = (calculateJobDesire JOB_IMPORTANCE_MODIFIER_OCCUPY DISTANCE_TO_OCCUPY_JOB_MOD  modifier)
+            let applicationList = createApplicationList inputState JobType.OccupyJob desireCalc
+            let numberofApps = List.length applicationList
+            if numberofApps > 0 then
+                Some <| normalIntention ( 
+                        "apply to " + numberofApps.ToString() + " occupy jobs"
+                            , Communication
+                            , [Plan (fun state -> Some applicationList)]
+                        )
+            else
+                None
+        else 
+            None
     
 
     let workOnOccupyJob (inputState:State) =
         logStateInfo inputState Intentions <| sprintf  "my jobs are: %A" (List.map fst inputState.MyJobs)
-        let myJobs = List.map (fun (id,_) -> getJobFromJobID inputState id) inputState.MyJobs
+        let myJobs = List.map (fun (id,_) -> getJobFromJobID inputState.Jobs id) inputState.MyJobs
         let myOccupyJobs = getJobsByType JobType.OccupyJob myJobs
         match myOccupyJobs with
         | ((id,_,_,_),_)::_ -> 
@@ -309,7 +322,7 @@ module Common =
         let agentsOnMyNodeWhileImOnOccupyJob =
             match inputState.MyJobs with
             | (jobid,_)::tail -> 
-                match (getJobFromJobID inputState jobid) with
+                match (getJobFromJobID inputState.Jobs jobid) with
                 | (_,OccupyJob(_,zoneList)) -> 
                     match List.filter (fun a -> (List.exists (fun n -> n = a.Node) zoneList) && a.Status = EntityStatus.Normal) inputState.EnemyData with
                     | h::t -> Some (h::t)

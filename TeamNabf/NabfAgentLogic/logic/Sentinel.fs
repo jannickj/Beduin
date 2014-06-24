@@ -44,7 +44,7 @@ module Sentinel =
 
     let workOnOccupyJobWithSurvey (inputState:State) = 
         logStateInfo inputState Intentions <| sprintf  "my jobs are: %A" (List.map fst inputState.MyJobs)
-        let myJobs = List.map (fun (id,_) -> getJobFromJobID inputState id) inputState.MyJobs
+        let myJobs = List.map (fun (id,_) -> getJobFromJobID inputState.Jobs id) inputState.MyJobs
         let myOccupyJobs = getJobsByType JobType.OccupyJob myJobs
         if (float (inputState.Self.Energy.Value) < float(inputState.Self.MaxEnergy.Value) * ENERGY_FACTOR_TO_PREFER_SURVEY_OVER_RECHARGE) then
             match myOccupyJobs with

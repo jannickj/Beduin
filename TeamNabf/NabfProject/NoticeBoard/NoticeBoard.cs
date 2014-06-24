@@ -270,11 +270,11 @@ namespace NabfProject.NoticeBoardModel
                     agent.Raise(new ReceivedJobEvent(notice, agent));
                     Console.WriteLine(""+agent.Name+" got "+notice.ToString());
 
-                    foreach (Notice noticeToFireFrom in GetAllNotices())
-                    {
-                        if (AgentListContainsAgent(noticeToFireFrom.GetAgentsOnJob(), agent) && noticeToFireFrom.Id != notice.Id)
-                            FireAllAgentsOnNotice(noticeToFireFrom);
-                    }
+                    //foreach (Notice noticeToFireFrom in GetAllNotices())
+                    //{
+                    //    if (AgentListContainsAgent(noticeToFireFrom.GetAgentsOnJob(), agent) && noticeToFireFrom.Id != notice.Id)
+                    //        FireAllAgentsOnNotice(noticeToFireFrom);
+                    //}
                     jobQueue = CreateQueueSortedByAvgDesirability();
                 }
             }

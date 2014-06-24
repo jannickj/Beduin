@@ -7,32 +7,10 @@ module Inspector =
     open Constants
     open Graphing.Graph
     open GeneralLib
-
-    let distanceToOccupyJobMod = 0.1
+    open Common
 
     ///////////////////////////////////Helper functions//////////////////////////////////////
-    let calculateDesireOccupyJob (j:Job) (s:State) = 
-        let ((_,newValue,_,_),(jobData)) = j      
-        let oldJobValue = 
-                            if (s.MyJobs.IsEmpty) then
-                                0
-                            else
-                                (getJobValueFromJoblist s.MyJobs s)
-
-        let jobTargetNode = 
-            match jobData with
-            | OccupyJob (_,zone) -> zone.Head
-        
-
-        let distanceToJob = (distanceBetweenAgentAndNode jobTargetNode s)
-        
-        let personalValueMod = 1 |> float//if an agent has some kind of "personal" preference 
-                                         //that modifies how much it desires the new job, using the input modifier 
-
-        
-        //final desire
-        int <| (((float newValue) * personalValueMod) - (float oldJobValue)) + (-((float distanceToJob) * DISTANCE_TO_OCCUPY_JOB_MOD)) + INSPECTOR_OCCUPYJOB_MOD
-   
+ 
 
     let nodeHasUninspectedAgent (state:State) node =
         List.exists (fun a -> a.Role.IsNone && a.Node = node) state.EnemyData
@@ -81,14 +59,6 @@ module Inspector =
 //                    , Activity
 //                    , [Requirement (Inspected head.Name)]
 //                )
-
-    let applyToOccupyJob (inputState:State) = 
-        let applicationList = createApplicationList inputState JobType.OccupyJob calculateDesireOccupyJob
-        Some(
-                "apply to all occupy jobs"
-                , Communication
-                , [Plan(fun state -> Some applicationList)]
-            )
     
     let applyToDisruptJob (inputState:State) = None //advanced feature
     

@@ -330,14 +330,14 @@ module ActionSpecifications =
         let updateState state =
             { state with Self = deductEnergy Constants.ACTION_COST_EXPENSIVE state }
 
-        let saboteurPresent state = 
-            let res = List.exists (fun enemy -> enemy.Node = state.Self.Node && (enemy.Role = None || enemy.Role = Some Saboteur)) state.EnemyData
-            match res with 
-            | true -> Success
-            | false -> Failure "No saboteur present"
+//        let saboteurPresent state = 
+//            let res = List.exists (fun enemy -> enemy.Node = state.Self.Node && (enemy.Role = None || enemy.Role = Some Saboteur)) state.EnemyData
+//            match res with 
+//            | true -> Success
+//            | false -> Failure "No saboteur present"
 
         { ActionType    = Perform <| Parry
-        ; Preconditions = [ saboteurPresent; enoughEnergy Constants.ACTION_COST_EXPENSIVE; isNotDisabled ]
+        ; Preconditions = [ enoughEnergy Constants.ACTION_COST_EXPENSIVE; isNotDisabled ]
         ; Effect        = updateState
         ; Cost          = fun state -> turnCost state + Constants.ACTION_COST_EXPENSIVE
         }

@@ -10,7 +10,7 @@ module SentinelTree =
     let getSentinelDesires : DesireTree<State,Intention> = 
             ManyDesires 
                 [
-                    Desire(unapplyFromJobsWhenDisabled)
+                    //Desire(unapplyFromJobsWhenDisabled)
 
                     Desire(applyToOccupyJob SENTINEL_OCCUPYJOB_MOD)
 

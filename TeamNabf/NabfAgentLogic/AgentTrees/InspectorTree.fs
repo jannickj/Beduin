@@ -10,7 +10,7 @@ module InspectorTree =
     let getInspectorDesires : DesireTree<State,Intention> = 
             ManyDesires 
                 [
-                    Desire(unapplyFromJobsWhenDisabled)
+                    //Desire(unapplyFromJobsWhenDisabled)
 
                     Desire(spontaneousInspectAgentOnMyNode)
 

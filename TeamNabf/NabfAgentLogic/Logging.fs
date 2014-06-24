@@ -18,14 +18,16 @@ module Logging =
         | Perception
         | Agent
         | Parsing
+        | Jobs
 
     let allowFlags = 
         [ 
+            //Jobs
             Planning
-            ActionSpecifications
-            Intentions
-            Perception
-            Agent
+//            ActionSpecifications
+//            Intentions
+//            Perception
+//            Agent
 //            Parsing
         ] |> Set.ofList
 

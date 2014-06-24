@@ -52,6 +52,7 @@
 
         let JOB_IMPORTANCE_MODIFIER_OCCUPY = 10.0
         let JOB_IMPORTANCE_MODIFIER_ATTACK = 1.0
+        let JOB_IMPORTANCE_MODIFIER_REPAIR = 1.0
 
         let DESIRE_COST_OF_MOVING_THROUGH_ONE_ENEMY_NODE = 0.02 //distance to job will be (dist + number_of_enemy_nodes*this_constant), meaning
                                                                 //nodes with enemies on them on the route will be considered more expensive,
@@ -123,8 +124,8 @@
 
         let mutable OUR_TEAM = "Nabf"
         let EXPLORE_FACTOR_DONE_EXPLORING = 0.98
-        let PROBE_FACTOR_LIGHT = 0.9
-        let MAX_PLANNING_TIME_MS = 100000000L
+        let PROBE_FACTOR_LIGHT = 0.8
+        let MAX_PLANNING_TIME_MS = 1000L
 
         let NUMBER_OF_AGENTS = 28
         let INFINITE_HEURISTIC = 10000
