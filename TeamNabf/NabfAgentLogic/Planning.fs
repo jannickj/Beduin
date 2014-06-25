@@ -214,6 +214,7 @@ module Planning =
 
     let solutionFinished state intent (solution : Plan) = 
         match solution with
+        | ([p], [Plan _]) -> true
         | ([], [Plan _]) -> true
         | (_, [Plan _]) -> false
         | (_, [objective]) ->  
