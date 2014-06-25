@@ -48,9 +48,9 @@ module DesireTree =
     //                            )
                         Desire(shareKnowledge)
     
-                        Desire(postDefenseJob)
+                        //Desire(postDefenseJob)
     
-                        Desire(postAttackJob)
+                        //Desire(postAttackJob)
     
     //                    ////Desire(postDisruptJob)
                         Desire(onlyHaveOneJob)

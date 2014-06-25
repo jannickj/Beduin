@@ -28,8 +28,9 @@ module GeneralLib =
             Set.forall (snd >> isNeighbourOrThis) state.World.[vertexName].Edges
         Set.toList <| Set.filter isDeadEnd neighbours
 
-    let isUnexplored state vertex = 
-        (not (List.exists (fun (value, _) -> Option.isSome value) <| Set.toList state.World.[vertex].Edges)) && vertex <> state.Self.Node
+    let isUnexplored (state:State) vertex = 
+        //(not (List.exists (fun (value, _) -> Option.isSome value) <| Set.toList state.World.[vertex].Edges)) && vertex <> state.Self.Node
+        not <| Set.contains vertex state.ExploredNodes
 
     let isUnprobed (state:State) node =
         let n = state.World.[node] 

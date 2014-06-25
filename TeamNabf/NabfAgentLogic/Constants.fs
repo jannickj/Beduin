@@ -130,6 +130,6 @@
         let NUMBER_OF_AGENTS = 28
         let INFINITE_HEURISTIC = 10000
 
-        let PERCEPT_TIME_BUFFER = 1000.0
+        let PERCEPT_TIME_BUFFER = 2000.0
 
         let MINIMUM_ROLE_CERTAINTY = 50

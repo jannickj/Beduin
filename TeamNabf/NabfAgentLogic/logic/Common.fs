@@ -211,29 +211,23 @@ module Common =
                ]
              )
 
-//    let _oldKnowledge = ref (Set.empty<Percept>)
-//    let _redundant = ref 0
-//    let lockObject = new System.Object()
 
     let shareKnowledge (inputState:State) : Option<Intention> =
-//         lock lockObject (fun () -> let ss = !_oldKnowledge
-//                                    let ns = List.fold (fun ps p -> 
-//                                                
-//                                                Set.add p ps) ss s.NewKnowledge
-//                                    ()
-//                                    )          
-        logInfo Intentions <| sprintf "length of newKnowledge: %A" inputState.NewKnowledge.Length     
-        Some<| normalIntention 
-                (   "share my knowledge", 
-                    Communication, 
-                    [Plan   ( fun state -> 
-                                if (state.NewKnowledge.Length > 0) then
-                                    Some [(Communicate <| ShareKnowledge ( state.NewKnowledge))] 
-                                else
-                                    None
-                            )
-                    ]
-                )
+        logInfo Intentions <| sprintf "length of newKnowledge: %A" inputState.NewKnowledge.Length 
+        let hasNewKnowledge s = List.length s.NewKnowledge > 0
+        if hasNewKnowledge inputState then
+            Some<| normalIntention 
+                    (   "share my knowledge", 
+                        Communication, 
+                        [Plan   ( fun state -> 
+                                    if hasNewKnowledge state then
+                                        Some [(Communicate <| ShareKnowledge ( state.NewKnowledge))] 
+                                    else
+                                        None
+                                )
+                        ]
+                    )
+        else None
          
     
     

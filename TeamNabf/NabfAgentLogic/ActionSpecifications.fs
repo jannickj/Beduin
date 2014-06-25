@@ -127,6 +127,7 @@ module ActionSpecifications =
                 Self = newSelf; 
                 LastAction = Action.Goto destination;
                 World = addEdge edge state.World
+                ExploredNodes = Set.add destination state.ExploredNodes
             }
 
 

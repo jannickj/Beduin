@@ -117,6 +117,14 @@ module LogicLib =
 
     //let isPartOfOccupyJob n (s:State) = List.exists (fun (j:Job) -> j ) s.Jobs
 
+    //Only use this if heuristics for one of the nodes has been calculated
+    let edgeDistance node1 node2 (state:State) : int =
+        let (heuMap,_) = state.GraphHeuristic
+        let [nodeA;nodeB] = List.sort [node1; node2]
+        match Map.tryFind (nodeA,nodeB) heuMap with
+        | Some (_,dist) ->
+            dist
+        | None -> failwith "Node %A or Node %A has no graph heuristic calculation and can thus not be used for edgeDistance"
 
     let distanceBetweenNodes node1 node2 (state:State) : int =
         let (heuMap,_) = state.GraphHeuristic

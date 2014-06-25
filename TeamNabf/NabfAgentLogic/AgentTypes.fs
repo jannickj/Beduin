@@ -23,6 +23,7 @@ module AgentTypes =
         | FailedStatus
         | FailedLimit
         | FailedRandom
+        | Useless
 
     type AgentRole =
         | Saboteur
@@ -142,7 +143,7 @@ module AgentTypes =
         | Self              of Agent
         | NewRoundPercept        
         
-        | NodeKnowledge     of (VertexName * int)
+        | NodeKnowledge     of (VertexName * (int option))
         | EdgeKnowledge     of Edge
         | AgentRolePercept  of AgentName * AgentRole * int
         | HeuristicUpdate   of VertexName * VertexName * (int*int)
@@ -231,6 +232,8 @@ module AgentTypes =
             Relations        : Map<Relation,AgentName>
             NodesControlledByEnemy : VertexName Set
             NodesInVisionRange :VertexName Set
+            ExploredNodes   : VertexName Set
+
             ///USED FOR PLANNING ONLY DONT USE THEM IN INTENTION CHECKS
             PlannerProbed          : VertexName Set
             PlannerRepairedAgents  : AgentName Set

@@ -81,7 +81,7 @@ module Saboteur =
         let shouldAttack (agent:Agent) =
                 agent.Status = Normal
              && agent.IsInVisionRange
-             && (not (agent.Role = Some Sentinel) && agent.RoleCertainty >= MINIMUM_ROLE_CERTAINTY)
+             && (not (agent.Role = Some Sentinel && agent.RoleCertainty >= MINIMUM_ROLE_CERTAINTY))
         let healthyEnemies = List.filter shouldAttack inputState.EnemyData
         if List.length healthyEnemies > 0 then
             let closest = List.minBy (fun a -> distanceBetweenAgentAndNode a.Node inputState) healthyEnemies

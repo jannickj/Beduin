@@ -6,6 +6,8 @@ module DetermineSharedPercepts =
     let shouldSharePercept oldState (state:State) percept = 
         match percept with
         | AgentRolePercept (_,_,_) -> true
+        | NodeKnowledge (name, None) ->
+            not <| Set.contains name oldState.ExploredNodes
         | VertexProbed (vertexName, value) ->
             match Map.tryFind vertexName oldState.World with
             | Some vertex -> Option.isNone vertex.Value

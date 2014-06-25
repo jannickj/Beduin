@@ -72,13 +72,14 @@ module Repairer =
         | ((Some id,_,_,_),RepairJob(_,agentName))::_ -> 
             let node = match tryFindAgentByName agentName inputState.FriendlyData with
                        | Some agent -> agent.Node
-                       | None -> "unknown" 
+                       | None -> failwith "Can't see agent to repair" 
             
             normalIntention 
                 ( "repair agent " + agentName + " on node " + node
                 , Activity
                 , [ Plan (fun s -> Some [Communicate <| SendMail (s.Self.Name,agentName,GoingToRepairYou)]);
-                    Requirement (Repaired agentName)]
+                    Requirement (Repaired agentName)
+                  ]
                 )
             |> Some
         | _ -> None
