@@ -281,32 +281,26 @@ namespace NabfProject.NoticeBoardModel
             
             HashSet<string> nameChecking = new HashSet<string>();
             bool b;
-            foreach (Notice n in GetAllNotices())
-            {
-                if (n.GetAgentsOnJob().Count > n.AgentsNeeded)
-                {
-                    Console.WriteLine("job with ID " + n.Id + " has more agents on job than agents needed");
-                    Console.WriteLine("job with ID " + n.Id + " has more agents on job than agents needed");
-                    Console.WriteLine("job with ID " + n.Id + " has more agents on job than agents needed");
-                    Console.WriteLine("job with ID " + n.Id + " has more agents on job than agents needed");
-                    Console.WriteLine("job with ID " + n.Id + " has more agents on job than agents needed");
-                }
-
-                foreach (NabfAgent a in n.GetAgentsOnJob())
-                {
-                    b = nameChecking.Add(a.Name);
-                    if (b == false)
-                    {
-                        Console.WriteLine("" + a.Name + " is in multiple OnJob lists");
-                        Console.WriteLine("" + a.Name + " is in multiple OnJob lists");
-                        Console.WriteLine("" + a.Name + " is in multiple OnJob lists");
-                        Console.WriteLine("" + a.Name + " is in multiple OnJob lists");
-                        Console.WriteLine("" + a.Name + " is in multiple OnJob lists");
-                        Console.WriteLine("" + a.Name + " is in multiple OnJob lists");
-                        Console.WriteLine("" + a.Name + " is in multiple OnJob lists");
-                    }
-                }
-            }
+//            foreach (Notice n in GetAllNotices())
+//            {
+//                if (n.GetAgentsOnJob().Count > n.AgentsNeeded)
+//                {
+//                    Console.WriteLine("job with ID " + n.Id + " has more agents on job than agents needed");
+//                    Console.WriteLine("job with ID " + n.Id + " has more agents on job than agents needed");
+//                    Console.WriteLine("job with ID " + n.Id + " has more agents on job than agents needed");
+//                    Console.WriteLine("job with ID " + n.Id + " has more agents on job than agents needed");
+//                    Console.WriteLine("job with ID " + n.Id + " has more agents on job than agents needed");
+//                }
+//
+//                foreach (NabfAgent a in n.GetAgentsOnJob())
+//                {
+//                    b = nameChecking.Add(a.Name);
+//                    if (b == false)
+//                    {
+//                        Console.WriteLine("" + a.Name + " is in multiple OnJob lists");
+//                    }
+//                }
+//            }
             return true;
         }
         private void FireAllAgentsOnNotice(Notice noticeToFireFrom)
