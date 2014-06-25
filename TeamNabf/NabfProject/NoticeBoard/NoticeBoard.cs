@@ -301,6 +301,10 @@ namespace NabfProject.NoticeBoardModel
 //                    }
 //                }
 //            }
+            foreach (Notice n in GetAllNotices())
+            {
+                n.ClearAgentsApplied();
+            }
             return true;
         }
         private void FireAllAgentsOnNotice(Notice noticeToFireFrom)
