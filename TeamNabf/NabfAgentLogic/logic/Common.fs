@@ -33,8 +33,13 @@ module Common =
             | _ -> failwith <| sprintf "Can't calculate distance desire as %A has no target node" j
 
         let distanceToJob = (distanceBetweenAgentAndNode targetNode s)
+
+        let currentJobValue = 
+            match myBestCurrentJob s with
+            | Some bestJob -> getJobValue bestJob
+            | None -> 0
         
-        let importance = importanceModifier * (float jobValue)
+        let importance = importanceModifier * (float (jobValue - currentJobValue))
 
         let distanceAndRole = distanceModifier * (float (distanceToJob - (int roleModifier)))
         //final desire
