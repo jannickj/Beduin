@@ -217,29 +217,37 @@ module Planning =
         | ([p], [Plan _]) -> true
         | ([], [Plan _]) -> true
         | (_, [Plan _]) -> false
-        | (_, [objective]) ->  
+        | (_, [objective]) ->
             (wrappedGoalTest <| goalTest (goalList objective state)) state
         | (_, []) -> true
         | _ -> false
     
     let rec nextAction state (intent : Intention) (plan : Plan) =
-        match plan with
-        | (action :: rest, objectives) -> 
-            Some (action.ActionType, (action :: rest, objectives))
-        | ([], [] ) -> None
-        | ([], objectives) ->
-            let newObjectives = 
-                match objectives with
-                | (Plan p) :: tail -> 
-                    tail
-                | objective :: tail when wrappedGoalTest (goalTest (goalList objective state)) state ->
-                    tail
-                | objectives ->
-                    objectives
+        let gtest objective = wrappedGoalTest (goalTest (goalList objective state)) state
 
-            match makePlan state newObjectives with
-            | Some newPlan -> nextAction state intent newPlan
-            | None -> None
+        match immediateAction state with
+        | Some action -> Some (action, plan)
+        | None -> 
+            match plan with
+            | (action :: rest, Plan _ :: _) & (_, objectives) ->
+                Some (action.ActionType, (action :: rest, objectives))
+            | (action :: rest, objective :: _) & (_, objectives) when not <| gtest objective  -> 
+                Some (action.ActionType, (action :: rest, objectives))
+            | (_, objectives) & (_, objective :: _)  ->
+                let newObjectives = 
+                    match objectives with
+                    | (Plan p) :: tail -> 
+                        tail
+                    | objective :: tail when gtest objective ->
+                        tail
+                    | objectives ->
+                        objectives
+
+                match makePlan state newObjectives with
+                | Some newPlan -> nextAction state intent newPlan
+                | None -> None
+
+            | (_, [] ) -> None
            
     let updateGoalHeuristic goal state =
         match goalVertex goal state with

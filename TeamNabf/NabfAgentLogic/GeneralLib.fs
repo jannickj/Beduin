@@ -73,3 +73,13 @@ module GeneralLib =
     let getJobId (job:Job) =
         let ((id,_,_,_),_) = job
         Option.get id
+
+    let immediateAction state =
+        match state.Self.Role with
+        | Some Saboteur -> 
+            let relevant agent = agent.Role <> Some Sentinel || agent.RoleCertainty > MINIMUM_ROLE_CERTAINTY
+            let relevantEnemies = List.filter relevant <| enemiesHere state state.Self.Node 
+            match relevantEnemies with
+            | enemy :: _ -> Some <| Perform (Attack enemy.Name)
+            | [] -> None
+        | _ -> None
