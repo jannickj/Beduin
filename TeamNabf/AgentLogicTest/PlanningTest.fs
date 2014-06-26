@@ -410,9 +410,11 @@ module PlanningTest =
                          
             let originalPlan = 
                 [ skipAction
-                ; moveAction "b"; probeAction None
-                ; moveAction "c"; probeAction None
-                ; moveAction "d"; probeAction None
+                ; moveAction "b"
+                ; probeAction None
+                ; moveAction "c"
+                ; probeAction (Some "d")
+                ; probeAction None
                 ]
 
             let objective = MultiGoal (fun _ -> [Probed "c"; Probed "d"])
@@ -420,8 +422,9 @@ module PlanningTest =
 
             let expectedPlan =
                 [ moveAction "b"
-                ; moveAction "c"; probeAction None
-                ; moveAction "d"; probeAction None
+                ; moveAction "c"
+                ; probeAction (Some "d")
+                ; probeAction None
                 ]
 
             let actualPlan = repairPlan state (originalPlan, [objective])
@@ -460,17 +463,19 @@ module PlanningTest =
 
             let originalPlan =
                 [ skipAction
-                ; moveAction "b"; probeAction None
-                ; moveAction "c"; probeAction None
-                ; moveAction "d"; probeAction None
+                ; moveAction "b"
+                ; probeAction (Some "c")
+                ; probeAction (Some "d")
+                ; probeAction None
                 ]
 
             let objective = MultiGoal (fun _ -> [Probed "b"; Probed "d"])
 //            let intention = ("probe zone", Activity, [objective])
 
             let expectedPlan =
-                [ moveAction "b"; probeAction None
-                ; moveAction "d"; probeAction None
+                [ moveAction "b"
+                ; probeAction (Some "d")
+                ; probeAction None
                 ]
             
             let actualPlan = repairPlan state (originalPlan, [objective])
