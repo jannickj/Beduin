@@ -371,10 +371,26 @@ module Common =
                                 )
                     | [] ->
                         Some <| normalIntention 
-                                ( sprintf "post defense job on node %A" jobNodes
+                                ( sprintf "post defense job on nodes %A" jobNodes
                                 , Communication
                                 , [ Plan <| fun state -> Some [Communicate( CreateJob( (None,jobValue,JobType.AttackJob,1),AttackJob(jobNodes,inputState.SimulationStep) ))]]
                                 )
-                    | multipleJobs -> failwith "By order of Soren the Almighty, this havent been implemented"
+                    | multipleJobs -> 
+                        let updateZoneOfOldJob nodesOfNewJob jobToBeUpdated =
+                            match jobToBeUpdated with
+                            | ((oldId,oldValue,_,_),AttackJob(nodesOfOld,_)) -> 
+                                let newAttackJobNodes = List.filter (fun n -> List.exists ((<>) n) nodesOfNewJob) nodesOfOld
+                                Plan <| fun state -> Some [Communicate( UpdateJob((oldId,oldValue,JobType.AttackJob,1),AttackJob(newAttackJobNodes,inputState.SimulationStep) ))]
+                            | _ -> failwith "job list includes non-attack jobs"
+
+                        let allJobUpdates = List.map (updateZoneOfOldJob jobNodes) multipleJobs
+                        
+                        Some <| normalIntention 
+                                ( sprintf "post defense job on nodes %A" jobNodes
+                                , Communication
+                                , allJobUpdates@[ Plan <| fun state -> Some [Communicate( CreateJob( (None,jobValue,JobType.AttackJob,1),AttackJob(jobNodes,inputState.SimulationStep) ))]]
+                                )
+
+                            
 
 
