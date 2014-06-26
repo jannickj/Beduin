@@ -216,12 +216,12 @@ module Explorer =
             List.map (fun zoneVertex -> zoneVertex.Vertex.Identifier) agentPositions
 
     let calcZoneValue  (state:State) (agents:int) (zone:string Set) =
-        let hasEnemy = Set.exists (fun name -> List.exists (fun agent -> agent.Node = name) state.EnemyData) zone
+        //let hasEnemy = Set.exists (fun name -> List.exists (fun agent -> agent.Node = name) state.EnemyData) zone
         let fullvalue = Set.fold (fun value name -> if state.World.[name].Value = None then value else value + state.World.[name].Value.Value) 0 zone
-        if hasEnemy then
-            fullvalue / 2
-        else
-            fullvalue
+//        if hasEnemy then
+//            fullvalue / 2
+//        else
+        fullvalue
 
     //Create the objectives list for findNewIslandZone
     let createIslandObjectives inputState island articulationPoint = 

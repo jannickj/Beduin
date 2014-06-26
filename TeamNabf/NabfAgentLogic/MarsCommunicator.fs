@@ -42,15 +42,16 @@
                 let waitNewRound = generateWaitForNewRound()
                 let reqid = lock requestLock (fun () -> requestedActId)
                 if reqid > actId then
+                    logInfo Agent <| sprintf "Waited for reqid %A to change" reqid
                     ()
-//                    logImportant Perception <| "Waited for id to change reqid: "+reqid.ToString()
                 else
+                    logInfo Agent <| sprintf "At reqid %A waiting for it to change" reqid
                     Async.RunSynchronously waitNewRound
                     waitForActionToFinish actId
 
             let sendActionAndAwaitFinish actionSender action =
                 let sentId = sendAction actionSender action
-//                logImportant Perception <| sprintf "Sent action %A for id: %A" action sentId
+                logImportant Agent <| sprintf "Sent action %A for id: %A" action sentId
                 waitForActionToFinish sentId
 
             [<CLIEvent>]

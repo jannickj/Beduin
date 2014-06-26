@@ -82,6 +82,10 @@ namespace NabfProject.NoticeBoardModel
         {
             _agentProspects.Clear();
         }
+        public void ClearAgentsApplied()
+        {
+            _agentsApplied.Clear();
+        }
 
         public bool TryGetDesirabilityOfAgent(NabfAgent agent, out double desire)
         {
