@@ -226,8 +226,9 @@ module Planning =
         let gtest objective = wrappedGoalTest (goalTest (goalList objective state)) state
 
         match immediateAction state with
-        | Some action -> Some (action, plan)
-        | None -> 
+        | Some action when isApplicable state (actionSpecification action) ->
+            Some (action, plan)
+        | _ -> 
             match plan with
             | (action :: rest, Plan _ :: _) & (_, objectives) ->
                 Some (action.ActionType, (action :: rest, objectives))
