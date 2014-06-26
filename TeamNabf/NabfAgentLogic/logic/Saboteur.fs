@@ -28,12 +28,15 @@ module Saboteur =
     ////////////////////////////////////////Logic////////////////////////////////////////////
 
     let applyToAttackJob (inputState:State) = 
-        let applicationList = createApplicationList inputState JobType.AttackJob calculateDesireAttackJob
-        Some <| normalIntention (
-                "apply to all attack jobs"
-                , Communication
-                , [Plan(fun state -> Some applicationList)]
-            )
+        if List.length inputState.MyJobs = 0 then
+            let applicationList = createApplicationList inputState JobType.AttackJob calculateDesireAttackJob
+            Some <| normalIntention (
+                    "apply to all attack jobs"
+                    , Communication
+                    , [Plan(fun state -> Some applicationList)]
+                )
+        else
+            None
 
     let spontanouslyAttackAgentOnMyNode (inputState:State) = 
         let shouldAttack (agent:Agent) =   
