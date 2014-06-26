@@ -16,16 +16,7 @@ module PlanningTest =
 
     [<TestFixture>]
     type IntentionBuildingTests () =
-//    let repairJob =
-//            match inputState.MyJobs with
-//            | (id,_)::_ -> Some (snd <| getJobFromJobID inputState id)
-//            | _ -> None
-//
-//        match Map.tryFind MyRepairer inputState.Relations, inputState.Self.Status, repairJob with
-//        | Some aName, Disabled, Some (RepairJob(_,rName)) when aName = rName && myRankIsGreatest inputState.Self.Name [rName] -> 
-//            None
-//        | Some aName,Disabled,_ ->
-//            normalIntention 
+
         [<Test>]
         member self.FormulatePlanCommon_IntentToRechargeIfDisabled_PlanToRechargeIfDisabled_SameNode () =     
             //repairer and repairee is on same node     
@@ -264,10 +255,8 @@ module PlanningTest =
             
             let originalPlan = 
                 [ skipAction
-                ; moveAction "b"
-                ; probeAction None
-                ; moveAction "c"
-                ; probeAction None
+                ; probeAction (Some "b")
+                ; probeAction (Some "c")
                 ]
 
             let objective = MultiGoal (fun _ -> [Probed "c"])
@@ -279,9 +268,7 @@ module PlanningTest =
 //            let intention = ("probe zone", Activity, [objective])
 
             let expectedPlan = 
-                [ moveAction "c"
-                ; probeAction None
-                ]
+                [ probeAction (Some "c") ]
 
             let actualPlan = repairPlan state (originalPlan, [objective])
 
