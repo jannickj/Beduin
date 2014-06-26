@@ -378,9 +378,9 @@ module Common =
                     | multipleJobs -> 
                         let updateZoneOfOldJob nodesOfNewJob jobToBeUpdated =
                             match jobToBeUpdated with
-                            | ((oldId,oldValue,_,_),AttackJob(nodesOfOld,_)) -> 
+                            | ((oldId,oldValue,_,_),AttackJob(nodesOfOld,timeStamp)) -> 
                                 let newAttackJobNodes = List.filter (fun n -> List.exists ((<>) n) nodesOfNewJob) nodesOfOld
-                                Plan <| fun state -> Some [Communicate( UpdateJob((oldId,oldValue,JobType.AttackJob,1),AttackJob(newAttackJobNodes,inputState.SimulationStep) ))]
+                                Plan <| fun state -> Some [Communicate( UpdateJob((oldId,oldValue,JobType.AttackJob,1),AttackJob(newAttackJobNodes,timeStamp) ))]
                             | _ -> failwith "job list includes non-attack jobs"
 
                         let allJobUpdates = List.map (updateZoneOfOldJob jobNodes) multipleJobs
