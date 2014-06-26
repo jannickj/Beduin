@@ -153,8 +153,9 @@ module Explorer =
         List.filter (fun zoneVertex -> (List.exists (fun vertex -> vertex.Identifier = zoneVertex.Vertex.Identifier) neighbours)) zone
     
     //A vertex should be locked if it has an agent but its or its neighbour's control value is too low for that agent to be removed.
-    let shouldZoneVertexLock (graph:Graph) (zone:ZoneVertex list) (vertex:ZoneVertex) =
-        if ((vertex.ControlValue <= 3 && not (isIsland vertex.Vertex)) || vertex.Lock) && (vertex.HasAgent) then true
+    let shouldZoneVertexLock (graph:Graph) (zone:ZoneVertex list) (vertex:ZoneVertex) optional =
+        let isOptional vertexName = Option.isSome <| List.tryFind ((=) vertexName) optional
+        if ((vertex.ControlValue <= 3 && not (isIsland vertex.Vertex)) || vertex.Lock) && (vertex.HasAgent) && (not <| isOptional vertex.Vertex.Identifier) then true
         else //does the vertex have a neighbour that we would lose control of?
             let neighbours = getZoneVertexNeighbour graph zone vertex
             List.exists (fun zn -> zn.ControlValue = 2) neighbours
@@ -165,11 +166,13 @@ module Explorer =
         init + List.length (List.filter (fun zn -> zn.HasAgent) neighbours)
     
     // Calculate how much we want to remove the agent on a given vertex
-    let calcDesire (graph:Graph) (zone:ZoneVertex list) (vertex:ZoneVertex) =       
+    let calcDesire (graph:Graph) (zone:ZoneVertex list) (vertex:ZoneVertex) optional =
+        let isNotOptional vertexName = Option.isNone <| List.tryFind ((=) vertexName) optional  
         let neighbours = getZoneVertexNeighbour graph zone vertex
+        let relevantNeighbours = List.filter (fun v -> isNotOptional v.Vertex.Identifier) neighbours
         //IF Even -1; IF Uneven +1
         let calcSingleDesire controlValue = (((controlValue % 2) * 2) - 1)
-        List.sum (List.map (fun zn -> calcSingleDesire zn.ControlValue ) neighbours)
+        List.sum (List.map (fun zn -> calcSingleDesire zn.ControlValue ) relevantNeighbours)
     
     let hasLockedNeighbour (graph:Graph) (zone:ZoneVertex list) (vertex:ZoneVertex) =
         let neighbours = getZoneVertexNeighbour graph zone vertex
@@ -190,20 +193,20 @@ module Explorer =
                 List.tryFind (fun zn -> (not zn.Lock) && (zn.HasAgent) ) sortedZone
                 
     //Recursively remove agents from a zone for as long as we still control it
-    let rec calcAgentPositions (graph:Graph) (zone:ZoneVertex list) =
+    let rec calcAgentPositions (graph:Graph) (zone:ZoneVertex list) optional =
         let zoneWithControlValuesUpdated = List.map (fun zoneVertex -> {zoneVertex with ControlValue = calcControlValue graph zone zoneVertex}) zone
-        let zoneWithVerticesLocked = List.map (fun zoneVertex -> {zoneVertex with Lock = (shouldZoneVertexLock graph zoneWithControlValuesUpdated zoneVertex)}) zoneWithControlValuesUpdated
-        let zoneWithDesiresUpdated = List.map (fun zoneVertex -> {zoneVertex with Desire = calcDesire graph zoneWithVerticesLocked zoneVertex}) zoneWithVerticesLocked
+        let zoneWithVerticesLocked = List.map (fun zoneVertex -> {zoneVertex with Lock = (shouldZoneVertexLock graph zoneWithControlValuesUpdated zoneVertex optional)}) zoneWithControlValuesUpdated
+        let zoneWithDesiresUpdated = List.map (fun zoneVertex -> {zoneVertex with Desire = calcDesire graph zoneWithVerticesLocked zoneVertex optional}) zoneWithVerticesLocked
         let agentToRemove = chooseRemove graph zoneWithDesiresUpdated
         match agentToRemove with
         | None -> zoneWithDesiresUpdated
         | Some removed -> 
             let zoneWithAgentRemoved =    {   removed with HasAgent = false}
                                           ::  (List.filter (fun zn -> zn.Vertex.Identifier <> removed.Vertex.Identifier ) zoneWithDesiresUpdated)
-            calcAgentPositions graph zoneWithAgentRemoved
+            calcAgentPositions graph zoneWithAgentRemoved optional
 
     //Find out where agents should be placed. This is the main function to be called by the logic.
-    let findAgentPlacement (subgraph:Vertex List) (graph:Graph) =
+    let findAgentPlacement (subgraph:Vertex List) (graph:Graph) optional =
         let zoneVertexList = List.map buildZoneVertex subgraph
         if isOnlyIsland graph zoneVertexList 
         then 
@@ -211,7 +214,7 @@ module Explorer =
             [neighbour] 
         else
             let lockedZoneVertexList = List.map (fun zoneVertex -> {zoneVertex with Lock = (shouldZoneVertexLockBasedOnIsland graph zoneVertex); HasAgent = not (isIsland zoneVertex.Vertex)}) zoneVertexList
-            let agentPositionsCalculated = calcAgentPositions graph lockedZoneVertexList
+            let agentPositionsCalculated = calcAgentPositions graph lockedZoneVertexList optional
             let agentPositions = List.filter (fun zoneVertex -> zoneVertex.HasAgent ) agentPositionsCalculated
             List.map (fun zoneVertex -> zoneVertex.Vertex.Identifier) agentPositions
 
@@ -275,8 +278,7 @@ module Explorer =
             logStateError inputState Intentions <| sprintf "Unknown overlapping islands in jobs: %A" unhandled
             []
     
-                    
-                //createIslandObjectives inputState tail articulationPoint
+    
     //Create the objectives list for findNewZone
     let createZoneObjectives origin = 
         [ MultiGoal(
@@ -286,20 +288,21 @@ module Explorer =
              ); 
              Plan(fun state ->
                  let exploredZone = zoneToExplore state (Set.empty,Set [origin])
-                 let zone = Set.filter (fun z -> hasValueHigherThan z ZONE_BORDER_VALUE state) exploredZone
-                 let overlapping = getOverlappingOccupyJobs state.Jobs (Set.toList zone)
+                 let (_,optionalSet) = Set.partition (fun z -> hasValueHigherThan z ZONE_BORDER_VALUE state) exploredZone
+                 let optional = Set.toList optionalSet
+                 let overlapping = getOverlappingOccupyJobs state.Jobs (Set.toList exploredZone)
                  match overlapping with
                  | [] -> 
-                     let subGraph = List.map (fun n -> state.World.[n]) (Set.toList zone)
-                     let agentPositions = findAgentPlacement subGraph state.World
+                     let subGraph = List.map (fun n -> state.World.[n]) (Set.toList exploredZone)
+                     let agentPositions = findAgentPlacement subGraph state.World optional
                      let agentsNeeded = agentPositions.Length
-                     let zoneValue = calcZoneValue state agentsNeeded zone
-                     Some [Communicate( CreateJob( (None,zoneValue,JobType.OccupyJob,agentsNeeded),OccupyJob(agentPositions,Set.toList zone) ) )]
+                     let zoneValue = calcZoneValue state agentsNeeded exploredZone
+                     Some [Communicate( CreateJob( (None,zoneValue,JobType.OccupyJob,agentsNeeded),OccupyJob(agentPositions,Set.toList exploredZone) ) )]
                  | head::tail -> 
                      let removeIds = List.map ( fun ((id:Option<JobID>,_,_,_),_) -> if id.IsSome then id.Value else -1) overlapping
-                     let merged = removeDuplicates (mergeZones (Set.toList zone) overlapping)
+                     let merged = removeDuplicates (mergeZones (Set.toList exploredZone) overlapping)
                      let subGraph = List.map (fun n -> state.World.[n]) merged
-                     let agentPositions = findAgentPlacement subGraph state.World
+                     let agentPositions = findAgentPlacement subGraph state.World optional
                      let agentsNeeded = agentPositions.Length
                      let zoneValue = calcZoneValue state agentsNeeded (Set.ofList merged)
                      let addZone = [Communicate( CreateJob( (None,zoneValue,JobType.OccupyJob,agentsNeeded),OccupyJob(agentPositions,merged) ) )] 

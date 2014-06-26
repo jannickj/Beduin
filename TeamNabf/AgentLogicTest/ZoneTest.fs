@@ -30,7 +30,7 @@ module ZoneTest =
                                     ; ("f", { Identifier = "f"; Value = None; Edges = [(None, "e");(None, "d")] |> Set.ofList })
                                     ; ("g", { Identifier = "g"; Value = None; Edges = [(None, "e")] |> Set.ofList })
                                     ] |> Map.ofList
-                let placement = findAgentPlacement zone initialGraph
+                let placement = findAgentPlacement zone initialGraph []
                 Assert.AreEqual(3,List.length placement)
                 ()
             
@@ -52,7 +52,7 @@ module ZoneTest =
                                     ; ("f", { Identifier = "f"; Value = None; Edges = [(None, "e");(None, "d")] |> Set.ofList })
                                     ; ("g", { Identifier = "g"; Value = None; Edges = [(None, "e");(None, "x")] |> Set.ofList })
                                     ] |> Map.ofList
-                let placement = findAgentPlacement zone initialGraph
+                let placement = findAgentPlacement zone initialGraph []
                 Assert.AreEqual(4,List.length placement)
                 ()
            
@@ -61,7 +61,7 @@ module ZoneTest =
                 let zone = [{ Identifier = "v23"; Value = Some 10; Edges = [(Some 8, "v16")] |> Set.ofList }]
                 let initialGraph =  [ ("v23", { Identifier = "v23"; Value = Some 10; Edges = [(Some 8, "v16")] |> Set.ofList }) 
                                     ] |> Map.ofList
-                let placement = findAgentPlacement zone initialGraph
+                let placement = findAgentPlacement zone initialGraph []
                 Assert.AreEqual(1,List.length placement)
                 ()
 
@@ -246,4 +246,29 @@ module ZoneTest =
 
                 let merged = removeDuplicates <| mergeZones zone2 [overlapJob]
                 Assert.IsTrue (merged.Length = 4)
+                ()
+
+                //     A---B---C---D
+                //      \ / \ / \ /  
+                //       E---F---G 
+            [<Test>]
+            member this.OptionalVertices_BadZone_AgentsPlacedOnOptionalVertices() =
+                let initialGraph =  [ ("a", { Identifier = "a"; Value = Some 10; Edges = [(Some 1, "b");(Some 1, "e")] |> Set.ofList }) 
+                                    ; ("b", { Identifier = "b"; Value = Some 10; Edges = [(Some 1, "a");(Some 1, "c");(Some 1, "e");(Some 1, "f")] |> Set.ofList })
+                                    ; ("c", { Identifier = "c"; Value = Some 10; Edges = [(Some 1, "b");(Some 1, "d");(Some 1, "f");(Some 1, "g")] |> Set.ofList })
+                                    ; ("d", { Identifier = "d"; Value = Some 10; Edges = [(Some 1, "c");(Some 1, "g")] |> Set.ofList })
+                                    ; ("e", { Identifier = "e"; Value = Some 1; Edges = [(Some 1, "a");(Some 1, "b");(Some 1, "f")] |> Set.ofList })
+                                    ; ("f", { Identifier = "f"; Value = Some 1; Edges = [(Some 1, "b");(Some 1, "c");(Some 1, "e");(Some 1, "g")] |> Set.ofList })
+                                    ; ("g", { Identifier = "g"; Value = Some 1; Edges = [(Some 1, "c");(Some 1, "d");(Some 1, "f")] |> Set.ofList })
+                                    ] |> Map.ofList
+                let zone = List.map snd <| Map.toList initialGraph
+                let placement = findAgentPlacement zone initialGraph ["e";"f";"g"]
+                let numberOfAgents = List.length placement
+                Assert.AreEqual(3,numberOfAgents)
+//                let state = buildState "a" Explorer initialGraph
+//                
+//                let (Some (intA)) = findNewZone state
+//                let goals = intA.Objectives
+//                let plan = makePlan state goals
+//                Assert.IsTrue (plan.IsSome)
                 ()
