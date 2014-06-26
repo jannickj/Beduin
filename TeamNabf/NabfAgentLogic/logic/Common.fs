@@ -323,49 +323,58 @@ module Common =
         if inputState.SimulationStep % 5 <> 0 then
             None
         else
+            let shouldNotReport agent =
+                agent.Role.IsSome 
+                && agent.Role.Value = AgentRole.Sentinel 
+                && agent.RoleCertainty >= 50
+                || agent.Status = EntityStatus.Disabled
+
+            let shouldReportForZone zone agent = List.exists ((=) agent.Node) zone && not <| shouldNotReport agent 
             //checking if the agent has an occupy job and that an non-disabled enemy is standing on it's node
-            let agentsOnMyNodeWhileImOnOccupyJob =
+            let agentsInMyZoneWhileImOnOccupyJob =
                 match inputState.MyJobs with
-                | (jobid,_)::tail -> 
+                | (jobid,_)::_ -> 
                     match (getJobFromJobID inputState.Jobs jobid) with
                     | (_,OccupyJob(_,zoneList)) -> 
-                        match List.filter (fun a -> (List.exists (fun n -> n = a.Node) zoneList) && a.Status = EntityStatus.Normal) inputState.EnemyData with
-                        | h::t -> Some (h::t)
-                        | _ -> None
+                        match List.filter (shouldReportForZone zoneList) inputState.EnemyData with
+                        | [] -> None
+                        | reportAgents -> Some reportAgents
                     | _ -> None
                 | _ -> None
             
-            if (agentsOnMyNodeWhileImOnOccupyJob.IsNone) then
+            if (agentsInMyZoneWhileImOnOccupyJob.IsNone) then
                 None
             else 
-                if (agentsOnMyNodeWhileImOnOccupyJob.Value.Head.Role.IsSome 
-                && agentsOnMyNodeWhileImOnOccupyJob.Value.Head.Role.Value = AgentRole.Sentinel 
-                && agentsOnMyNodeWhileImOnOccupyJob.Value.Head.RoleCertainty >= 50) then
-                    None
-                else
-                    match inputState.MyJobs.Head with
-                    | (_,vertex) when vertex <> inputState.Self.Node-> None //if we have not arrived at the job yet, dont post defense
-                    | _ -> 
-                        let node = agentsOnMyNodeWhileImOnOccupyJob.Value.Head.Node
-                        let jobValue = inputState.World.[node].Value.Value * DEFENSE_IMPORTANCE_MODIFIER
-                        let isAttackJobOnNode onNode job =
-                            match job with
-                            | (_,AttackJob(attackNode::_,_)) -> attackNode = onNode
-                            | _ -> false
-                
-
-                        match List.tryFind (isAttackJobOnNode node) inputState.Jobs with
-                        | Some ((id,_,_,_),_) ->
-                            Some <| normalIntention 
-                                    ( "update defense job on node " + node
-                                    , Communication
-                                    , [ Plan <| fun state -> Some [Communicate( UpdateJob((id,jobValue,JobType.AttackJob,1),AttackJob([node],inputState.SimulationStep) ))]]
-                                    )
-                        | None ->
-                            Some <| normalIntention 
-                                    ( "post defense job on node " + node
-                                    , Communication
-                                    , [ Plan <| fun state -> Some [Communicate( CreateJob( (None,jobValue,JobType.AttackJob,1),AttackJob([node],inputState.SimulationStep) ))]]
-                                    )
+                match inputState.MyJobs.Head with
+                | (_,vertex) when vertex <> inputState.Self.Node-> None //if we have not arrived at the job yet, dont post defense
+                | (id,_) -> 
+                    let ((_,occupyValue,_,_),_) = getJobFromJobID inputState.Jobs id
+                    let jobValue = occupyValue * DEFENSE_IMPORTANCE_MODIFIER
+                    let isAttackJobOnNode onNode job =
+                        match job with
+                        | (_,AttackJob(aNodes,_)) -> List.exists ((=) onNode) aNodes
+                        | _ -> false
+                        
+                    let jobNodes = 
+                        match (getJobFromJobID inputState.Jobs (fst inputState.MyJobs.Head)) with
+                        | (_,OccupyJob(_,ns)) ->  ns
+                        | _ -> failwith "Hoer her jannick, det her kan ikke ske. -And"
+                    
+                    
+                    let existingJob job =  List.exists (fun node -> isAttackJobOnNode node job) jobNodes  
+                    match List.filter existingJob inputState.Jobs with
+                    | [((id,_,_,_),_)] ->
+                        Some <| normalIntention 
+                                ( sprintf "update defense job on nodes %A" jobNodes
+                                , Communication
+                                , [ Plan <| fun state -> Some [Communicate( UpdateJob((id,jobValue,JobType.AttackJob,1),AttackJob(jobNodes,inputState.SimulationStep) ))]]
+                                )
+                    | [] ->
+                        Some <| normalIntention 
+                                ( sprintf "post defense job on node %A" jobNodes
+                                , Communication
+                                , [ Plan <| fun state -> Some [Communicate( CreateJob( (None,jobValue,JobType.AttackJob,1),AttackJob(jobNodes,inputState.SimulationStep) ))]]
+                                )
+                    | multipleJobs -> failwith "By order of Soren the Almighty, this havent been implemented"
 
 
