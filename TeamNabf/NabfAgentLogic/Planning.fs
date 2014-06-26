@@ -225,26 +225,29 @@ module Planning =
     let rec nextAction state (intent : Intention) (plan : Plan) =
         let gtest objective = wrappedGoalTest (goalTest (goalList objective state)) state
 
-        match plan with
-        | (action :: rest, Plan _ :: _) & (_, objectives) ->
-            Some (action.ActionType, (action :: rest, objectives))
-        | (action :: rest, objective :: _) & (_, objectives) when not <| gtest objective  -> 
-            Some (action.ActionType, (action :: rest, objectives))
-        | (_, objectives) & (_, objective :: _)  ->
-            let newObjectives = 
-                match objectives with
-                | (Plan p) :: tail -> 
-                    tail
-                | objective :: tail when gtest objective ->
-                    tail
-                | objectives ->
-                    objectives
+        match immediateAction state with
+        | Some action -> Some (action, plan)
+        | None -> 
+            match plan with
+            | (action :: rest, Plan _ :: _) & (_, objectives) ->
+                Some (action.ActionType, (action :: rest, objectives))
+            | (action :: rest, objective :: _) & (_, objectives) when not <| gtest objective  -> 
+                Some (action.ActionType, (action :: rest, objectives))
+            | (_, objectives) & (_, objective :: _)  ->
+                let newObjectives = 
+                    match objectives with
+                    | (Plan p) :: tail -> 
+                        tail
+                    | objective :: tail when gtest objective ->
+                        tail
+                    | objectives ->
+                        objectives
 
-            match makePlan state newObjectives with
-            | Some newPlan -> nextAction state intent newPlan
-            | None -> None
+                match makePlan state newObjectives with
+                | Some newPlan -> nextAction state intent newPlan
+                | None -> None
 
-        | (_, [] ) -> None
+            | (_, [] ) -> None
            
     let updateGoalHeuristic goal state =
         match goalVertex goal state with
