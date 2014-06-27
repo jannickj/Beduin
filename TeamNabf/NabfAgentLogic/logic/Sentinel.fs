@@ -92,7 +92,7 @@ module Sentinel =
 
     let selfDefence (inputState:State) = 
         let agentList = List.filter (fun a -> a.Node = inputState.Self.Node) inputState.EnemyData
-        let probableSaboteursOnNode = List.filter (fun a -> a.Role.IsSome && a.Role.Value = Saboteur && a.RoleCertainty >= 50) agentList
+        let probableSaboteursOnNode = List.filter (fun a -> a.Role.IsSome && a.Role.Value = Saboteur && a.RoleCertainty >= 50 && a.Status = Normal) agentList
         let isInDanger = (List.length probableSaboteursOnNode) > 0
         match isInDanger with
         | true ->  Some <| normalIntention 

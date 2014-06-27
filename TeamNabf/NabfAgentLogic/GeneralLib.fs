@@ -28,8 +28,9 @@ module GeneralLib =
             Set.forall (snd >> isNeighbourOrThis) state.World.[vertexName].Edges
         Set.toList <| Set.filter isDeadEnd neighbours
 
-    let isUnexplored state vertex = 
-        (not (List.exists (fun (value, _) -> Option.isSome value) <| Set.toList state.World.[vertex].Edges)) && vertex <> state.Self.Node
+    let isUnexplored (state:State) vertex = 
+        //(not (List.exists (fun (value, _) -> Option.isSome value) <| Set.toList state.World.[vertex].Edges)) && vertex <> state.Self.Node
+        not <| Set.contains vertex state.ExploredNodes
 
     let isUnprobed (state:State) node =
         let n = state.World.[node] 
@@ -72,3 +73,13 @@ module GeneralLib =
     let getJobId (job:Job) =
         let ((id,_,_,_),_) = job
         Option.get id
+
+    let immediateAction state =
+        match state.Self.Role with
+        | Some Saboteur -> 
+            let relevant agent = agent.Role <> Some Sentinel || agent.RoleCertainty > MINIMUM_ROLE_CERTAINTY
+            let relevantEnemies = List.filter relevant <| enemiesHere state state.Self.Node 
+            match relevantEnemies with
+            | enemy :: _ -> Some <| Perform (Attack enemy.Name)
+            | [] -> None
+        | _ -> None

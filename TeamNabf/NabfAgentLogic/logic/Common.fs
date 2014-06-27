@@ -211,29 +211,23 @@ module Common =
                ]
              )
 
-//    let _oldKnowledge = ref (Set.empty<Percept>)
-//    let _redundant = ref 0
-//    let lockObject = new System.Object()
 
     let shareKnowledge (inputState:State) : Option<Intention> =
-//         lock lockObject (fun () -> let ss = !_oldKnowledge
-//                                    let ns = List.fold (fun ps p -> 
-//                                                
-//                                                Set.add p ps) ss s.NewKnowledge
-//                                    ()
-//                                    )          
-        logInfo Intentions <| sprintf "length of newKnowledge: %A" inputState.NewKnowledge.Length     
-        Some<| normalIntention 
-                (   "share my knowledge", 
-                    Communication, 
-                    [Plan   ( fun state -> 
-                                if (state.NewKnowledge.Length > 0) then
-                                    Some [(Communicate <| ShareKnowledge ( state.NewKnowledge))] 
-                                else
-                                    None
-                            )
-                    ]
-                )
+        logInfo Intentions <| sprintf "length of newKnowledge: %A" inputState.NewKnowledge.Length 
+        let hasNewKnowledge s = List.length s.NewKnowledge > 0
+        if hasNewKnowledge inputState then
+            Some<| normalIntention 
+                    (   "share my knowledge", 
+                        Communication, 
+                        [Plan   ( fun state -> 
+                                    if hasNewKnowledge state then
+                                        Some [(Communicate <| ShareKnowledge ( state.NewKnowledge))] 
+                                    else
+                                        None
+                                )
+                        ]
+                    )
+        else None
          
     
     
@@ -273,99 +267,130 @@ module Common =
 
 
     let postAttackJob (inputState:State) = 
-        let agentsICanSee = List.filter (fun a -> a.Node <> "" && a.Status = EntityStatus.Normal) inputState.EnemyData
-        let agentsOnValuableNode = List.filter 
-                                            (fun a -> 
-                                                inputState.World.[a.Node].Value.IsSome
-                                                && 
-                                                inputState.World.[a.Node].Value >= Some MIN_NODE_VALUE_TO_POST_ATTACK
-                                            )             
-                                            agentsICanSee
-
-        let valuableEnemyControlledNodes = Set.filter (fun n -> 
-                                                            inputState.World.[n].Value.IsSome
-                                                            && 
-                                                            inputState.World.[n].Value >= Some MIN_NODE_VALUE_TO_POST_ATTACK
-                                                       ) 
-                                                       inputState.NodesControlledByEnemy
-
-        let agentTargetExists = agentsOnValuableNode.Length > 0 
-        let nodeTargetExists = valuableEnemyControlledNodes.Count > 0
-        if (agentTargetExists || nodeTargetExists) then            
-            let node = 
-                if (agentTargetExists) then
-                    (List.maxBy (fun a -> inputState.World.[a.Node].Value) agentsOnValuableNode).Node
-                else
-                    List.maxBy (fun vertexName -> inputState.World.[vertexName].Value) (Set.toList valuableEnemyControlledNodes)
-
-            let isAttackJobOnNode onNode job =
-                match job with
-                | (_,AttackJob(attackNode::_,_)) -> attackNode = onNode
-                | _ -> false
-                
-                
-            let jobValue = inputState.World.[node].Value.Value * ATTACK_IMPORTANCE_MODIFIER
-            match List.tryFind (isAttackJobOnNode node) inputState.Jobs with
-            | Some ((id,_,_,_),_) ->
-                Some <| normalIntention 
-                        ( "update attack job on node " + node
-                        , Communication
-                        , [ Plan <| fun state -> Some [Communicate( UpdateJob((id,jobValue,JobType.AttackJob,1),AttackJob([node],inputState.SimulationStep) ))]]
-                        )
-            | None ->
-                Some <| normalIntention 
-                        ( "post attack job on node " + node
-                         , Communication
-                         , [ Plan <| fun state -> Some [Communicate( CreateJob( (None,jobValue,JobType.AttackJob,1),AttackJob([node],inputState.SimulationStep) ))]]
-                         )
-        else
+        if inputState.SimulationStep % 5 <> 0 then
             None
+        else
+            let agentsICanSee = List.filter (fun a -> a.Node <> "" && a.Status = EntityStatus.Normal) inputState.EnemyData
+            let agentsOnValuableNode = List.filter 
+                                                (fun a -> 
+                                                    inputState.World.[a.Node].Value.IsSome
+                                                    && 
+                                                    inputState.World.[a.Node].Value >= Some MIN_NODE_VALUE_TO_POST_ATTACK
+                                                )             
+                                                agentsICanSee
+
+            let valuableEnemyControlledNodes = Set.filter (fun n -> 
+                                                                inputState.World.[n].Value.IsSome
+                                                                && 
+                                                                inputState.World.[n].Value >= Some MIN_NODE_VALUE_TO_POST_ATTACK
+                                                           ) 
+                                                           inputState.NodesControlledByEnemy
+
+            let agentTargetExists = agentsOnValuableNode.Length > 0 
+            let nodeTargetExists = valuableEnemyControlledNodes.Count > 0
+            if (agentTargetExists || nodeTargetExists) then            
+                let node = 
+                    if (agentTargetExists) then
+                        (List.maxBy (fun a -> inputState.World.[a.Node].Value) agentsOnValuableNode).Node
+                    else
+                        List.maxBy (fun vertexName -> inputState.World.[vertexName].Value) (Set.toList valuableEnemyControlledNodes)
+
+                let isAttackJobOnNode onNode job =
+                    match job with
+                    | (_,AttackJob(attackNode::_,_)) -> attackNode = onNode
+                    | _ -> false
+                
+                
+                let jobValue = inputState.World.[node].Value.Value * ATTACK_IMPORTANCE_MODIFIER
+                match List.tryFind (isAttackJobOnNode node) inputState.Jobs with
+                | Some ((id,_,_,_),_) ->
+                    Some <| normalIntention 
+                            ( "update attack job on node " + node
+                            , Communication
+                            , [ Plan <| fun state -> Some [Communicate( UpdateJob((id,jobValue,JobType.AttackJob,1),AttackJob([node],inputState.SimulationStep) ))]]
+                            )
+                | None ->
+                    Some <| normalIntention 
+                            ( "post attack job on node " + node
+                             , Communication
+                             , [ Plan <| fun state -> Some [Communicate( CreateJob( (None,jobValue,JobType.AttackJob,1),AttackJob([node],inputState.SimulationStep) ))]]
+                             )
+            else
+                None
 
 
     let postDefenseJob (inputState:State) = 
-        //checking if the agent has an occupy job and that an non-disabled enemy is standing on it's node
-        let agentsOnMyNodeWhileImOnOccupyJob =
-            match inputState.MyJobs with
-            | (jobid,_)::tail -> 
-                match (getJobFromJobID inputState.Jobs jobid) with
-                | (_,OccupyJob(_,zoneList)) -> 
-                    match List.filter (fun a -> (List.exists (fun n -> n = a.Node) zoneList) && a.Status = EntityStatus.Normal) inputState.EnemyData with
-                    | h::t -> Some (h::t)
+        if inputState.SimulationStep % 5 <> 0 then
+            None
+        else
+            let shouldNotReport agent =
+                agent.Role.IsSome 
+                && agent.Role.Value = AgentRole.Sentinel 
+                && agent.RoleCertainty >= 50
+                || agent.Status = EntityStatus.Disabled
+
+            let shouldReportForZone zone agent = List.exists ((=) agent.Node) zone && not <| shouldNotReport agent 
+            //checking if the agent has an occupy job and that an non-disabled enemy is standing on it's node
+            let agentsInMyZoneWhileImOnOccupyJob =
+                match inputState.MyJobs with
+                | (jobid,_)::_ -> 
+                    match (getJobFromJobID inputState.Jobs jobid) with
+                    | (_,OccupyJob(_,zoneList)) -> 
+                        match List.filter (shouldReportForZone zoneList) inputState.EnemyData with
+                        | [] -> None
+                        | reportAgents -> Some reportAgents
                     | _ -> None
                 | _ -> None
-            | _ -> None
             
-        if (agentsOnMyNodeWhileImOnOccupyJob.IsNone) then
-            None
-        else 
-            if (agentsOnMyNodeWhileImOnOccupyJob.Value.Head.Role.IsSome 
-            && agentsOnMyNodeWhileImOnOccupyJob.Value.Head.Role.Value = AgentRole.Sentinel 
-            && agentsOnMyNodeWhileImOnOccupyJob.Value.Head.RoleCertainty >= 50) then
+            if (agentsInMyZoneWhileImOnOccupyJob.IsNone) then
                 None
-            else
+            else 
                 match inputState.MyJobs.Head with
                 | (_,vertex) when vertex <> inputState.Self.Node-> None //if we have not arrived at the job yet, dont post defense
-                | _ -> 
-                    let node = agentsOnMyNodeWhileImOnOccupyJob.Value.Head.Node
-                    let jobValue = inputState.World.[node].Value.Value * DEFENSE_IMPORTANCE_MODIFIER
+                | (id,_) -> 
+                    let ((_,occupyValue,_,_),_) = getJobFromJobID inputState.Jobs id
+                    let jobValue = occupyValue * DEFENSE_IMPORTANCE_MODIFIER
                     let isAttackJobOnNode onNode job =
                         match job with
-                        | (_,AttackJob(attackNode::_,_)) -> attackNode = onNode
+                        | (_,AttackJob(aNodes,_)) -> List.exists ((=) onNode) aNodes
                         | _ -> false
-                
+                        
+                    let jobNodes = 
+                        match (getJobFromJobID inputState.Jobs (fst inputState.MyJobs.Head)) with
+                        | (_,OccupyJob(_,ns)) ->  ns
+                        | _ -> failwith "Hoer her jannick, det her kan ikke ske. -And"
+                    
+                    
+                    let existingJob job =  List.exists (fun node -> isAttackJobOnNode node job) jobNodes  
+                    match List.filter existingJob inputState.Jobs with
+                    | [((id,_,_,_),_)] ->
+                        Some <| normalIntention 
+                                ( sprintf "update defense job on nodes %A" jobNodes
+                                , Communication
+                                , [ Plan <| fun state -> Some [Communicate( UpdateJob((id,jobValue,JobType.AttackJob,1),AttackJob(jobNodes,inputState.SimulationStep) ))]]
+                                )
+                    | [] ->
+                        Some <| normalIntention 
+                                ( sprintf "post defense job on nodes %A" jobNodes
+                                , Communication
+                                , [ Plan <| fun state -> Some [Communicate( CreateJob( (None,jobValue,JobType.AttackJob,1),AttackJob(jobNodes,inputState.SimulationStep) ))]]
+                                )
+                    | multipleJobs -> 
+                        let updateZoneOfOldJob nodesOfNewJob jobToBeUpdated =
+                            match jobToBeUpdated with
+                            | ((oldId,oldValue,_,_),AttackJob(nodesOfOld,timeStamp)) -> 
+                                let newAttackJobNodes = List.filter (fun n -> List.exists ((<>) n) nodesOfNewJob) nodesOfOld
+                                Plan <| fun state -> Some [Communicate( UpdateJob((oldId,oldValue,JobType.AttackJob,1),AttackJob(newAttackJobNodes,timeStamp) ))]
+                            | _ -> failwith "job list includes non-attack jobs"
 
-                    match List.tryFind (isAttackJobOnNode node) inputState.Jobs with
-                    | Some ((id,_,_,_),_) ->
+                        let allJobUpdates = List.map (updateZoneOfOldJob jobNodes) multipleJobs
+                        
                         Some <| normalIntention 
-                                ( "update defense job on node " + node
+                                ( sprintf "post defense job on nodes %A" jobNodes
                                 , Communication
-                                , [ Plan <| fun state -> Some [Communicate( UpdateJob((id,jobValue,JobType.AttackJob,1),AttackJob([node],inputState.SimulationStep) ))]]
+                                , allJobUpdates@[ Plan <| fun state -> Some [Communicate( CreateJob( (None,jobValue,JobType.AttackJob,1),AttackJob(jobNodes,inputState.SimulationStep) ))]]
                                 )
-                    | None ->
-                        Some <| normalIntention 
-                                ( "post defense job on node " + node
-                                , Communication
-                                , [ Plan <| fun state -> Some [Communicate( CreateJob( (None,jobValue,JobType.AttackJob,1),AttackJob([node],inputState.SimulationStep) ))]]
-                                )
+
+                            
 
 

@@ -44,6 +44,7 @@ module AgentClientLib =
         ;   Relations = Map.empty
         ;   NodesControlledByEnemy = Set.empty
         ;   NodesInVisionRange = Set.empty
+        ;   ExploredNodes = Set.empty
         } : State
 
     let buildInitState name team (simData:SimStartData) =

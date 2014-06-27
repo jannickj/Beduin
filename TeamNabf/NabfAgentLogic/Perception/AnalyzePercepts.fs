@@ -110,9 +110,10 @@ module AnalyzePercepts =
             { state with
                     World = updateEdgeOnWorld edge state.World 
             }
-        | NodeKnowledge (name,value) ->
-            { state with World = addVertexValue name value state.World  } 
-            
+        | NodeKnowledge (name,Some value) ->
+            { state with World = addVertexValue name value state.World; ExploredNodes = Set.add name state.ExploredNodes  } 
+         | NodeKnowledge (name,None) ->
+            { state with ExploredNodes = Set.add name state.ExploredNodes  }    
     let removedNodesControlledByEnemy state =
         { state with
             NodesControlledByEnemy = Set.empty
@@ -134,9 +135,18 @@ module AnalyzePercepts =
             [EdgeSeen(Some (oldState.Self.Energy.Value - newState.Self.Energy.Value), fromVertex, toVertex)]
         | _ -> []
     
+    let generateFakeNodeExploredPercepts (newState : State) =
+        let isExplored node =   (edgeDistance newState.Self.Node node newState < newState.Self.VisionRange.Value) 
+                                && (not <| Set.contains node newState.ExploredNodes)
+        let toPercept node = NodeKnowledge(node,None)
+        let explorednodes = List.filter isExplored (Set.toList newState.NodesInVisionRange)
+        logStateImportant newState Perception <| sprintf "Explored Nodes: %A" explorednodes.Length
+        List.map toPercept explorednodes
+
     let generateFakePercepts (oldState : State) (newState : State) =    
         generateFakeEdgePercept oldState newState
         @generateFakeRolePercepts newState
+        @generateFakeNodeExploredPercepts newState
 
     let updateLastPos (lastState:State) (state:State) =
         { state with LastPosition = lastState.Self.Node }
@@ -172,14 +182,14 @@ module AnalyzePercepts =
         
         match percepts with
         | NewRoundPercept::_ -> 
-            let newState =
+            let newStateWithOutHeuristics =
                 updateNodesInVision percepts state
                 |> removeAgentPositionsForVisibleNodes
                 |> removeVisibilityFromAgents
                 |> removedNodesControlledByEnemy
                 |> handlePercepts percepts
                 |> updateLastPos state
-                |> updateHeuristic state.Self.Node
+            let newState = updateHeuristic newStateWithOutHeuristics.Self.Node newStateWithOutHeuristics
 
             let fakepercepts = generateFakePercepts state newState
             

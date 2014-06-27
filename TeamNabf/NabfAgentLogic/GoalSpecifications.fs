@@ -64,8 +64,8 @@ module GoalSpecifications =
 
     let generateGoalCondition goal =
         match goal with
-        | At vertex 
-        | Explored vertex -> fun state -> state.Self.Node = vertex
+        | At vertex -> fun state ->  state.Self.Node = vertex
+        | Explored vertex -> fun state -> Set.contains vertex state.ExploredNodes 
         | Attacked agent -> agentAttacked agent
         | Probed vertex -> vertexProbed vertex
         | Inspected vertex -> vertexInspected vertex

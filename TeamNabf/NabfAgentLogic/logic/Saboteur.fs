@@ -55,14 +55,14 @@ module Saboteur =
         let myJobs = List.map (fun (id,_) -> getJobFromJobID inputState.Jobs id) inputState.MyJobs
         let myAttackJobs = getJobsByType JobType.AttackJob myJobs
         match myAttackJobs with
-        | ((Some id,_,_,_),_)::_ -> 
-            let (_,node) = List.find (fun (jid,_) -> id = jid) inputState.MyJobs
+        | ((Some id,_,_,_),AttackJob(nodes,_))::_ -> 
+
+            let nodesToTargetForAttack = List.map (fun n -> Requirement <| At n ) nodes
+
             Some <| normalIntention 
-                (   "attack agent on node " + node
+                (   sprintf "attack agent on node %A"  nodes
                 ,   Activity
-                ,   [ Requirement <| At node 
-                    ; Plan (fun state -> Some [Communicate (RemoveJob id)]) 
-                    ]
+                ,   nodesToTargetForAttack @ [Plan (fun state -> Some [Communicate (RemoveJob id)])]
                 )
         | _ -> None
     
@@ -81,7 +81,7 @@ module Saboteur =
         let shouldAttack (agent:Agent) =
                 agent.Status = Normal
              && agent.IsInVisionRange
-             && (not (agent.Role = Some Sentinel) && agent.RoleCertainty >= MINIMUM_ROLE_CERTAINTY)
+             && (not (agent.Role = Some Sentinel && agent.RoleCertainty >= MINIMUM_ROLE_CERTAINTY))
         let healthyEnemies = List.filter shouldAttack inputState.EnemyData
         if List.length healthyEnemies > 0 then
             let closest = List.minBy (fun a -> distanceBetweenAgentAndNode a.Node inputState) healthyEnemies

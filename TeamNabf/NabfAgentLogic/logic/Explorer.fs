@@ -332,7 +332,7 @@ module Explorer =
                 let unprobedIslands = getUnprobedComponents inputState knownIslands
                 match unprobedIslands with
                 | island::_ ->
-                    match createIslandObjectives inputState island inputState.Self.Node with
+                    match createIslandObjectives inputState (Set.add inputState.Self.Node island) inputState.Self.Node with
                     | [] -> None
                     | objectives ->
                         Some <| normalIntention (

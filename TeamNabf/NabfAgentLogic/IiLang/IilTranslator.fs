@@ -131,6 +131,7 @@ namespace NabfAgentLogic.IiLang
             | Identifier "failed_status"       -> FailedStatus
             | Identifier "failed_limit"        -> FailedLimit
             | Identifier "failed_random"       -> FailedRandom
+            | Identifier "useless"             -> Useless
             | _ -> raise <| InvalidIilException ("iilActionResult", [iilActionResult])
 
         let parseIilSelf iilSelf = 
@@ -198,7 +199,7 @@ namespace NabfAgentLogic.IiLang
             | Function ("nodeKnowledge", 
                          [ Function ("name", [Identifier name])
                          ; Function ("value", [Numeral value])
-                         ]) -> (name, int value)
+                         ]) -> if value = 0.0 then (name, None) else (name,Some <| int value)
             | _ -> raise <| InvalidIilException ("nodeKnowledge", [iilData])
 
 
@@ -446,7 +447,7 @@ namespace NabfAgentLogic.IiLang
         let buildPerceptAsIilFunction percept =
             match percept with
             | VertexProbed (vn, value) -> [Function ("nodeKnowledge", [Identifier vn; Numeral (float value)])]
-            | VertexSeen (vn,_) -> [Function ("nodeKnowledge", [Identifier vn; Numeral 0.0])]
+            | NodeKnowledge (vn, None) -> [Function ("nodeKnowledge", [Identifier vn; Numeral 0.0])]
             | EdgeSeen (Some cost,vn1,vn2) -> [Function ("edgeKnowledge", [Identifier vn1; Identifier vn2; Numeral (float cost)])]
             | EdgeSeen (None,vn1,vn2) -> [Function ("edgeKnowledge", [Identifier vn1; Identifier vn2; Numeral 0.0])]
             | InspectedEntity { Role = Some role; Name = name } -> [Function ("roleKnowledge", [Identifier (sprintf "%A" role); Identifier name; Numeral (float 100)])]
