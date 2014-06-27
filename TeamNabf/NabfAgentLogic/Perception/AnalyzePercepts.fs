@@ -83,9 +83,13 @@ module AnalyzePercepts =
                 
         | NewRoundPercept -> state //is here for simplicity, should not do anything
 
-        | AgentRolePercept (name,role,certainty) -> 
+        | AgentRolePercept (name,team,role,certainty) -> 
+            
             let updater = updateAgentWithRole name role certainty false
-            { state with EnemyData = updateAgentList name updater state.EnemyData }  
+            if team = state.Self.Team then
+                { state with FriendlyData = updateAgentList name updater state.FriendlyData }  
+            else
+                { state with EnemyData = updateAgentList name updater state.EnemyData }  
        
         | JobPercept job -> 
             updateStateWithJob job state
@@ -124,7 +128,7 @@ module AnalyzePercepts =
         | Attack name, FailedParried ->
             match tryFindAgentByName name state.EnemyData with
             | Some (agent) & Some ({RoleCertainty = certainty}) when certainty < 50 ->
-                [AgentRolePercept (name, Sentinel, 50)]
+                [AgentRolePercept (name,agent.Team, Sentinel, 50)]
             | _ -> []
         | _ -> []
             
@@ -147,6 +151,7 @@ module AnalyzePercepts =
         generateFakeEdgePercept oldState newState
         @generateFakeRolePercepts newState
         @generateFakeNodeExploredPercepts newState
+       
 
     let updateLastPos (lastState:State) (state:State) =
         { state with LastPosition = lastState.Self.Node }

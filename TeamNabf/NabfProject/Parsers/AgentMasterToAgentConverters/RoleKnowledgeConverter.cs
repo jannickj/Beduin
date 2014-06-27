@@ -29,11 +29,13 @@ namespace NabfProject.Parsers.KnowledgeConverters
             //</ IilAction>
             var ia = (IilFunction)fobj;
 
-            var identifier1 = (IilIdentifier)ia.Parameters[0];
-            var identifier2 = (IilIdentifier)ia.Parameters[1];
-            var numeral = (IilNumeral)ia.Parameters[2];
+			var role = (IilIdentifier)ia.Parameters[0];
+			var name = (IilIdentifier)ia.Parameters[1];
+			var team = (IilIdentifier)ia.Parameters[2];
+			var numeral = (IilNumeral)ia.Parameters[3];
 
-            RoleKnowledge rk = new RoleKnowledge(identifier1.Value, identifier2.Value, (int)numeral.Value);
+
+			RoleKnowledge rk = new RoleKnowledge(role.Value, name.Value, team.Value, (int)numeral.Value);
 
             return rk;
         }
@@ -43,6 +45,7 @@ namespace NabfProject.Parsers.KnowledgeConverters
             return new IilPerceptCollection(new IilPercept("roleKnowledge"
                 , new IilFunction("role", new IilIdentifier(gobj.Role))
                 , new IilFunction("agentId", new IilIdentifier(gobj.AgentId))
+				, new IilFunction("team", new IilIdentifier(gobj.Team))
                 , new IilFunction("sureness", new IilNumeral(gobj.Sureness))
                 ));
         }
