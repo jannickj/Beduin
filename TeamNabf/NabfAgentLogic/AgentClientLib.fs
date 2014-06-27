@@ -49,4 +49,4 @@ module AgentClientLib =
 
     let buildInitState name team (simData:SimStartData) =
         let state = buildState name team
-        { state with Self = { state.Self with Role = Some simData.SimRole; RoleCertainty = 100}; TotalNodeCount = simData.SimVertices }
+        { state with Self = { state.Self with Role = Some simData.SimRole; RoleCertainty = 100}; TotalNodeCount = simData.SimVertices; NewKnowledge = [AgentRolePercept(name,team,simData.SimRole,100)] }

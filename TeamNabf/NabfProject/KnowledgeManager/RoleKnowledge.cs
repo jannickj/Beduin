@@ -10,12 +10,14 @@ namespace NabfProject.KnowledgeManagerModel
         public string Role { get; private set; }
         public string AgentId { get; private set; }
         public int Sureness { get; private set;}
+		public string Team { get; private set; }
 
-        public RoleKnowledge(string role, string agentId, int sureness)
+		public RoleKnowledge(string role, string agentId, string team, int sureness)
         {
             Role = role;
             AgentId = agentId;
             Sureness = sureness;
+			Team = team;
         }
 
         bool IEquatable<Knowledge>.Equals(Knowledge other)
