@@ -105,9 +105,9 @@ module AnalyzePercepts =
                 let updatedNK = List.filter (fun p -> not <| List.exists ((=) p) pl) state.NewKnowledge
                 //logImportant <| sprintf "Clearing knowledge sent. We sent %A knowledge" pl.Length
                 { state with NewKnowledge = updatedNK } 
-            | UnapplyJob id -> 
-                let updatedMyJobs = List.filter (fst >> ((<>) id)) state.MyJobs
-                { state with MyJobs =  updatedMyJobs }
+//            | UnapplyJob id -> 
+//                let updatedMyJobs = List.filter (fst >> ((<>) id)) state.MyJobs
+//                { state with MyJobs =  updatedMyJobs } agents are now fired when they unapply from a job, so no need for "loop-back percept"
             | _ -> state
 
         | EdgeKnowledge edge ->
