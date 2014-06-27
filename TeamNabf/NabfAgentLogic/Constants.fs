@@ -39,10 +39,10 @@
         /// Agent constants
         ///////////////////////////////
         let REPAIRER_REPAIR_PRIORITY = 12//10
-        let SENTINEL_REPAIR_PRIORITY = 10//0
-        let INSPECTOR_REPAIR_PRIORITY = 10//0
+        let SENTINEL_REPAIR_PRIORITY = 11//2
+        let INSPECTOR_REPAIR_PRIORITY = 9//0
         let SABOTEUR_REPAIR_PRIORITY = 0//20
-        let EXPLORER_REPAIR_PRIORITY = 11//1
+        let EXPLORER_REPAIR_PRIORITY = 10//1
 
         //lower means distance between agent and job matters less
         let DISTANCE_TO_OCCUPY_JOB_MOD = 1.0
