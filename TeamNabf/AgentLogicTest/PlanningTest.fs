@@ -140,6 +140,33 @@ module PlanningTest =
 
             Assert.IsTrue (assertion)
 
+        [<Test>]
+        member self.FormulatePlanRepairer_RepaireeAdjacentToRepairer_RepairerMovesThenRepairs () =
+        (*
+         * Repairer is at "a", repairee is at "b". Repairer should move to "b" and repair (no ranged repairing).
+         *)
+            let world = 
+                [ ("a", {Identifier = "a"; Value = None; Edges = set [(None, "b")]})
+                ; ("b", {Identifier = "b"; Value = None; Edges = set [(None, "a")]})
+                ] |> Map.ofList
+
+            let friendName = "Friend"
+            let repairerAt = "a"
+            let friendAt = "b"
+            let state = { buildState repairerAt Repairer world with FriendlyData = [buildFriend friendName friendAt] }
+
+            let intention = normalIntention <| ("test", Activity, [Requirement <| Repaired friendName])
+            let actualPlan = formulatePlan state intention
+
+            let expectedPlan = [Perform (Goto friendAt); Perform (Repair friendName)]
+
+            let assertion = 
+                match actualPlan with
+                | Some (expectedPlan, _) -> true
+                | _ -> false
+
+            Assert.IsTrue (assertion)
+
     [<TestFixture>]
     type RepairTest() =
 
@@ -275,6 +302,108 @@ module PlanningTest =
             let assertion = expectedPlan = (fst actualPlan.Value)
 
             Assert.IsTrue (assertion)
+
+        [<Test>]
+        member self.RepairPlanProbeZone_VertexInPathIsProbed_RemoveProbeAction() =
+        (*        
+         *        a      
+         *        |       
+         *        b       
+         *        |       
+         *        c
+         *        |
+         *        d
+         *  
+         *      The explorer has planned to probe 'b', 'c', and 'd'. Another explorer probes 'b'.
+         *      The explorer repairs the plan, but keeps the first part of the plan, without probing 'b'.
+         *)
+
+            let world = 
+                [ ("a", {Identifier = "a"; Value = Some 10; Edges = [(None, "b")] |> Set.ofList})
+                ; ("b", {Identifier = "b"; Value = Some 1; Edges = [(None, "a"); (None, "c")] |> Set.ofList})
+                ; ("c", {Identifier = "c"; Value = None; Edges = [(None, "b"); (None, "d")] |> Set.ofList})
+                ; ("d", {Identifier = "d"; Value = None; Edges = [(None, "c")] |> Set.ofList})
+                ] |> Map.ofList 
+
+            let state = 
+                buildState "a" Explorer world
+                |> enhanceStateWithGraphHeuristics 
+                         
+            let originalPlan = 
+                [ skipAction
+                ; moveAction "b"
+                ; probeAction None
+                ; moveAction "c"
+                ; probeAction (Some "d")
+                ; probeAction None
+                ]
+
+            let objective = MultiGoal (fun _ -> [Probed "c"; Probed "d"])
+//            let intention = ("probe zone", Activity, [objective])
+
+            let expectedPlan =
+                [ moveAction "b"
+                ; moveAction "c"
+                ; probeAction (Some "d")
+                ; probeAction None
+                ]
+
+            let actualPlan = repairPlan state (originalPlan, [objective])
+            let assertion = (fst actualPlan.Value) = expectedPlan
+
+            Assert.IsTrue(assertion)
+
+        [<Test>]
+        member self.RepairPlanProbeZone_VertexInPathIsProbed_ShortCutPlan() =
+        (*
+         *       c
+         *      / \
+         *     1   1
+         *    /     \
+         *   b --9-- d
+         *    \     /
+         *     1   9
+         *      \ /
+         *       a
+         *
+         * The explorer starts in 'a', and has planned to probe 'b', 'c', and 'd', in order.
+         * 'c'is explored by another agent. The repaired plan is to probe 'b' and 'd' in order
+         *
+         *)
+
+            let world = 
+                [ ("a", {Identifier = "a"; Value = Some 10; Edges = [(Some 1, "b"); (Some 9, "d")] |> Set.ofList})
+                ; ("b", {Identifier = "b"; Value = None; Edges = [(Some 1, "a"); (Some 1, "c"); (Some 9, "d")] |> Set.ofList})
+                ; ("c", {Identifier = "c"; Value = Some 1; Edges = [(Some 1, "b"); (Some 1, "d")] |> Set.ofList})
+                ; ("d", {Identifier = "d"; Value = None; Edges = [(Some 9, "a"); (Some 9, "b"); (Some 1, "c")] |> Set.ofList})
+                ] |> Map.ofList 
+
+            let state = 
+                buildState "a" Explorer world
+                |> enhanceStateWithGraphHeuristics
+
+            let originalPlan =
+                [ skipAction
+                ; moveAction "b"
+                ; probeAction (Some "c")
+                ; probeAction (Some "d")
+                ; probeAction None
+                ]
+
+            let objective = MultiGoal (fun _ -> [Probed "b"; Probed "d"])
+//            let intention = ("probe zone", Activity, [objective])
+
+            let expectedPlan =
+                [ moveAction "b"
+                ; probeAction (Some "d")
+                ; probeAction None
+                ]
+            
+            let actualPlan = repairPlan state (originalPlan, [objective])
+            let assertion = fst actualPlan.Value = expectedPlan
+
+            Assert.IsTrue (assertion)
+
         
         [<Test>] 
         member self.RepairPlan_MissingEnergy_PerformActionsThenDeclarePlanFinished() =
@@ -382,106 +511,6 @@ module PlanningTest =
             Assert.AreEqual(Perform <| Goto "b", action2)
             ()
 
-        [<Test>]
-        member self.RepairPlanProbeZone_VertexInPathIsProbed_RemoveProbeAction() =
-        (*        
-         *        a      
-         *        |       
-         *        b       
-         *        |       
-         *        c
-         *        |
-         *        d
-         *  
-         *      The explorer has planned to probe 'b', 'c', and 'd'. Another explorer probes 'b'.
-         *      The explorer repairs the plan, but keeps the first part of the plan, without probing 'b'.
-         *)
-
-            let world = 
-                [ ("a", {Identifier = "a"; Value = Some 10; Edges = [(None, "b")] |> Set.ofList})
-                ; ("b", {Identifier = "b"; Value = Some 1; Edges = [(None, "a"); (None, "c")] |> Set.ofList})
-                ; ("c", {Identifier = "c"; Value = None; Edges = [(None, "b"); (None, "d")] |> Set.ofList})
-                ; ("d", {Identifier = "d"; Value = None; Edges = [(None, "c")] |> Set.ofList})
-                ] |> Map.ofList 
-
-            let state = 
-                buildState "a" Explorer world
-                |> enhanceStateWithGraphHeuristics 
-                         
-            let originalPlan = 
-                [ skipAction
-                ; moveAction "b"
-                ; probeAction None
-                ; moveAction "c"
-                ; probeAction (Some "d")
-                ; probeAction None
-                ]
-
-            let objective = MultiGoal (fun _ -> [Probed "c"; Probed "d"])
-//            let intention = ("probe zone", Activity, [objective])
-
-            let expectedPlan =
-                [ moveAction "b"
-                ; moveAction "c"
-                ; probeAction (Some "d")
-                ; probeAction None
-                ]
-
-            let actualPlan = repairPlan state (originalPlan, [objective])
-            let assertion = (fst actualPlan.Value) = expectedPlan
-
-            Assert.IsTrue(assertion)
-
-        [<Test>]
-        member self.RepairPlanProbeZone_VertexInPathIsProbed_ShortCutPlan() =
-        (*
-         *       c
-         *      / \
-         *     1   1
-         *    /     \
-         *   b --9-- d
-         *    \     /
-         *     1   9
-         *      \ /
-         *       a
-         *
-         * The explorer starts in 'a', and has planned to probe 'b', 'c', and 'd', in order.
-         * 'c'is explored by another agent. The repaired plan is to probe 'b' and 'd' in order
-         *
-         *)
-
-            let world = 
-                [ ("a", {Identifier = "a"; Value = Some 10; Edges = [(Some 1, "b"); (Some 9, "d")] |> Set.ofList})
-                ; ("b", {Identifier = "b"; Value = None; Edges = [(Some 1, "a"); (Some 1, "c"); (Some 9, "d")] |> Set.ofList})
-                ; ("c", {Identifier = "c"; Value = Some 1; Edges = [(Some 1, "b"); (Some 1, "d")] |> Set.ofList})
-                ; ("d", {Identifier = "d"; Value = None; Edges = [(Some 9, "a"); (Some 9, "b"); (Some 1, "c")] |> Set.ofList})
-                ] |> Map.ofList 
-
-            let state = 
-                buildState "a" Explorer world
-                |> enhanceStateWithGraphHeuristics
-
-            let originalPlan =
-                [ skipAction
-                ; moveAction "b"
-                ; probeAction (Some "c")
-                ; probeAction (Some "d")
-                ; probeAction None
-                ]
-
-            let objective = MultiGoal (fun _ -> [Probed "b"; Probed "d"])
-//            let intention = ("probe zone", Activity, [objective])
-
-            let expectedPlan =
-                [ moveAction "b"
-                ; probeAction (Some "d")
-                ; probeAction None
-                ]
-            
-            let actualPlan = repairPlan state (originalPlan, [objective])
-            let assertion = fst actualPlan.Value = expectedPlan
-
-            Assert.IsTrue (assertion)
 
         [<Test>]
         member self.RepairPreLaidPlan_NotEnoughEnergyForPreLaidPlan_PrependRechargeAction () =
@@ -501,3 +530,4 @@ module PlanningTest =
             let assertion = expected = fst actual.Value
 
             Assert.IsTrue (assertion)
+
