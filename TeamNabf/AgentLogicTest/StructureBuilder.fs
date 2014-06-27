@@ -5,6 +5,9 @@ module StructureBuilder =
     open NabfAgentLogic.AgentClientLib
     open NabfAgentLogic.GeneralLib
 
+    let ourTeam = "Team Love Unit testing"
+    let enemyTeam = "EnemyTeam"
+
     let buildAgentWithRole name team node role =
         let agent = buildAgent name team true
         { agent with
@@ -24,9 +27,15 @@ module StructureBuilder =
         }
 
     let buildEnemyWithRole name node role =
-        buildAgentWithRole name "EnemyTeam" node role
+        buildAgentWithRole name enemyTeam node role
 
     let buildEnemy name node = buildEnemyWithRole name node None
+
+    let buildFriendWithRole name node role =
+        buildAgentWithRole name ourTeam node role
+
+    let buildFriend name node = 
+        buildFriendWithRole name node None
 
     let buildStateWithEnergy node role world energy = 
         let state = buildState "" ""

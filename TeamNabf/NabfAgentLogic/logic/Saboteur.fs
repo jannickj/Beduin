@@ -1,4 +1,4 @@
-﻿namespace NabfAgentLogic
+namespace NabfAgentLogic
 module Saboteur =
 
     open FsPlanning.Agent.Planning
@@ -28,72 +28,88 @@ module Saboteur =
     ////////////////////////////////////////Logic////////////////////////////////////////////
 
     let applyToAttackJob (inputState:State) = 
-        let applicationList = createApplicationList inputState JobType.AttackJob calculateDesireAttackJob
-        Some <| normalIntention (
-                "apply to all attack jobs"
-                , Communication
-                , [Plan(fun state -> Some applicationList)]
-            )
+        if (inputState.Self.Status = EntityStatus.Disabled) then
+            None
+        else
+            let applicationList = createApplicationList inputState JobType.AttackJob calculateDesireAttackJob
+            Some <| normalIntention (
+                    "apply to all attack jobs"
+                    , Communication
+                    , [Plan(fun state -> Some applicationList)]
+                )
 
     let spontanouslyAttackAgentOnMyNode (inputState:State) = 
-        let shouldAttack (agent:Agent) =   
-               agent.Node = inputState.Self.Node 
-            && agent.Status = Normal 
-            && (not (agent.Role = Some Sentinel && agent.RoleCertainty >= MINIMUM_ROLE_CERTAINTY))
+        if (inputState.Self.Status = EntityStatus.Disabled) then
+            None
+        else
+            let shouldAttack (agent:Agent) =   
+                   agent.Node = inputState.Self.Node 
+                && agent.Status = Normal 
+                && (not (agent.Role = Some Sentinel && agent.RoleCertainty >= MINIMUM_ROLE_CERTAINTY))
 
-        let ableEnemiesNearby = List.filter shouldAttack inputState.EnemyData
-        match ableEnemiesNearby with
-        | [] -> None
-        | head::tail ->     
-            Some <| normalIntention (
-                    "attack agent " + head.Name
-                    , Activity
-                    , [Plan (fun _ -> Some [Perform <| Attack head.Name])]
-                )
+            let ableEnemiesNearby = List.filter shouldAttack inputState.EnemyData
+            match ableEnemiesNearby with
+            | [] -> None
+            | head::tail ->     
+                Some <| normalIntention (
+                        "attack agent " + head.Name
+                        , Activity
+                        , [Plan (fun _ -> Some [Perform <| Attack head.Name])]
+                    )
     
     let workOnAttackJob (inputState:State) = 
-        let myJobs = List.map (fun (id,_) -> getJobFromJobID inputState.Jobs id) inputState.MyJobs
-        let myAttackJobs = getJobsByType JobType.AttackJob myJobs
-        match myAttackJobs with
-        | ((Some id,_,_,_),AttackJob(nodes,_))::_ -> 
+        if (inputState.Self.Status = EntityStatus.Disabled) then
+            None
+        else
+            let myJobs = List.map (fun (id,_) -> getJobFromJobID inputState.Jobs id) inputState.MyJobs
+            let myAttackJobs = getJobsByType JobType.AttackJob myJobs
+            match myAttackJobs with
+            | ((Some id,_,_,_),AttackJob(nodes,_))::_ -> 
 
-            let nodesToTargetForAttack = List.map (fun n -> Requirement <| At n ) nodes
+                let nodesToTargetForAttack = List.map (fun n -> Requirement <| At n ) nodes
 
-            Some <| normalIntention 
-                (   sprintf "attack agent on node %A"  nodes
-                ,   Activity
-                ,   nodesToTargetForAttack @ [Plan (fun state -> Some [Communicate (RemoveJob id)])]
-                )
-        | _ -> None
+                Some <| normalIntention 
+                    (   sprintf "attack agent on node %A"  nodes
+                    ,   Activity
+                    ,   nodesToTargetForAttack @ [Plan (fun state -> Some [Communicate (RemoveJob id)])]
+                    )
+            | _ -> None
     
     let spontanouslyAttackAgent (inputState:State) = 
-        let enemiesNearby = List.filter (fun a -> a.Status <> Disabled) (nearbyEnemies inputState inputState.Self)
-        match enemiesNearby with
-        | [] -> None
-        | head::tail ->     
-            Some <| normalIntention (
-                    "spontanously attack agent " + head.Name
-                    , Activity
-                    , [Requirement (Attacked head.Name)] 
-                )
+        if (inputState.Self.Status = EntityStatus.Disabled) then
+            None
+        else
+            let enemiesNearby = List.filter (fun a -> a.Status <> Disabled) (nearbyEnemies inputState inputState.Self)
+            match enemiesNearby with
+            | [] -> None
+            | head::tail ->     
+                Some <| normalIntention (
+                        "spontanously attack agent " + head.Name
+                        , Activity
+                        , [Requirement (Attacked head.Name)] 
+                    )
              
     let killAgentICanSee (inputState:State) =
-        let shouldAttack (agent:Agent) =
-                agent.Status = Normal
-             && agent.IsInVisionRange
-             && (not (agent.Role = Some Sentinel && agent.RoleCertainty >= MINIMUM_ROLE_CERTAINTY))
-        let healthyEnemies = List.filter shouldAttack inputState.EnemyData
-        if List.length healthyEnemies > 0 then
-            let closest = List.minBy (fun a -> distanceBetweenAgentAndNode a.Node inputState) healthyEnemies
-            let killAgent = closest.Name
-            Some <| 
-                normalIntention (
-                    ("attack agent " + killAgent + " that i see")
-                    , Activity
-                    , [Requirement (Attacked killAgent)] 
-                    )
-        else
+        if (inputState.Self.Status = EntityStatus.Disabled) then
             None
+        else
+            let shouldAttack (agent:Agent) =
+                    agent.Status = Normal
+                 && agent.IsInVisionRange
+                 && (not (agent.Role = Some Sentinel && agent.RoleCertainty >= MINIMUM_ROLE_CERTAINTY))
+            let healthyEnemies = List.filter shouldAttack inputState.EnemyData
+            if List.length healthyEnemies > 0 then
+                let closest = List.minBy (fun a -> distanceBetweenAgentAndNode a.Node inputState) healthyEnemies
+                let killAgent = closest.Name
+                Some <| 
+                    normalIntention (
+                        ("attack agent " + killAgent + " that i see")
+                        , Activity
+                        , [Requirement (Attacked killAgent)] 
+                        )
+            else
+                None
+
     let applyToDisruptJob (inputState:State) = None //advanced feature
     
     let workOnDisruptJobThenParryIfEnemiesClose (inputState:State) = None //advanced feature
