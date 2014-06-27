@@ -76,8 +76,8 @@ module GeneralLib =
 
     let immediateAction state =
         match state.Self.Role with
-        | Some Saboteur -> 
-            let relevant agent = agent.Role <> Some Sentinel || agent.RoleCertainty > MINIMUM_ROLE_CERTAINTY
+        | Some Saboteur when state.Self.Status <> EntityStatus.Disabled -> 
+            let relevant agent = (agent.Role <> Some Sentinel || agent.RoleCertainty > MINIMUM_ROLE_CERTAINTY) && agent.Status <> EntityStatus.Disabled
             let relevantEnemies = List.filter relevant <| enemiesHere state state.Self.Node 
             match relevantEnemies with
             | enemy :: _ -> Some <| Perform (Attack enemy.Name)

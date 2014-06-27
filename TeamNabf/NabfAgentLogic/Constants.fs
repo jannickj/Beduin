@@ -38,11 +38,11 @@
         ///////////////////////////////
         /// Agent constants
         ///////////////////////////////
-        let REPAIRER_REPAIR_PRIORITY = 10
-        let SENTINEL_REPAIR_PRIORITY = 0
-        let INSPECTOR_REPAIR_PRIORITY = 0
-        let SABOTEUR_REPAIR_PRIORITY = 20
-        let EXPLORER_REPAIR_PRIORITY = 1
+        let REPAIRER_REPAIR_PRIORITY = 12//10
+        let SENTINEL_REPAIR_PRIORITY = 11//2
+        let INSPECTOR_REPAIR_PRIORITY = 9//0
+        let SABOTEUR_REPAIR_PRIORITY = 0//20
+        let EXPLORER_REPAIR_PRIORITY = 10//1
 
         //lower means distance between agent and job matters less
         let DISTANCE_TO_OCCUPY_JOB_MOD = 1.0
@@ -124,7 +124,7 @@
 
         let mutable OUR_TEAM = "Nabf"
         let EXPLORE_FACTOR_DONE_EXPLORING = 0.98
-        let PROBE_FACTOR_LIGHT = 0.86
+        let PROBE_FACTOR_LIGHT = 0.98
         let MAX_PLANNING_TIME_MS = 1000L
 
         let NUMBER_OF_AGENTS = 28
