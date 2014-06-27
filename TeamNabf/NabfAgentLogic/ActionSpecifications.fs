@@ -175,7 +175,7 @@ module ActionSpecifications =
         }       
 
     let repairAction (damagedAgent : AgentName) =
-        let canRepair state = inRangeOfAgent state damagedAgent state.FriendlyData
+//        let canRepair state = inRangeOfAgent state damagedAgent state.FriendlyData
 
         let isNotSelf (state:State) = 
             match state.Self.Name <> damagedAgent with
@@ -203,7 +203,7 @@ module ActionSpecifications =
             }
 
         { ActionType    = Perform <| Repair damagedAgent
-        ; Preconditions = [ isInRange; isNotSelf; canRepair; fun state -> enoughEnergy (repairCost state) state ]
+        ; Preconditions = [ isInRange; isNotSelf; fun state -> enoughEnergy (repairCost state) state ]
         ; Effect        = updateState
         ; Cost          = fun state -> turnCost state + repairCost state
         }
