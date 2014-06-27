@@ -197,7 +197,8 @@ module AnalyzePercepts =
                               |> selectSharedPercepts (fakepercepts@percepts) state
                                 
             logImportant Perception ("Finished analyzing round percepts now at step " + mergedState.SimulationStep.ToString())
-            mergedState           
+            mergedState       
+            //{ mergedState with LastRoundState = Some state}    
         | _ -> 
             handlePercepts percepts state
 

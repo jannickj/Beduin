@@ -233,6 +233,7 @@ module AgentTypes =
             NodesControlledByEnemy : VertexName Set
             NodesInVisionRange :VertexName Set
             ExploredNodes   : VertexName Set
+            LastRoundState       : State option
 
             ///USED FOR PLANNING ONLY DONT USE THEM IN INTENTION CHECKS
             PlannerProbed          : VertexName Set
