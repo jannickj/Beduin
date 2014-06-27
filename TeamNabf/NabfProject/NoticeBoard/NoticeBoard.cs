@@ -192,18 +192,18 @@ namespace NabfProject.NoticeBoardModel
             bool b = TryGetNoticeById(idToUnapplyTo, out noticeUnappliedTo);
             if (b == false)
                 return false;
-            bool agentHasApplied = false;
-            foreach (NabfAgent a in noticeUnappliedTo.GetAgentsApplied())
-            {
-                if (agent.Equals(a))
-                {
-                    agentHasApplied = true;
-                    break;
-                }
-            }
+            //bool agentHasApplied = false;
+            //foreach (NabfAgent a in noticeUnappliedTo.GetAgentsApplied())
+            //{
+            //    if (agent.Equals(a))
+            //    {
+            //        agentHasApplied = true;
+            //        break;
+            //    }
+            //}
 
-            if (agentHasApplied == false)
-                return false;
+            //if (agentHasApplied == false)
+            //    return false;
 
             bool agentHadJob = AgentListContainsAgent(noticeUnappliedTo.GetAgentsOnJob(), agent);
 
@@ -212,7 +212,8 @@ namespace NabfProject.NoticeBoardModel
             //if agent has the job, fire the rest and set status to free
             if (agentHadJob)
             {
-                FireOtherAgentsOnNotice(agent, idToUnapplyTo);
+                //FireOtherAgentsOnNotice(agent, idToUnapplyTo);
+                FireAllAgentsOnNotice(noticeUnappliedTo);
                 noticeUnappliedTo.Status = Status.available;
                 //noticeUnappliedTo.AvgDesirabilityAmongTopDesires = -1;
             }
