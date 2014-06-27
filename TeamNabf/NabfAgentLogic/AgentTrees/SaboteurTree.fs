@@ -16,8 +16,8 @@ module SaboteurTree =
                     //Desire(spontanouslyAttackAgent)
                     //Desire(killAgentICanSee)//this will easily result in our saboteurs following a random agent when he goes from 1 job to another. 
                     Desire(workOnAttackJob)  
-                    Desire(spontanouslyAttackAgentOnMyNode)                      
-                    Desire(killAgentICanSee)                
+                    //Desire(spontanouslyAttackAgentOnMyNode)                      
+                    //Desire(killAgentICanSee)                
 
                     Desire(applyToDisruptJob)
 
