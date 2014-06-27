@@ -124,7 +124,7 @@
 
         let mutable OUR_TEAM = "Nabf"
         let EXPLORE_FACTOR_DONE_EXPLORING = 0.98
-        let PROBE_FACTOR_LIGHT = 0.86
+        let PROBE_FACTOR_LIGHT = 0.98
         let MAX_PLANNING_TIME_MS = 1000L
 
         let NUMBER_OF_AGENTS = 28
