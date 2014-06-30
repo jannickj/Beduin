@@ -46,6 +46,7 @@ module AgentClientLib =
         ;   NodesInVisionRange = Set.empty
         ;   ExploredNodes = Set.empty
         ;   LastRoundState = None
+        ;   Money = 0
         } : State
 
     let buildInitState name team (simData:SimStartData) =

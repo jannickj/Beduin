@@ -10,7 +10,7 @@ module ExplorerTree =
     let getExplorerDesires : DesireTree<State,Intention> = 
             ManyDesires 
                 [
-                    //Desire(unapplyFromJobsWhenDisabled)
+                    Desire(haveRangeTwo)
 
                     Desire(workOnOccupyJob)
 

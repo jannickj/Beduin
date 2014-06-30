@@ -60,6 +60,7 @@ module AnalyzePercepts =
                 TeamZoneScore = team.ZoneScore
                 LastStepScore = team.LastStepScore
                 Score = team.Score
+                Money = team.Money
             }
         | Self self ->
                 

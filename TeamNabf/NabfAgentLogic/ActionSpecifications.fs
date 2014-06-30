@@ -350,6 +350,13 @@ module ActionSpecifications =
         ; Cost          = fun _ -> 0
         }
 
+    let buyAction upgrade =
+        { ActionType = Perform <| Buy upgrade
+        ; Preconditions = []
+        ; Effect = fun state -> state
+        ; Cost = fun _ -> 0
+        }
+
     let unSatisfiedPreconditions state actionSpec =
         let failmsg = function
         | Failure msg -> Some msg
@@ -437,4 +444,5 @@ module ActionSpecifications =
             | Repair agent -> repairAction agent
             | Skip -> rechargeAction
             | Survey -> surveyAction//failwith "survey does not have an actionspecification"
+            | Buy upgrade -> buyAction upgrade
 

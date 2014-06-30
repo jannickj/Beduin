@@ -241,6 +241,7 @@ module AgentTypes =
             NodesInVisionRange :VertexName Set
             ExploredNodes   : VertexName Set
             LastRoundState       : State option
+            Money            : int
 
             ///USED FOR PLANNING ONLY DONT USE THEM IN INTENTION CHECKS
             PlannerProbed          : VertexName Set
