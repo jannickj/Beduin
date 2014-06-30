@@ -24,6 +24,12 @@ module AgentTypes =
         | FailedLimit
         | FailedRandom
         | Useless
+    
+    type Upgrade =
+        | Battery
+        | Sensor
+        | Shield
+        | SabotageDevice    
 
     type AgentRole =
         | Saboteur
@@ -74,6 +80,7 @@ module AgentTypes =
         | Attack    of AgentName
         | Parry
         | Repair    of AgentName
+        | Buy       of Upgrade
         override self.ToString() = sprintf "%A" self
 
 
