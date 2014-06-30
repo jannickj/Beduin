@@ -359,21 +359,21 @@ namespace NabfProject.SimManager
                 {
                     foreach (NabfAgent a in nb.GetSubscribedAgents())
                     {
-                        //Console.WriteLine(" ---- " + a.Name + " ---- ");
+                        Console.WriteLine(" ---- " + a.Name + " ---- ");
                         ////Console.WriteLine("Applications :");
                         ////foreach (Notice n in nb.GetAllNotices())
                         ////{
                         ////    if (NoticeBoardHelpers.AgentListContainsAgent(n.GetAgentsApplied(), a))
                         ////        Console.WriteLine(""+n.ToString());
                         ////}
-                        //Console.WriteLine("Got jobs :");
-                        ////foreach (Notice n in nb.GetUnavailableNotices())
-                        //foreach (Notice n in nb.GetAllNotices())
-                        //{
-                        //    if (NoticeBoardHelpers.AgentListContainsAgent(n.GetAgentsOnJob(), a))
-                        //        Console.WriteLine("" + n.ToString());
-                        //}
-                        //Console.WriteLine("  ");
+                        Console.WriteLine("Got jobs :");
+                        //foreach (Notice n in nb.GetUnavailableNotices())
+                        foreach (Notice n in nb.GetAllNotices())
+                        {
+                            if (NoticeBoardHelpers.AgentListContainsAgent(n.GetAgentsOnJob(), a))
+                                Console.WriteLine("" + n.ToString());
+                        }
+                        Console.WriteLine("  ");
                     }                    
                 }
                 #endregion
