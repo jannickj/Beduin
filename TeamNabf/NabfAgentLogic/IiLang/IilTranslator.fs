@@ -33,8 +33,9 @@ namespace NabfAgentLogic.IiLang
             match iilAgent with
             | [ Function ("role", [role])
               ; Function ("agentId", [Identifier id])
+              ; Function ("team", [Identifier team])
               ; Function ("sureness", [Numeral sureness])
-              ] -> AgentRolePercept (id, (parseIilRole role).Value, int <| sureness)
+              ] -> AgentRolePercept (id, team, (parseIilRole role).Value, int <| sureness)
             | _ -> raise <| InvalidIilException ("AgentRole", iilAgent)
         
         let parseIilAgent iilData =
@@ -450,8 +451,8 @@ namespace NabfAgentLogic.IiLang
             | NodeKnowledge (vn, None) -> [Function ("nodeKnowledge", [Identifier vn; Numeral 0.0])]
             | EdgeSeen (Some cost,vn1,vn2) -> [Function ("edgeKnowledge", [Identifier vn1; Identifier vn2; Numeral (float cost)])]
             | EdgeSeen (None,vn1,vn2) -> [Function ("edgeKnowledge", [Identifier vn1; Identifier vn2; Numeral 0.0])]
-            | InspectedEntity { Role = Some role; Name = name } -> [Function ("roleKnowledge", [Identifier (sprintf "%A" role); Identifier name; Numeral (float 100)])]
-            | AgentRolePercept (name, role, certainty) -> [Function ("roleKnowledge", [Identifier (sprintf "%A" role); Identifier name; Numeral (float certainty)])]
+            | InspectedEntity { Role = Some role; Name = name; Team = team } -> [Function ("roleKnowledge", [Identifier (sprintf "%A" role); Identifier name; Identifier team; Numeral (float 100)])]
+            | AgentRolePercept (name, team, role, certainty) -> [Function ("roleKnowledge", [Identifier (sprintf "%A" role); Identifier name; Identifier team; Numeral (float certainty)])]
             | HeuristicUpdate (n1,n2,(cost,dist)) -> [Function ("heuristicKnowledge", [Identifier n1; Identifier n2; Numeral (float cost); Numeral (float dist)])]
             | _ -> []
 

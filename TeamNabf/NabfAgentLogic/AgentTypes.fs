@@ -48,7 +48,7 @@ module AgentTypes =
         ; Role              : Option<AgentRole>
         ; RoleCertainty     : int 
         ; Strength          : Option<int>
-        ; Team              : string
+        ; Team              : TeamName
         ; VisionRange       : Option<int>
         ; Status            : EntityStatus
         ; IsInVisionRange   : bool
@@ -145,7 +145,7 @@ module AgentTypes =
         
         | NodeKnowledge     of (VertexName * (int option))
         | EdgeKnowledge     of Edge
-        | AgentRolePercept  of AgentName * AgentRole * int
+        | AgentRolePercept  of AgentName* TeamName* AgentRole * int
         | HeuristicUpdate   of VertexName * VertexName * (int*int)
         | CommucationSent   of CommunicationAction
         | MailPercept       of Mail
@@ -233,6 +233,7 @@ module AgentTypes =
             NodesControlledByEnemy : VertexName Set
             NodesInVisionRange :VertexName Set
             ExploredNodes   : VertexName Set
+            LastRoundState       : State option
 
             ///USED FOR PLANNING ONLY DONT USE THEM IN INTENTION CHECKS
             PlannerProbed          : VertexName Set

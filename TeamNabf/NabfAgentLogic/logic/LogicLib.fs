@@ -22,6 +22,17 @@ module LogicLib =
         }
      
     
+    let selectBasedOnRank (state:State) things =
+        let self = state.Self
+        let isSame agent = agent.Node = self.Node && agent.Role = self.Role
+        let sameFriendlies = List.filter isSame state.FriendlyData
+        let order = List.sortBy getAgentName (self::sameFriendlies)
+        let myPos = List.findIndex (getAgentName >> ((=) self.Name)) order
+        if List.length things <= myPos then 
+            None 
+        else
+            Some <| List.nth things myPos
+
     let nodeListContains n (nl:string list) =
         (List.tryFind (fun s -> s = n) nl).IsSome
 

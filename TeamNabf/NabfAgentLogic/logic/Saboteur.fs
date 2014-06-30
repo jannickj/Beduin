@@ -1,4 +1,4 @@
-﻿namespace NabfAgentLogic
+namespace NabfAgentLogic
 module Saboteur =
 
     open FsPlanning.Agent.Planning

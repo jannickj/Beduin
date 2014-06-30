@@ -23,11 +23,11 @@ module Logging =
     let allowFlags = 
         [ 
             //Jobs
-            Planning
+//            Planning
               
 //            ActionSpecifications
-//            Intentions
-//            Perception
+//         Intentions
+//          Perception
 //            Agent
 //            Parsing
         ] |> Set.ofList

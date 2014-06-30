@@ -83,9 +83,13 @@ module AnalyzePercepts =
                 
         | NewRoundPercept -> state //is here for simplicity, should not do anything
 
-        | AgentRolePercept (name,role,certainty) -> 
+        | AgentRolePercept (name,team,role,certainty) -> 
+            
             let updater = updateAgentWithRole name role certainty false
-            { state with EnemyData = updateAgentList name updater state.EnemyData }  
+            if team = state.Self.Team then
+                { state with FriendlyData = updateAgentList name updater state.FriendlyData }  
+            else
+                { state with EnemyData = updateAgentList name updater state.EnemyData }  
        
         | JobPercept job -> 
             updateStateWithJob job state
@@ -101,9 +105,9 @@ module AnalyzePercepts =
                 let updatedNK = List.filter (fun p -> not <| List.exists ((=) p) pl) state.NewKnowledge
                 //logImportant <| sprintf "Clearing knowledge sent. We sent %A knowledge" pl.Length
                 { state with NewKnowledge = updatedNK } 
-            | UnapplyJob id -> 
-                let updatedMyJobs = List.filter (fst >> ((<>) id)) state.MyJobs
-                { state with MyJobs =  updatedMyJobs }
+//            | UnapplyJob id -> 
+//                let updatedMyJobs = List.filter (fst >> ((<>) id)) state.MyJobs
+//                { state with MyJobs =  updatedMyJobs } agents are now fired when they unapply from a job, so no need for "loop-back percept"
             | _ -> state
 
         | EdgeKnowledge edge ->
@@ -124,7 +128,7 @@ module AnalyzePercepts =
         | Attack name, FailedParried ->
             match tryFindAgentByName name state.EnemyData with
             | Some (agent) & Some ({RoleCertainty = certainty}) when certainty < 50 ->
-                [AgentRolePercept (name, Sentinel, 50)]
+                [AgentRolePercept (name,agent.Team, Sentinel, 50)]
             | _ -> []
         | _ -> []
             
@@ -147,6 +151,7 @@ module AnalyzePercepts =
         generateFakeEdgePercept oldState newState
         @generateFakeRolePercepts newState
         @generateFakeNodeExploredPercepts newState
+       
 
     let updateLastPos (lastState:State) (state:State) =
         { state with LastPosition = lastState.Self.Node }
@@ -180,25 +185,31 @@ module AnalyzePercepts =
     (* let updateState : State -> Percept list -> State *)
     let updateState state percepts = 
         
-        match percepts with
-        | NewRoundPercept::_ -> 
-            let newStateWithOutHeuristics =
-                updateNodesInVision percepts state
-                |> removeAgentPositionsForVisibleNodes
-                |> removeVisibilityFromAgents
-                |> removedNodesControlledByEnemy
-                |> handlePercepts percepts
-                |> updateLastPos state
-            let newState = updateHeuristic newStateWithOutHeuristics.Self.Node newStateWithOutHeuristics
+        let finalState = 
+            match percepts with
+            | NewRoundPercept::_ -> 
+                let newStateWithOutHeuristics =
+                    updateNodesInVision percepts state
+                    |> removeAgentPositionsForVisibleNodes
+                    |> removeVisibilityFromAgents
+                    |> removedNodesControlledByEnemy
+                    |> handlePercepts percepts
+                    |> updateLastPos state
+                let newState = updateHeuristic newStateWithOutHeuristics.Self.Node newStateWithOutHeuristics
 
-            let fakepercepts = generateFakePercepts state newState
+                let fakepercepts = generateFakePercepts state newState
             
-            let mergedState = handlePercepts fakepercepts newState
-                              |> selectSharedPercepts (fakepercepts@percepts) state
+                let mergedState = handlePercepts fakepercepts newState
+                                  |> selectSharedPercepts (fakepercepts@percepts) state
                                 
-            logImportant Perception ("Finished analyzing round percepts now at step " + mergedState.SimulationStep.ToString())
-            mergedState           
-        | _ -> 
-            handlePercepts percepts state
+                logImportant Perception ("Finished analyzing round percepts now at step " + mergedState.SimulationStep.ToString())
+                mergedState       
+                //{ mergedState with LastRoundState = Some state}    
+            | _ -> 
+                handlePercepts percepts state
+        
+        let allies = List.map (fun a -> (a.Name,a.Node,a.IsInVisionRange)) finalState.FriendlyData
+        logStateImportant finalState Perception <| sprintf "Allies: %A" allies
+        finalState
 
         
