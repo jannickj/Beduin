@@ -185,26 +185,31 @@ module AnalyzePercepts =
     (* let updateState : State -> Percept list -> State *)
     let updateState state percepts = 
         
-        match percepts with
-        | NewRoundPercept::_ -> 
-            let newStateWithOutHeuristics =
-                updateNodesInVision percepts state
-                |> removeAgentPositionsForVisibleNodes
-                |> removeVisibilityFromAgents
-                |> removedNodesControlledByEnemy
-                |> handlePercepts percepts
-                |> updateLastPos state
-            let newState = updateHeuristic newStateWithOutHeuristics.Self.Node newStateWithOutHeuristics
+        let finalState = 
+            match percepts with
+            | NewRoundPercept::_ -> 
+                let newStateWithOutHeuristics =
+                    updateNodesInVision percepts state
+                    |> removeAgentPositionsForVisibleNodes
+                    |> removeVisibilityFromAgents
+                    |> removedNodesControlledByEnemy
+                    |> handlePercepts percepts
+                    |> updateLastPos state
+                let newState = updateHeuristic newStateWithOutHeuristics.Self.Node newStateWithOutHeuristics
 
-            let fakepercepts = generateFakePercepts state newState
+                let fakepercepts = generateFakePercepts state newState
             
-            let mergedState = handlePercepts fakepercepts newState
-                              |> selectSharedPercepts (fakepercepts@percepts) state
+                let mergedState = handlePercepts fakepercepts newState
+                                  |> selectSharedPercepts (fakepercepts@percepts) state
                                 
-            logImportant Perception ("Finished analyzing round percepts now at step " + mergedState.SimulationStep.ToString())
-            mergedState       
-            //{ mergedState with LastRoundState = Some state}    
-        | _ -> 
-            handlePercepts percepts state
+                logImportant Perception ("Finished analyzing round percepts now at step " + mergedState.SimulationStep.ToString())
+                mergedState       
+                //{ mergedState with LastRoundState = Some state}    
+            | _ -> 
+                handlePercepts percepts state
+        
+        let allies = List.map (fun a -> (a.Name,a.Node,a.IsInVisionRange)) finalState.FriendlyData
+        logStateImportant finalState Perception <| sprintf "Allies: %A" allies
+        finalState
 
         
