@@ -109,6 +109,10 @@ module Saboteur =
                         )
             else
                 None
+    
+    let patrolAZone (inputState:State) = 
+        
+        None
 
     let applyToDisruptJob (inputState:State) = None //advanced feature
     
