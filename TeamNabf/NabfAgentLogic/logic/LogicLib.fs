@@ -56,6 +56,7 @@ module LogicLib =
     let nearbyEnemies state source = 
         List.filter (fun a -> nodeListContains a.Node (neighbourNodes state source)) state.EnemyData        
 
+    let getPosition (agent:Agent) = agent.Node
 
     let nearbyAllies state = 
         List.filter (fun a -> nodeListContains a.Node (neighbourNodes state state.Self)) state.FriendlyData 
@@ -86,6 +87,27 @@ module LogicLib =
     let getMyJobs (s:State) =
         List.map (fst >> (getJobFromJobID s.Jobs)) s.MyJobs
     
+    let agentsInVision agents = 
+        let isInVision (agent:Agent) = agent.IsInVisionRange
+        List.filter isInVision agents
+    
+    let agentsAtPos agents pos = 
+        List.filter (getPosition >> ((=) pos)) agents
+
+    let getOccupyZone (job:Job) =
+        match job with
+        | _,OccupyJob(_,zl) -> zl
+        | _ -> failwith "Contains non-occupyjob"
+    
+    let getOccupyAgentPos (job:Job) =
+        match job with
+        | _,OccupyJob(ap,_) -> ap
+        | _ -> failwith "Contains non-occupyjob"
+
+    let shouldAttack (agent:Agent) =
+        agent.Status = Normal && 
+        (not (agent.Role = Some Sentinel && agent.RoleCertainty >= MINIMUM_ROLE_CERTAINTY))
+
     let myBestCurrentJob (s:State) = 
         match getMyJobs s with
         | [] -> None

@@ -73,7 +73,7 @@ module ZoneTest =
                 let state = buildState "a" Explorer initialGraph
                 let (Some (intA)) = findNewZone state
                 let goals = intA.Objectives
-                let plan = makePlan state goals
+                let plan = makePlan state "" goals
                 Assert.IsTrue (plan.IsSome)
                 ()
 
@@ -115,7 +115,7 @@ module ZoneTest =
                 let state = buildState "t" Explorer initialGraph
                 let (Some (intA)) = findNewZone state
                 let goals = intA.Objectives
-                let plan = makePlan state [goals.Head]
+                let plan = makePlan state "" [goals.Head]
                 Assert.IsTrue (plan.IsSome)
                 ()
 
@@ -157,9 +157,9 @@ module ZoneTest =
                 let state = buildState "t" Explorer initialGraph
                 let (Some (intA)) = findNewZone state
                 let goals = intA.Objectives
-                let plan = makePlan state goals
+                let plan = makePlan state "" goals
                 let (_,newgoals) = plan.Value
-                let newplan = makePlan state newgoals.Tail
+                let newplan = makePlan state "" newgoals.Tail
                 Assert.IsTrue ((fst newplan.Value).Head.ActionType = Communicate(CreateJob((None,44,JobType.OccupyJob,3),OccupyJob(["n";"r";"t"],["n";"o";"r";"s";"t"]))))
                 ()
 
@@ -184,7 +184,7 @@ module ZoneTest =
                 let state = buildState "t" Explorer initialGraph
                 let (Some (intA)) = findNewZone state
                 let goals = intA.Objectives
-                let plan = makePlan state goals
+                let plan = makePlan state "" goals
                 Assert.IsTrue (plan.IsSome)
                 ()
 
@@ -205,7 +205,7 @@ module ZoneTest =
                
                 let (Some (intA)) = findNewZone state
                 let goals = intA.Objectives
-                let plan = makePlan state (goals)
+                let plan = makePlan state "" (goals)
 
                 Assert.IsTrue (plan.IsSome)
                 ()
@@ -223,7 +223,7 @@ module ZoneTest =
                 
                 let (Some (intA)) = findNewZone state
                 let goals = intA.Objectives
-                let plan = makePlan state goals
+                let plan = makePlan state "" goals
                 Assert.IsTrue (plan.IsSome)
                 ()
 

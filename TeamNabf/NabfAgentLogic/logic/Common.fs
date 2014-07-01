@@ -66,7 +66,25 @@ module Common =
 
     let notSurveyedEnough (s:State) = s.SimulationStep < SURVEY_MY_NODE_UNTIL_THIS_TURN_IF_NEEDED
 
+    ////////////////////////////////////////Imidiate Actions/////////////////////////////////
+    let immediateAction state =
+        match state.Self.Role with
+        | Some Saboteur when state.Self.Status <> EntityStatus.Disabled ->
+            let relevantEnemies = List.filter shouldAttack <| enemiesHere state state.Self.Node
+            let saboteurs = List.filter (fun a -> a.Role = Some Saboteur) relevantEnemies
+            let myHighPrioAttack = selectBasedOnRank state saboteurs
+            let myAttack = selectBasedOnRank state relevantEnemies
+            match myHighPrioAttack,myAttack with
+            | Some saboteur,_ -> Some <| Perform (Attack saboteur.Name)
+            | None,Some enemy -> Some <| Perform (Attack enemy.Name)
+            | None,None -> None
+        | _ -> None
+
+
     ////////////////////////////////////////Logic////////////////////////////////////////////
+
+
+
 
     let onlyHaveOneJob (inputState:State) =
         match myBestCurrentJob inputState with
@@ -323,13 +341,7 @@ module Common =
         if inputState.SimulationStep % 5 <> 0 then
             None
         else
-            let shouldNotReport agent =
-                agent.Role.IsSome 
-                && agent.Role.Value = AgentRole.Sentinel 
-                && agent.RoleCertainty >= 50
-                || agent.Status = EntityStatus.Disabled
-
-            let shouldReportForZone zone agent = List.exists ((=) agent.Node) zone && not <| shouldNotReport agent 
+            let shouldReportForZone zone agent = List.exists ((=) agent.Node) zone && shouldAttack agent 
             //checking if the agent has an occupy job and that an non-disabled enemy is standing on it's node
             let agentsInMyZoneWhileImOnOccupyJob =
                 match inputState.MyJobs with

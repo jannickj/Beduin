@@ -51,7 +51,7 @@
 
             let sendActionAndAwaitFinish actionSender action =
                 let sentId = sendAction actionSender action
-                logImportant Agent <| sprintf "Sent action %A for id: %A" action sentId
+                logInfo Agent <| sprintf "Sent action %A for id: %A" action sentId
                 waitForActionToFinish sentId
 
             [<CLIEvent>]
