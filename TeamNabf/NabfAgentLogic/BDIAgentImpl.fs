@@ -3,6 +3,7 @@
     open FsPlanning.Agent.Planning
     open AgentTypes
     open Graphing.Graph
+    open NabfAgentLogic.ActionSpecifications
     open NabfAgentLogic.Logging
     open NabfAgentLogic.Perception
     open NabfAgentLogic.Planning
@@ -30,4 +31,5 @@
 
                 override this.OptimizeState(curState) = curState
                 override this.ImplementOptimizedState(curState,optState)= curState
+                override this.IsActionApplicable (state, action) = isApplicable state (actionSpecification action)
     end

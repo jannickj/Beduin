@@ -330,6 +330,6 @@ module Planning =
                         | exn -> logStateError state Planning <| sprintf "Error encountered in updateStateOnSolutionFinished: %A at %A" exn.Message exn.TargetSite
                                  state
                     newState
-                    
+
         end
  
