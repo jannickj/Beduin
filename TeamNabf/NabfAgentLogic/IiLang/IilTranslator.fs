@@ -96,10 +96,10 @@ namespace NabfAgentLogic.IiLang
 
         let parseIilUpgrade iilUpgrade =
             match iilUpgrade with
-//            | Identifier "battery" -> Battery
-//            | Identifier "sensor" -> Sensor
-//            | Identifier "shield" -> Shield
-//            | Identifier "sabotageDevice" -> SabotageDevice
+            | Identifier "battery" -> Battery
+            | Identifier "sensor" -> Sensor
+            | Identifier "shield" -> Shield
+            | Identifier "sabotageDevice" -> SabotageDevice
             | _ -> raise <| InvalidIilException ("upgrade", [iilUpgrade])
 
         let parseIilAction iilAction iilActionParam =
@@ -114,7 +114,7 @@ namespace NabfAgentLogic.IiLang
             | (Identifier "repair", Identifier agentName)  -> Repair agentName
             | (Identifier "attack", Identifier agentName)  -> Attack agentName
             | (Identifier "parry", _)                      -> Parry
-            //| (Identifier "buy", upgrade)                  -> Buy <| parseIilUpgrade upgrade
+            | (Identifier "buy", upgrade)                  -> Buy <| parseIilUpgrade upgrade
             | _ -> raise <| InvalidIilException ("iilAction", [iilAction; iilActionParam])
 
         let parseIilActionResult iilActionResult =
@@ -413,7 +413,7 @@ namespace NabfAgentLogic.IiLang
             | Goto vn -> Action ("goto", [Numeral id; Identifier vn])
             | Attack a -> Action ("attack", [Numeral id; Identifier a])
             | Recharge -> Action ("recharge", [Numeral id])
-            //| Buy a -> Action ("buy", [Numeral id; Identifier (a.ToString().ToLower())])
+            | Buy a -> Action ("buy", [Numeral id; Identifier (a.ToString().ToLower())])
             | Inspect None -> Action ("inspect", [Numeral id])
             | Inspect (Some a) -> Action ("inspect", [Numeral id; Identifier a])
             | Parry -> Action ("parry", [Numeral id])
