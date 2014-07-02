@@ -66,18 +66,36 @@ module Common =
 
     let notSurveyedEnough (s:State) = s.SimulationStep < SURVEY_MY_NODE_UNTIL_THIS_TURN_IF_NEEDED
 
-    ////////////////////////////////////////Imidiate Actions/////////////////////////////////
+    ////////////////////////////////////////Immediate Actions/////////////////////////////////
     let immediateAction state =
         match state.Self.Role with
         | Some Saboteur when state.Self.Status <> EntityStatus.Disabled ->
             let relevantEnemies = List.filter shouldAttack <| enemiesHere state state.Self.Node
-            let saboteurs = List.filter (fun a -> a.Role = Some Saboteur) relevantEnemies
-            let myHighPrioAttack = selectBasedOnRank state saboteurs
-            let myAttack = selectBasedOnRank state relevantEnemies
-            match myHighPrioAttack,myAttack with
-            | Some saboteur,_ -> Some <| Perform (Attack saboteur.Name)
-            | None,Some enemy -> Some <| Perform (Attack enemy.Name)
-            | None,None -> None
+            let roleListMap = Map.ofSeq <| Seq.groupBy (fun agent -> agent.Role) relevantEnemies
+            let roleList role = if Map.containsKey role roleListMap then List.ofSeq roleListMap.[role]
+                                else []
+
+            let friendlySabsHere = 
+                List.length (List.filter (fun agent -> agent.Role = Some Saboteur) <| alliesHere state state.Self.Node)
+            
+            // We prioritize repairers that we can destroy this turn (destroying a repairer in a single turn takes two attacks)
+            let prioritizedRepairers = List.ofSeq <| Seq.take (friendlySabsHere / 2) (roleList (Some Repairer))
+            let restRepairers = List.ofSeq <| Seq.skip (friendlySabsHere / 2) (roleList (Some Repairer))
+
+            let priorityList = 
+                  prioritizedRepairers @ prioritizedRepairers // insert this twice so that each prioritized repairer is attacked by two agents
+                                                              // Could be done prettier / clearer?
+                @ roleList (Some Saboteur)
+                @ restRepairers
+                @ roleList None // Unknown agents could be saboteurs or repairers
+                @ roleList (Some Sentinel)
+                @ roleList (Some Explorer)
+                @ roleList (Some Inspector)
+               
+            match selectBasedOnRank state relevantEnemies with
+            | Some agent -> Some <| Perform (Attack agent.Name)
+            | None -> None
+
         | _ -> None
 
 
