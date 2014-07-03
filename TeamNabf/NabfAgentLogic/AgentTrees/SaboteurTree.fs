@@ -9,20 +9,11 @@ module SaboteurTree =
     let getSaboteurDesires : DesireTree<State,Intention> = 
             ManyDesires 
                 [
+                    Desire(haveRangeTwo)
+
                     Desire(unapplyFromJobsWhenDisabled)
-
-                    Desire(applyToAttackJob)
-
-                    //Desire(spontanouslyAttackAgent)
-                    //Desire(killAgentICanSee)//this will easily result in our saboteurs following a random agent when he goes from 1 job to another. 
-                    Desire(workOnAttackJob)  
-                    //Desire(spontanouslyAttackAgentOnMyNode)                      
-                    //Desire(killAgentICanSee)                
-
-                    Desire(applyToDisruptJob)
-
-                    Desire(workOnDisruptJobThenParryIfEnemiesClose)
-
+                                       
+                    Desire(killAgentICanSee)
 
                     Desire(findAgentToDestroy)
                 ]

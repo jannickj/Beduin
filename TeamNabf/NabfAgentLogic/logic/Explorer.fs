@@ -315,16 +315,6 @@ module Explorer =
 
     ////////////////////////////////////////Logic////////////////////////////////////////////
 
-    let haveRangeTwo inputState =
-        match (inputState.Self.VisionRange,inputState.Money) with
-        | (Some 1,value) when value >= 2 -> Some <| normalIntention
-                                                ( "buy more range.",
-                                                Activity,
-                                                [Plan(fun s -> if s.Self.VisionRange = Some 1 
-                                                                then Some [Perform <| Buy Sensor] 
-                                                                else None)])
-        | _ -> None
-
     let findNewZone (inputState:State) = 
         if (newZoneFound inputState)
         then

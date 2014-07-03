@@ -10,8 +10,6 @@ module ExplorerTree =
     let getExplorerDesires : DesireTree<State,Intention> = 
             ManyDesires 
                 [
-                    Desire(haveRangeTwo)
-
                     Desire(workOnOccupyJob)
 
                     Desire(findNewZone)

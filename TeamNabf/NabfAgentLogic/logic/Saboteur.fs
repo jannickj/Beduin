@@ -27,6 +27,16 @@ module Saboteur =
 
     ////////////////////////////////////////Logic////////////////////////////////////////////
 
+    let haveRangeTwo inputState =
+        match (inputState.Self.VisionRange,inputState.Money) with
+        | (Some 1,value) when value >= 2 -> Some <| normalIntention
+                                                ( "buy more range.",
+                                                Activity,
+                                                [Plan(fun s -> if s.Self.VisionRange = Some 1 
+                                                                then Some [Perform <| Buy Sensor] 
+                                                                else None)])
+        | _ -> None
+
     let applyToAttackJob (inputState:State) = 
         if (inputState.Self.Status = EntityStatus.Disabled) then
             None
@@ -38,24 +48,24 @@ module Saboteur =
                     , [Plan(fun state -> Some applicationList)]
                 )
 
-    let spontanouslyAttackAgentOnMyNode (inputState:State) = 
-        if (inputState.Self.Status = EntityStatus.Disabled) then
-            None
-        else
-            let shouldAttack (agent:Agent) =   
-                   agent.Node = inputState.Self.Node 
-                && agent.Status = Normal 
-                && (not (agent.Role = Some Sentinel && agent.RoleCertainty >= MINIMUM_ROLE_CERTAINTY))
-
-            let ableEnemiesNearby = List.filter shouldAttack inputState.EnemyData
-            match ableEnemiesNearby with
-            | [] -> None
-            | head::tail ->     
-                Some <| normalIntention (
-                        "attack agent " + head.Name
-                        , Activity
-                        , [Plan (fun _ -> Some [Perform <| Attack head.Name])]
-                    )
+//    let spontanouslyAttackAgentOnMyNode (inputState:State) = 
+//        if (inputState.Self.Status = EntityStatus.Disabled) then
+//            None
+//        else
+//            let shouldAttack (agent:Agent) =   
+//                   agent.Node = inputState.Self.Node 
+//                && agent.Status = Normal 
+//                && (not (agent.Role = Some Sentinel && agent.RoleCertainty >= MINIMUM_ROLE_CERTAINTY))
+//
+//            let ableEnemiesNearby = List.filter shouldAttack inputState.EnemyData
+//            match ableEnemiesNearby with
+//            | [] -> None
+//            | head::tail ->     
+//                Some <| normalIntention (
+//                        "attack agent " + head.Name
+//                        , Activity
+//                        , [Plan (fun _ -> Some [Perform <| Attack head.Name])]
+//                    )
     
     let workOnAttackJob (inputState:State) = 
         if (inputState.Self.Status = EntityStatus.Disabled) then
@@ -75,19 +85,19 @@ module Saboteur =
                     )
             | _ -> None
     
-    let spontanouslyAttackAgent (inputState:State) = 
-        if (inputState.Self.Status = EntityStatus.Disabled) then
-            None
-        else
-            let enemiesNearby = List.filter (fun a -> a.Status <> Disabled) (nearbyEnemies inputState inputState.Self)
-            match enemiesNearby with
-            | [] -> None
-            | head::tail ->     
-                Some <| normalIntention (
-                        "spontanously attack agent " + head.Name
-                        , Activity
-                        , [Requirement (Attacked head.Name)] 
-                    )
+//    let spontanouslyAttackAgent (inputState:State) = 
+//        if (inputState.Self.Status = EntityStatus.Disabled) then
+//            None
+//        else
+//            let enemiesNearby = List.filter (fun a -> a.Status <> Disabled) (nearbyEnemies inputState inputState.Self)
+//            match enemiesNearby with
+//            | [] -> None
+//            | head::tail ->     
+//                Some <| normalIntention (
+//                        "spontanously attack agent " + head.Name
+//                        , Activity
+//                        , [Requirement (Attacked head.Name)] 
+//                    )
              
     let killAgentICanSee (inputState:State) =
         if (inputState.Self.Status = EntityStatus.Disabled) then
