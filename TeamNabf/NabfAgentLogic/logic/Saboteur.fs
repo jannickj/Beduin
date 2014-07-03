@@ -71,15 +71,33 @@ module Saboteur =
         if (inputState.Self.Status = EntityStatus.Disabled) then
             None
         else
+            
             let myJobs = List.map (fun (id,_) -> getJobFromJobID inputState.Jobs id) inputState.MyJobs
             let myAttackJobs = getJobsByType JobType.AttackJob myJobs
             match myAttackJobs with
             | ((Some id,_,_,_),AttackJob(nodes,_))::_ -> 
+                
+                let occupyJobs = getJobsByType JobType.OccupyJob inputState.Jobs
 
-                let nodesToTargetForAttack = List.map (fun n -> Requirement <| At n ) nodes
+                let defendJob (job:Job) =
+                    match job with
+                    | _,OccupyJob(_,zn) -> List.exists (fun n -> List.exists ((=) n) nodes) zn
+                    | _ -> false
+                
+                let defendOccupyJobs = List.filter defendJob occupyJobs
+
+                let occupyNodes = List.collect getOccupyZone defendOccupyJobs
+
+                let allNodes = Set.union (Set nodes) (Set occupyNodes)
+                
+                let neighbours = List.collect ((flip getNeighbourIds) inputState.World) <| Set.toList allNodes
+
+                let allNodesWithNeighbours =Set.toList <| Set.union (Set neighbours) (Set allNodes)
+
+                let nodesToTargetForAttack = List.map (fun n -> Requirement <| KillAll n ) allNodesWithNeighbours
 
                 Some <| normalIntention 
-                    (   sprintf "attack agent on node %A"  nodes
+                    (   sprintf "attack agents on nodes: %A"  allNodesWithNeighbours
                     ,   Activity
                     ,   nodesToTargetForAttack @ [Plan (fun state -> Some [Communicate (RemoveJob id)])]
                     )
@@ -103,11 +121,8 @@ module Saboteur =
         if (inputState.Self.Status = EntityStatus.Disabled) then
             None
         else
-            let shouldAttack (agent:Agent) =
-                    agent.Status = Normal
-                 && agent.IsInVisionRange
-                 && (not (agent.Role = Some Sentinel && agent.RoleCertainty >= MINIMUM_ROLE_CERTAINTY))
-            let healthyEnemies = List.filter shouldAttack inputState.EnemyData
+            let visibleAgents = agentsInVision inputState.EnemyData
+            let healthyEnemies = List.filter shouldAttack visibleAgents
             if List.length healthyEnemies > 0 then
                 let closest = List.minBy (fun a -> distanceBetweenAgentAndNode a.Node inputState) healthyEnemies
                 let killAgent = closest.Name
@@ -119,6 +134,22 @@ module Saboteur =
                         )
             else
                 None
+    
+    let patrolAZone (inputState:State) =
+        let occupyJobs = getJobsByType JobType.OccupyJob inputState.Jobs
+        if List.length occupyJobs > 0 then
+            let rand = System.Random()
+            let index = rand.Next(0, List.length occupyJobs)
+            let target = List.nth occupyJobs index
+            let goals = List.map (KillAll >> Requirement) <| getOccupyZone target
+            normalIntention
+                (   sprintf "patrol zone %A with nodes %A" (getJobId target) (getOccupyZone target)
+                ,   Activity
+                ,   goals
+                )
+            |> Some
+        else
+            None
 
     let applyToDisruptJob (inputState:State) = None //advanced feature
     

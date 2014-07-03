@@ -36,6 +36,8 @@ module GeneralLib =
         let n = state.World.[node] 
         n.Value.IsNone
     
+    
+
     let getAgentName (a:Agent) = a.Name
 
     let buildAgent name team canSeeAgent =
@@ -74,12 +76,3 @@ module GeneralLib =
         let ((id,_,_,_),_) = job
         Option.get id
 
-    let immediateAction state =
-        match state.Self.Role with
-        | Some Saboteur when state.Self.Status <> EntityStatus.Disabled -> 
-            let relevant agent = (agent.Role <> Some Sentinel || agent.RoleCertainty > MINIMUM_ROLE_CERTAINTY) && agent.Status <> EntityStatus.Disabled
-            let relevantEnemies = List.filter relevant <| enemiesHere state state.Self.Node 
-            match relevantEnemies with
-            | enemy :: _ -> Some <| Perform (Attack enemy.Name)
-            | [] -> None
-        | _ -> None

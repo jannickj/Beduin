@@ -128,6 +128,7 @@ module ActionSpecifications =
                 LastAction = Action.Goto destination;
                 World = addEdge edge state.World
                 ExploredNodes = Set.add destination state.ExploredNodes
+                NodesInVisionRange = Set.add destination state.NodesInVisionRange
             }
 
 
@@ -374,7 +375,7 @@ module ActionSpecifications =
     let gotoActions (state : State) = 
         List.map moveAction <| getNeighbourIds state.Self.Node state.World
     
-    let attackActions agent state = 
+    let attackActions state agent = 
         if isAgentHere agent state then
             [attackAction agent]
         else
@@ -382,13 +383,13 @@ module ActionSpecifications =
 
     let rechargeActions state = [rechargeAction]
 
-    let repairActions agent (state : State) = 
+    let repairActions  (state : State) agent = 
         if isAgentHere agent state then
             [repairAction agent]
         else
             []
 
-    let probeActions vertex state = 
+    let probeActions state  vertex= 
         let rangedActions = 
             List.map (Some >> probeAction) (List.filter (isUnprobed state) <| adjacentDeadEnds state)
             
@@ -397,7 +398,7 @@ module ActionSpecifications =
         else 
             rangedActions
 
-    let inspectActions vertex state = 
+    let inspectActions state vertex = 
         let someUninspectedEnemy = 
             not <| List.forall (fun enemy -> Option.isSome enemy.Role) (enemiesHere state vertex)
         if vertex = state.Self.Node && someUninspectedEnemy then
@@ -408,27 +409,6 @@ module ActionSpecifications =
     let parryActions state = [parryAction]
 
     let commonActions state = gotoActions state @ rechargeActions state
-
-    let availableActions state  goal  =
-        let actions = 
-            match goal with
-            | At _ | Explored _ | AtMinValueNodeNotPartOfZone _ | GetCloseTo _-> 
-                gotoActions state
-            | Attacked agent -> 
-                gotoActions state @ attackActions agent state
-            | Inspected vertex -> 
-                gotoActions state @ inspectActions vertex state
-            | Probed vertex -> 
-                gotoActions state @ probeActions vertex state
-            | Repaired agent -> 
-                gotoActions state @ repairActions agent state
-            | Parried -> 
-                parryActions state
-            | Charged _ -> 
-                rechargeActions state
-            | Surveyed ->
-                [surveyAction]
-        rechargeAction :: actions
 
     let actionSpecification (action : AgentAction) =
         match action with

@@ -34,7 +34,7 @@ module PlanningTest =
 
 
             let actualPlan = formulatePlan stateWithCarlos intentionTuple
-            let realPlan = repairPlan stateWithCarlos actualPlan.Value
+            let realPlan = repairPlan stateWithCarlos "" actualPlan.Value
             let myNextAction = nextAction stateWithCarlos intention.Value realPlan.Value
 
 
@@ -59,7 +59,7 @@ module PlanningTest =
             let intentionTuple = normalIntention (intention.Value.Label, intention.Value.Type, intention.Value.Objectives)
             
             let actualPlan = formulatePlan stateWithCarlos intentionTuple
-            let realPlan = repairPlan stateWithCarlos actualPlan.Value
+            let realPlan = repairPlan stateWithCarlos "" actualPlan.Value
             let myNextAction = nextAction stateWithCarlos intention.Value realPlan.Value
 
 
@@ -181,7 +181,7 @@ module PlanningTest =
 
             let expectedPlan = [rechargeAction; probeAction None]
 
-            let actualPlan = repairPlan state (plan, objectives)
+            let actualPlan = repairPlan state "" (plan, objectives)
             let assertion = (fst actualPlan.Value) = expectedPlan
             Assert.IsTrue (assertion)
 
@@ -195,7 +195,7 @@ module PlanningTest =
 //            let intention = ("", Activity, objectives)
 
             let expectedPlan = plan
-            let actualPlan = repairPlan state (plan, objectives)
+            let actualPlan = repairPlan state "" (plan, objectives)
 
             let assertion = (fst actualPlan.Value) = expectedPlan
             Assert.IsTrue (assertion)
@@ -210,7 +210,7 @@ module PlanningTest =
 //            let intention = ("", Activity, objectives)
 
             let expectedPlan = [rechargeAction; probeAction None]
-            let actualPlan = repairPlan state (plan, objectives)
+            let actualPlan = repairPlan state "" (plan, objectives)
 
             let assertion = (fst actualPlan.Value) = expectedPlan
             Assert.IsTrue (assertion)
@@ -254,7 +254,7 @@ module PlanningTest =
             let enemy' = { enemy with Node = "c" }
             let state' = { state with EnemyData = [enemy'] }
 
-            let plan' = repairPlan state' plan.Value
+            let plan' = repairPlan state' "" plan.Value
             let actualPath = [for action in fst plan'.Value -> action.ActionType]
 
             let expectedPath = [Perform <| Goto "c"; Perform <| Attack "enemy"]
@@ -297,7 +297,7 @@ module PlanningTest =
             let expectedPlan = 
                 [ probeAction (Some "c") ]
 
-            let actualPlan = repairPlan state (originalPlan, [objective])
+            let actualPlan = repairPlan state "" (originalPlan, [objective])
 
             let assertion = expectedPlan = (fst actualPlan.Value)
 
@@ -348,7 +348,7 @@ module PlanningTest =
                 ; probeAction None
                 ]
 
-            let actualPlan = repairPlan state (originalPlan, [objective])
+            let actualPlan = repairPlan state "" (originalPlan, [objective])
             let assertion = (fst actualPlan.Value) = expectedPlan
 
             Assert.IsTrue(assertion)
@@ -399,7 +399,7 @@ module PlanningTest =
                 ; probeAction None
                 ]
             
-            let actualPlan = repairPlan state (originalPlan, [objective])
+            let actualPlan = repairPlan state "" (originalPlan, [objective])
             let assertion = fst actualPlan.Value = expectedPlan
 
             Assert.IsTrue (assertion)
@@ -416,9 +416,9 @@ module PlanningTest =
 
             let intention = normalIntention("testIntention",Activity,[Plan (fun _ -> Some [Perform Parry])])
             let (Some plan) = formulatePlan noEnergyState intention
-            let (Some updatedPlan) = repairPlan noEnergyState plan
+            let (Some updatedPlan) = repairPlan noEnergyState "" plan
             let (Some (action,remPlan)) = nextAction noEnergyState intention updatedPlan
-            let (Some updatedPlan2) = repairPlan state remPlan
+            let (Some updatedPlan2) = repairPlan state "" remPlan
             let (Some (action2,remPlan2)) = nextAction noEnergyState intention updatedPlan2
             Assert.AreEqual(Perform Recharge, action)
             Assert.AreEqual(Perform Parry, action2)
@@ -440,13 +440,13 @@ module PlanningTest =
             let intention = normalIntention("testIntention",Activity,[Requirement(At "b"); Requirement(At "c")])
             
             let (Some plan) = formulatePlan state intention
-            let (Some updatedPlan) = repairPlan state plan
+            let (Some updatedPlan) = repairPlan state "" plan
             let (Some (action,remPlan)) = nextAction state intention updatedPlan
             
             Assert.AreEqual(Perform <| Goto "b",action)
 
             let updateState = { state with Self = {state.Self with Node = "b" }}
-            let (Some updatedPlan2) = repairPlan updateState remPlan
+            let (Some updatedPlan2) = repairPlan updateState "" remPlan
             let (Some (action2,remPlan2)) = nextAction updateState intention updatedPlan2
             
             Assert.AreEqual(Perform <| Goto "c",action2)
@@ -470,12 +470,12 @@ module PlanningTest =
             let intention = normalIntention("testIntention",Activity,[Plan(fun _ -> Some [Communicate <| SendMail mail]); Requirement (Repaired("A1"))])
             
             let (Some plan) = formulatePlan state intention
-            let (Some updatedPlan) = repairPlan state plan
+            let (Some updatedPlan) = repairPlan state "" plan
             let (Some (action,remPlan)) = nextAction state intention updatedPlan
             
             Assert.AreEqual(Communicate <| SendMail mail,action)
 
-            let (Some updatedPlan2) = repairPlan state remPlan
+            let (Some updatedPlan2) = repairPlan state "" remPlan
             let (Some (action2,remPlan2)) = nextAction state intention updatedPlan2
             
             Assert.AreEqual(Perform <| Repair "A1",action2)
@@ -500,12 +500,12 @@ module PlanningTest =
                                 )
             
             let (Some plan) = formulatePlan state intention
-            let (Some updatedPlan) = repairPlan state plan
+            let (Some updatedPlan) = repairPlan state "" plan
             let (Some (action,remPlan)) = nextAction state intention updatedPlan
             
             Assert.AreEqual(Communicate <| SendMail mail,action)
 
-            let (Some updatedPlan2) = repairPlan state remPlan
+            let (Some updatedPlan2) = repairPlan state "" remPlan
             let (Some (action2,remPlan2)) = nextAction state intention updatedPlan2
             
             Assert.AreEqual(Perform <| Goto "b", action2)
@@ -520,7 +520,7 @@ module PlanningTest =
 
             let originalPlan = [skipAction; parryAction]
 
-            let actual = repairPlan state (originalPlan, [Plan (fun _ -> Some [])])
+            let actual = repairPlan state "" (originalPlan, [Plan (fun _ -> Some [])])
 
             let expected = 
                 [ rechargeAction

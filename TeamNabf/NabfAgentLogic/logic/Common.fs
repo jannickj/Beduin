@@ -66,7 +66,43 @@ module Common =
 
     let notSurveyedEnough (s:State) = s.SimulationStep < SURVEY_MY_NODE_UNTIL_THIS_TURN_IF_NEEDED
 
+    ////////////////////////////////////////Immediate Actions/////////////////////////////////
+    let immediateAction state =
+        match state.Self.Role with
+        | Some Saboteur when state.Self.Status <> EntityStatus.Disabled ->
+            let relevantEnemies = List.filter shouldAttack <| enemiesHere state state.Self.Node
+            let roleListMap = Map.ofSeq <| Seq.groupBy (fun agent -> agent.Role) relevantEnemies
+            let roleList role = if Map.containsKey role roleListMap then List.ofSeq roleListMap.[role]
+                                else []
+
+            let friendlySabsHere = 
+                List.length (List.filter (fun agent -> agent.Role = Some Saboteur) <| alliesHere state state.Self.Node)
+            
+            // We prioritize repairers that we can destroy this turn (destroying a repairer in a single turn takes two attacks)
+            let prioritizedRepairers = List.ofSeq <| Seq.take (friendlySabsHere / 2) (roleList (Some Repairer))
+            let restRepairers = List.ofSeq <| Seq.skip (friendlySabsHere / 2) (roleList (Some Repairer))
+
+            let priorityList = 
+                  prioritizedRepairers @ prioritizedRepairers // insert this twice so that each prioritized repairer is attacked by two agents
+                                                              // Could be done prettier / clearer?
+                @ roleList (Some Saboteur)
+                @ restRepairers
+                @ roleList None // Unknown agents could be saboteurs or repairers
+                @ roleList (Some Sentinel)
+                @ roleList (Some Explorer)
+                @ roleList (Some Inspector)
+               
+            match selectBasedOnRank state relevantEnemies with
+            | Some agent -> Some <| Perform (Attack agent.Name)
+            | None -> None
+
+        | _ -> None
+
+
     ////////////////////////////////////////Logic////////////////////////////////////////////
+
+
+
 
     let onlyHaveOneJob (inputState:State) =
         match myBestCurrentJob inputState with
@@ -323,13 +359,7 @@ module Common =
         if inputState.SimulationStep % 5 <> 0 then
             None
         else
-            let shouldNotReport agent =
-                agent.Role.IsSome 
-                && agent.Role.Value = AgentRole.Sentinel 
-                && agent.RoleCertainty >= 50
-                || agent.Status = EntityStatus.Disabled
-
-            let shouldReportForZone zone agent = List.exists ((=) agent.Node) zone && not <| shouldNotReport agent 
+            let shouldReportForZone zone agent = List.exists ((=) agent.Node) zone && shouldAttack agent 
             //checking if the agent has an occupy job and that an non-disabled enemy is standing on it's node
             let agentsInMyZoneWhileImOnOccupyJob =
                 match inputState.MyJobs with

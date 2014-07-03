@@ -12,8 +12,12 @@ module SaboteurTree =
                     Desire(haveRangeTwo)
 
                     Desire(unapplyFromJobsWhenDisabled)
-                                       
+
+                    Desire(applyToAttackJob)
+
+                    Desire(workOnAttackJob)
+
                     Desire(killAgentICanSee)
 
-                    Desire(findAgentToDestroy)
+                    Desire(patrolAZone)
                 ]

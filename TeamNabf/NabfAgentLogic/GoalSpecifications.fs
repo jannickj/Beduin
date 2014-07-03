@@ -7,6 +7,7 @@ module GoalSpecifications =
     open Constants
     open Logging
     open GeneralLib
+    open ActionSpecifications
 
     let agentAt agentName state =
         match tryFindAgentByName agentName (state.EnemyData @ state.FriendlyData) with
@@ -57,10 +58,28 @@ module GoalSpecifications =
             n.Value.Value >= value
         else
             false
+    
+    let killAll vertex (state:State) =
+        let killable enemies = 
+            List.filter (getPosition >> ((=) vertex)) state.EnemyData
+            |> List.filter shouldAttack
+        
+        Set.contains vertex state.NodesInVisionRange 
+        && List.length <| killable state.EnemyData = 0
 
     let surveyedNeighbourEdges state = 
         let rangeOneEdges = state.World.[state.Self.Node].Edges          
         0 = (Set.count <| Set.filter (fun (value,_) -> Option.isNone value) rangeOneEdges)
+    
+
+    let distanceHeuristics vertex =
+        distanceBetweenAgentAndNode vertex
+    
+    let agentDistanceHeuristics agent state =
+        match agentAt agent state with
+        | Some vn -> distanceHeuristics vn state
+        | _ -> 0
+    
 
     let generateGoalCondition goal =
         match goal with
@@ -75,18 +94,38 @@ module GoalSpecifications =
         | Repaired agent -> agentRepaired agent
         | GetCloseTo agent -> getCloseTo agent
         | Surveyed -> surveyedNeighbourEdges
+        | KillAll vertex -> killAll vertex
 
-    let distanceHeuristics vertex =
-        distanceBetweenAgentAndNode vertex
-    
-    let agentDistanceHeuristics agent state =
-        match agentAt agent state with
-        | Some vn -> distanceHeuristics vn state
-        | _ -> 0
 
+
+    let availableActions state  goal  =
+        let actions = 
+            match goal with
+            | At _ | Explored _ | AtMinValueNodeNotPartOfZone _ | GetCloseTo _-> 
+                gotoActions state
+            | Attacked agent -> 
+                gotoActions state @ attackActions state agent
+            | Inspected vertex -> 
+                gotoActions state @ inspectActions state vertex
+            | Probed vertex -> 
+                gotoActions state @ probeActions state vertex 
+            | Repaired agent -> 
+                gotoActions state @ repairActions state agent 
+            | Parried -> 
+                parryActions state
+            | Charged _ -> 
+                rechargeActions state
+            | Surveyed ->
+                [surveyAction]
+            | KillAll vertex ->
+                let agentsAtVertex = agentsAtPos state.EnemyData vertex
+                let agentNames = List.map getAgentName agentsAtVertex
+                gotoActions state @ List.collect (attackActions state) agentNames
+        rechargeAction :: actions
 
     let goalHeuristics goal =
         match goal with
+        | KillAll vertex 
         | At vertex 
         | Explored vertex
         | Probed vertex
@@ -106,6 +145,7 @@ module GoalSpecifications =
 
     let goalVertex goal state =
         match goal with
+        | KillAll vertex
         | At vertex 
         | Explored vertex
         | Inspected vertex

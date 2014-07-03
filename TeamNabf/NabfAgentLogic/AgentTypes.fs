@@ -297,6 +297,7 @@ module AgentTypes =
         | Parried
         | Charged   of int option
         | Surveyed
+        | KillAll of VertexName
 
     type Objective = 
         | Plan of (State -> (AgentAction list) option)
