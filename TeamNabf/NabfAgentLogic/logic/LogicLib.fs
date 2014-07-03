@@ -105,8 +105,8 @@ module LogicLib =
         | _ -> failwith "Contains non-occupyjob"
 
     let shouldAttack (agent:Agent) =
-        agent.Status = Normal && 
-        (not (agent.Role = Some Sentinel && agent.RoleCertainty >= MINIMUM_ROLE_CERTAINTY))
+        agent.Status = Normal //&& 
+        //(not (agent.Role = Some Sentinel && agent.RoleCertainty >= MINIMUM_ROLE_CERTAINTY))
 
     let myBestCurrentJob (s:State) = 
         match getMyJobs s with

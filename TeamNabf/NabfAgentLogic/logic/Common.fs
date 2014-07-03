@@ -66,11 +66,17 @@ module Common =
 
     let notSurveyedEnough (s:State) = s.SimulationStep < SURVEY_MY_NODE_UNTIL_THIS_TURN_IF_NEEDED
 
+    let getAdjacentSentinels state = 
+                                let neighbours = getNeighbourIds state.Self.Node state.World
+                                let nearbyEnemies = List.filter (fun a -> Option.isSome (List.tryFind ((=) a.Node) neighbours)) state.EnemyData
+                                List.filter (fun a -> a.Role = Some Sentinel && a.RoleCertainty >= MINIMUM_ROLE_CERTAINTY && a.Status = Normal) nearbyEnemies
+
     ////////////////////////////////////////Immediate Actions/////////////////////////////////
     let immediateAction state =
         match state.Self.Role with
         | Some Saboteur when state.Self.Status <> EntityStatus.Disabled ->
-            let relevantEnemies = List.filter shouldAttack <| enemiesHere state state.Self.Node
+            let enemiesHere = (List.filter shouldAttack <| enemiesHere state state.Self.Node)
+            let relevantEnemies = (List.filter (fun a -> not (a.Role = Some Sentinel)) enemiesHere) @ getAdjacentSentinels state
             let roleListMap = Map.ofSeq <| Seq.groupBy (fun agent -> agent.Role) relevantEnemies
             let roleList role = if Map.containsKey role roleListMap then List.ofSeq roleListMap.[role]
                                 else []
@@ -88,9 +94,9 @@ module Common =
                 @ roleList (Some Saboteur)
                 @ restRepairers
                 @ roleList None // Unknown agents could be saboteurs or repairers
-                @ roleList (Some Sentinel)
                 @ roleList (Some Explorer)
                 @ roleList (Some Inspector)
+                @ roleList (Some Sentinel) //Try to attack sentinels ranged
                
             match selectBasedOnRank state relevantEnemies with
             | Some agent -> Some <| Perform (Attack agent.Name)
