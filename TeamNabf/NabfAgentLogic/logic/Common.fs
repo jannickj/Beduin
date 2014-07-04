@@ -92,7 +92,7 @@ module Common =
                 @ roleList (Some Explorer)
                 @ roleList (Some Inspector)
                
-            match selectBasedOnRank state relevantEnemies with
+            match selectBasedOnRank state priorityList with
             | Some agent -> Some <| Perform (Attack agent.Name)
             | None -> None
 

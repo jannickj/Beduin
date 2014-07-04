@@ -20,12 +20,17 @@ module LogicLib =
             ChangeStateAfter = None
             ChangeStateBefore = None
         }
-     
     
+    let isSameRoleSameNode (agent1:Agent) (agent2:Agent) =
+        agent1.Node = agent2.Node && agent1.Role = agent2.Role
+
+    let isAlive (agent:Agent) = agent.Status = Normal
+
+
     let selectBasedOnRank (state:State) things =
         let self = state.Self
-        let isSame agent = agent.Node = self.Node && agent.Role = self.Role
-        let sameFriendlies = List.filter isSame state.FriendlyData
+        let isSameAndAlive = predicateAnd (isSameRoleSameNode self) isAlive
+        let sameFriendlies = List.filter isSameAndAlive state.FriendlyData
         let order = List.sortBy getAgentName (self::sameFriendlies)
         let myPos = List.findIndex (getAgentName >> ((=) self.Name)) order
         if List.length things <= myPos then 
@@ -38,6 +43,7 @@ module LogicLib =
 
     let listContains element elementList =
         (List.tryFind (fun s -> s = element) elementList).IsSome
+
 
     let probedVertices (world : Graph) =
         List.choose (fun (name,vertex:Vertex)-> if vertex.Value.IsSome then Some name else None ) <| Map.toList world
@@ -271,7 +277,14 @@ module LogicLib =
     let myRankIsGreatest myName (other:AgentName List) =
         let qq = List.filter (fun aName -> aName < myName) other
         qq.IsEmpty
-
+    
+        
+    let getNClosestSatisfyingNodes (state:State) condition n =
+        let dist = flip distanceBetweenAgentAndNode state
+        let nodes = List.filter condition (List.map fst <| Map.toList state.World)
+        let sorted = List.sortBy dist nodes
+        let realN = min n (List.length sorted)
+        Seq.toList <| Seq.take realN sorted
 
     let nearestVertexSatisfying (state : State) (condition : (State -> VertexName -> bool)) =
         let satisfying = List.map fst (Map.toList state.World)

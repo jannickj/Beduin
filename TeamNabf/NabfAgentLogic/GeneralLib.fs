@@ -75,4 +75,12 @@ module GeneralLib =
     let getJobId (job:Job) =
         let ((id,_,_,_),_) = job
         Option.get id
+    
+    let predicateAnd pred1 pred2 input = (pred1 input) && (pred2 input)
 
+    let trimListToShortest (list1:'a list) (list2:'b list) =
+        (   Seq.truncate (List.length list2) list1 |> Seq.toList
+        ,   Seq.truncate (List.length list1) list2 |> Seq.toList)
+//        let minLength = minLength (List.length list1) (List.length list2)
+//        let takeMin = (Seq.take minLength) >> Seq.toList 
+//        (takeMin list1, takeMin list2)
