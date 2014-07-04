@@ -79,7 +79,7 @@ module Common =
                 List.length (List.filter (fun agent -> agent.Role = Some Saboteur) <| alliesHere state state.Self.Node)
             
             // We prioritize repairers that we can destroy this turn (destroying a repairer in a single turn takes two attacks)
-            let prioritizedRepairers = List.ofSeq <| Seq.take (friendlySabsHere / 2) (roleList (Some Repairer))
+            let prioritizedRepairers = List.ofSeq <| Seq.truncate (friendlySabsHere / 2) (roleList (Some Repairer))
             let restRepairers = List.ofSeq <| Seq.skip (friendlySabsHere / 2) (roleList (Some Repairer))
 
             let priorityList = 
