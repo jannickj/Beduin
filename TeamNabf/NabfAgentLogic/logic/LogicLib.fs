@@ -278,7 +278,9 @@ module LogicLib =
         let qq = List.filter (fun aName -> aName < myName) other
         qq.IsEmpty
     
-        
+    let vertexNamesToVertex (world:Graph) vertexNames =
+        List.map (fun vn -> world.[vn]) vertexNames
+
     let getNClosestSatisfyingNodes (state:State) condition n =
         let dist = flip distanceBetweenAgentAndNode state
         let nodes = List.filter condition (List.map fst <| Map.toList state.World)

@@ -8,6 +8,7 @@ module ZoneTest =
     open NabfAgentLogic.Explorer
     open NabfAgentLogic.Planning
     open FsPlanning.Search
+    open NabfAgentLogic.LogicLib
 
     [<TestFixture>]
     type ZoneTest() = 
@@ -210,9 +211,9 @@ module ZoneTest =
                 Assert.IsTrue (plan.IsSome)
                 ()
 
-                //     B---C
-                //      \ /
-                //       A 
+            //     B---C
+            //      \ /
+            //       A 
             [<Test>]
             member this.SmallTest_FewNodes_LocateZone() =
                 let initialGraph =  [ ("a", { Identifier = "a"; Value = Some 10; Edges = [(Some 1, "b");(Some 1, "c")] |> Set.ofList }) 
@@ -225,6 +226,41 @@ module ZoneTest =
                 let goals = intA.Objectives
                 let plan = makePlan state "" goals
                 Assert.IsTrue (plan.IsSome)
+                ()
+            //   DontCare
+            //   /   \
+            //   a-b-c
+            [<Test>]
+            member this.EnemyAgentPlacement_Map1InMapc_PlaceAgentOnAllNodesInZone() =
+                let initialGraph =  [ ("a", { Identifier = "a"; Value = Some 10; Edges = [(Some 1, "b");(Some 1, "d")] |> Set.ofList }) 
+                                    ; ("b", { Identifier = "b"; Value = None; Edges = [(Some 1, "a");(Some 1, "c")] |> Set.ofList })
+                                    ; ("c", { Identifier = "c"; Value = None; Edges = [(Some 1, "b");(Some 1, "d")] |> Set.ofList })
+                                    ; ("d", { Identifier = "d"; Value = None; Edges = [(Some 1, "a");(Some 1, "c")] |> Set.ofList })
+                                    ] |> Map.ofList
+                let zone = vertexNamesToVertex initialGraph ["a";"b";"c"]
+                let placement = findAgentPlacementWithEnemies ["b"] zone initialGraph
+                Assert.AreEqual (["a";"b";"c"],placement)
+                ()
+            
+            //   b - c-  d - e - j
+            //   |      / \
+            //   a      f g
+            //   |      \ /
+            //   i       h
+            [<Test>]
+            member this.EnemyAgentPlacement_Map1InMapc_PlaceAgentOnCorrectNodes() =
+                let initialGraph =  [ ("a", { Identifier = "a"; Value = None; Edges = [(Some 1, "b");(Some 1, "i")] |> Set.ofList }) 
+                                    ; ("b", { Identifier = "b"; Value = None; Edges = [(Some 1, "a");(Some 1, "c")] |> Set.ofList })
+                                    ; ("c", { Identifier = "c"; Value = None; Edges = [(Some 1, "b");(Some 1, "d")] |> Set.ofList })
+                                    ; ("d", { Identifier = "d"; Value = None; Edges = [(Some 1, "c");(Some 1, "e");(Some 1, "f");(Some 1, "g")] |> Set.ofList })
+                                    ; ("e", { Identifier = "e"; Value = None; Edges = [(Some 1, "d");(Some 1, "j")] |> Set.ofList })
+                                    ; ("j", { Identifier = "j"; Value = None; Edges = [(Some 1, "e")] |> Set.ofList })
+                                    ; ("e", { Identifier = "e"; Value = None; Edges = [(Some 1, "d");(Some 1, "j")] |> Set.ofList })
+                                    ; ("e", { Identifier = "e"; Value = None; Edges = [(Some 1, "d");(Some 1, "j")] |> Set.ofList })
+                                    ] |> Map.ofList
+                let zone = vertexNamesToVertex initialGraph ["a";"b";"c"]
+                let placement = findAgentPlacementWithEnemies ["b"] zone initialGraph
+                Assert.AreEqual (["a";"b";"c"],placement)
                 ()
 
             [<Test>]

@@ -143,9 +143,10 @@ module Explorer =
         | None -> 0
 
     //We always want to place an agent at the entrance to an island, so we lock that vertex.
-    let shouldZoneVertexLockBasedOnIsland (graph:Graph) (vertex:ZoneVertex) =
+    let shouldZoneVertexLockBasedOnIsland (enemiesOn: VertexName list) (graph:Graph) (vertex:ZoneVertex) =
         let neighbours = getNeighbours vertex.Vertex.Identifier graph
-        List.exists isIsland neighbours
+        let isIslandAndHasNoEnemy node = (isIsland node) && (not <| List.exists ((=) node.Identifier) enemiesOn)
+        List.exists isIslandAndHasNoEnemy neighbours
     
     //Get all neighbours that are also in the zone
     let getZoneVertexNeighbour (graph:Graph) (zone:ZoneVertex list) (vertex:ZoneVertex) =
@@ -203,18 +204,25 @@ module Explorer =
             calcAgentPositions graph zoneWithAgentRemoved
 
     //Find out where agents should be placed. This is the main function to be called by the logic.
-    let findAgentPlacement (subgraph:Vertex List) (graph:Graph) =
+    let findAgentPlacementWithEnemies (enemiesOn: VertexName list) (subgraph:Vertex List) (graph:Graph) =
         let zoneVertexList = List.map buildZoneVertex subgraph
         if isOnlyIsland graph zoneVertexList 
         then 
             let (opt,neighbour) = subgraph.Head.Edges.MaximumElement
             [neighbour] 
         else
-            let lockedZoneVertexList = List.map (fun zoneVertex -> {zoneVertex with Lock = (shouldZoneVertexLockBasedOnIsland graph zoneVertex); HasAgent = not (isIsland zoneVertex.Vertex)}) zoneVertexList
+            let nodeHasEnemy node = List.exists ((=) node) enemiesOn
+            let changeZoneVertex zv = { zv with 
+                                            Lock = (shouldZoneVertexLockBasedOnIsland enemiesOn graph zv) || nodeHasEnemy zv.Vertex.Identifier 
+                                            HasAgent = not (isIsland zv.Vertex) || nodeHasEnemy zv.Vertex.Identifier
+                                      }
+            let lockedZoneVertexList = List.map changeZoneVertex zoneVertexList
             let agentPositionsCalculated = calcAgentPositions graph lockedZoneVertexList
             let agentPositions = List.filter (fun zoneVertex -> zoneVertex.HasAgent ) agentPositionsCalculated
             List.map (fun zoneVertex -> zoneVertex.Vertex.Identifier) agentPositions
-
+    
+    let findAgentPlacement = findAgentPlacementWithEnemies []
+    
     let calcZoneValue  (state:State) (agents:int) (zone:string Set) =
         //let hasEnemy = Set.exists (fun name -> List.exists (fun agent -> agent.Node = name) state.EnemyData) zone
         let fullvalue = Set.fold (fun value name -> if state.World.[name].Value = None then value else value + state.World.[name].Value.Value) 0 zone
