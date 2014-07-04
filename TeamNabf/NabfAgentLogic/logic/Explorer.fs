@@ -348,25 +348,10 @@ module Explorer =
 
     let findNodeToProbe (inputState:State) =
         let nearestUnprobed = nearestVertexSatisfying inputState isUnprobed
-        if(nodeHasNoOtherFriendlyAgentsOnIt inputState inputState.Self.Node)
-        then
-            match nearestUnprobed with
-            | Some unprobed ->
-                Some <| normalIntention ("probe one more node.", Activity, [Requirement (Probed unprobed)])
-            | _ -> None
-        else
-            let otherAgentsOnMyNode = List.filter (fun a -> a.Node = inputState.Self.Node && not(a.Name = inputState.Self.Name)) inputState.FriendlyData
-            let otherAgentNames = List.map getAgentName otherAgentsOnMyNode
-            if (myRankIsGreatest inputState.Self.Name otherAgentNames) then
-                let nextBest = findNextBestUnprobed inputState
-                match nextBest with
-                        | Some vertex -> Some<| normalIntention ("leave the group and probe a node.", Activity, [Requirement (Probed vertex)])
-                        | None -> Some<| normalIntention ("wait for the others to leave.", Activity, [Plan (fun _ -> Some [Perform(Recharge)])])
-            else
-                match nearestUnprobed with
-                | Some unprobed ->
-                    Some<| normalIntention ("probe one more node.", Activity, [Requirement (Probed unprobed)])
-                | _ -> None
+        match nearestUnprobed with
+        | Some unprobed ->
+            Some <| normalIntention ("probe one more node.", Activity, [Requirement (Probed unprobed)])
+        | _ -> None
 
     let probeThisAndAdjacentDeadEnds (state : State) =
                 
