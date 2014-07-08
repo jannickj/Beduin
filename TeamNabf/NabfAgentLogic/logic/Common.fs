@@ -85,7 +85,7 @@ module Common =
                 List.length (List.filter (fun agent -> agent.Role = Some Saboteur) <| alliesHere state state.Self.Node)
             
             // We prioritize repairers that we can destroy this turn (destroying a repairer in a single turn takes two attacks)
-            let prioritizedRepairers = List.ofSeq <| Seq.take (friendlySabsHere / 2) (roleList (Some Repairer))
+            let prioritizedRepairers = List.ofSeq <| Seq.truncate (friendlySabsHere / 2) (roleList (Some Repairer))
             let restRepairers = List.ofSeq <| Seq.skip (friendlySabsHere / 2) (roleList (Some Repairer))
 
             let priorityList = 
@@ -98,7 +98,7 @@ module Common =
                 @ roleList (Some Inspector)
                 @ roleList (Some Sentinel) //Try to attack sentinels ranged
                
-            match selectBasedOnRank state relevantEnemies with
+            match selectBasedOnRank state priorityList with
             | Some agent -> Some <| Perform (Attack agent.Name)
             | None -> None
 
@@ -134,27 +134,27 @@ module Common =
 
     //Try to make it so the agent has explored one more node
     let exploreMap (inputState:State) = 
-        let othersOnMyNode = List.filter (fun a -> a.Node = inputState.Self.Node && not(a.Name = inputState.Self.Name)) inputState.FriendlyData
-        let otherAgentNames = List.map getAgentName othersOnMyNode
+        //let othersOnMyNode = List.filter (fun a -> a.Node = inputState.Self.Node && not(a.Name = inputState.Self.Name)) inputState.FriendlyData
+        //let otherAgentNames = List.map getAgentName othersOnMyNode
         let tryNearestUnexplored = nearestVertexSatisfying inputState isUnexplored
         match tryNearestUnexplored with
         | Some nearestUnexplored ->
-            let goal = 
-                if (nodeHasNoOtherFriendlyAgentsOnIt inputState inputState.Self.Node) then
-                    Explored nearestUnexplored
-                else
-                    if (myRankIsGreatest inputState.Self.Name otherAgentNames) then
-                        let nextBest = findNextBestUnexplored inputState
-                        match nextBest with
-                        | Some vertex -> Explored vertex
-                        | None -> Explored nearestUnexplored
-                    else
-                        Explored nearestUnexplored
-
+//            let goal = 
+//                if (nodeHasNoOtherFriendlyAgentsOnIt inputState inputState.Self.Node) then
+//                    Explored nearestUnexplored
+//                else
+//                    if (myRankIsGreatest inputState.Self.Name otherAgentNames) then
+//                        let nextBest = findNextBestUnexplored inputState
+//                        match nextBest with
+//                        | Some vertex -> Explored vertex
+//                        | None -> Explored nearestUnexplored
+//                    else
+//                        Explored nearestUnexplored
+//
             Some <| normalIntention 
-                 ( "explore one more node."
+                 ( sprintf "explore node %A." nearestUnexplored
                  , Activity
-                 , [Requirement goal]
+                 , [Requirement <| Explored nearestUnexplored]
                  )
         | _ -> None
 

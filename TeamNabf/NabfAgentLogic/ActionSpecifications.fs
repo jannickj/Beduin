@@ -80,6 +80,16 @@ module ActionSpecifications =
         | true -> Success
         | false -> Failure <| sprintf "Not in range of agent %A" agent
 
+    let inAttackRangeOfAgent state agentName fromList = 
+        let agent = List.find (fun a -> a.Name = agentName) fromList
+        match agent.Role with
+        | Some Sentinel when agent.RoleCertainty >= MINIMUM_ROLE_CERTAINTY ->
+            let neighbours = getNeighbourIds state.Self.Node state.World
+            match Option.isSome (List.tryFind ((=) agent.Node) neighbours) with
+            | true -> Success
+            | false -> Failure <| sprintf "Not in range of agent %A" agent
+        | _ -> inRangeOfAgent state agentName fromList
+
     let rec tryRemoveFromList selector list =
         match list with
         | head :: tail when selector head -> Some (head, tail)  
@@ -148,7 +158,7 @@ module ActionSpecifications =
         }
 
     let attackAction (enemyAgent : AgentName) =
-        let canAttack state = inRangeOfAgent state enemyAgent state.EnemyData
+        let canAttack state = inAttackRangeOfAgent state enemyAgent state.EnemyData
 
         let updateState state =
             let attacked, rest = List.partition (fun e -> e.Name = enemyAgent) state.EnemyData 
@@ -375,8 +385,13 @@ module ActionSpecifications =
     let gotoActions (state : State) = 
         List.map moveAction <| getNeighbourIds state.Self.Node state.World
     
+    let isAdjacentSentinel agentName state =
+        let neighbours = getNeighbourIds state.Self.Node state.World
+        let agent = List.find (fun a -> a.Name = agentName) state.EnemyData
+        Option.isSome <| List.tryFind ((=) agent.Node) neighbours
+
     let attackActions state agent = 
-        if isAgentHere agent state then
+        if (isAgentHere agent state) || (isAdjacentSentinel agent state) then
             [attackAction agent]
         else
             []

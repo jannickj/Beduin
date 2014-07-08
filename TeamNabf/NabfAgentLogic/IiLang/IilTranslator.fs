@@ -407,13 +407,20 @@ namespace NabfAgentLogic.IiLang
                 | unknown ->  raise <| InvalidIilException ("iilServerMessage: "+unknown, data)
             | _ -> failwith "nonono"
         
+        let buildIilUpgradeType upgrade =
+            match upgrade with
+            | Battery -> "battery"
+            | SabotageDevice -> "sabotageDevice"
+            | Shield -> "shield"
+            | Sensor -> "sensor"
+
         let buildIilActionContainer action id =
             match action with
             | Skip -> Action ("skip", [Numeral id])
             | Goto vn -> Action ("goto", [Numeral id; Identifier vn])
             | Attack a -> Action ("attack", [Numeral id; Identifier a])
             | Recharge -> Action ("recharge", [Numeral id])
-            | Buy a -> Action ("buy", [Numeral id; Identifier (a.ToString().ToLower())])
+            | Buy a -> Action ("buy", [Numeral id; Identifier (buildIilUpgradeType a)])
             | Inspect None -> Action ("inspect", [Numeral id])
             | Inspect (Some a) -> Action ("inspect", [Numeral id; Identifier a])
             | Parry -> Action ("parry", [Numeral id])

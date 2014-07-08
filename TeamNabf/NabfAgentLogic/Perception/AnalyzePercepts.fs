@@ -141,8 +141,12 @@ module AnalyzePercepts =
         | _ -> []
     
     let generateFakeNodeExploredPercepts (newState : State) =
-        let isExplored node =   (edgeDistance newState.Self.Node node newState < newState.Self.VisionRange.Value) 
-                                && (not <| Set.contains node newState.ExploredNodes)
+        
+        let isExplored node =     
+            let heuMap =  fst newState.GraphHeuristic
+            let [first;second] = List.sort [newState.Self.Node;node]  
+            (heuMap.ContainsKey (first,second) && edgeDistance newState.Self.Node node newState < newState.Self.VisionRange.Value) 
+                && (not <| Set.contains node newState.ExploredNodes) 
         let toPercept node = NodeKnowledge(node,None)
         let explorednodes = List.filter isExplored (Set.toList newState.NodesInVisionRange)
         logStateImportant newState Perception <| sprintf "Explored Nodes: %A" explorednodes.Length

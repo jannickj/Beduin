@@ -157,7 +157,13 @@ module LogicLib =
         match Map.tryFind (nodeA,nodeB) heuMap with
         | Some (_,dist) ->
             dist
-        | None -> failwith "Node %A or Node %A has no graph heuristic calculation and can thus not be used for edgeDistance"
+        | None -> 
+            let (this,other) = if nodeA = state.Self.Node then (nodeA,nodeB) elif nodeB = state.Self.Node then (nodeB,nodeA) else ("illegalNodeCombination","illegalNodeCombination")
+            match Map.tryFindKey (fun (a,_) _ -> a = this) heuMap with
+            | Some _ -> 
+                let edges = state.World.[other].Edges
+                failwith <| sprintf "Node %A has no graph heuristic calculation and can not be used for edgeDistance. Its edges are: %A" other edges
+            | None -> failwith <| sprintf "Node %A (where the agent is) has no graph heuristic calculation and can not be used for edgeDistance" this
 
     let distanceBetweenNodes node1 node2 (state:State) : int =
         let (heuMap,_) = state.GraphHeuristic
