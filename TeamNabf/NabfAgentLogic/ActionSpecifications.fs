@@ -363,7 +363,7 @@ module ActionSpecifications =
 
     let buyAction upgrade =
         { ActionType = Perform <| Buy upgrade
-        ; Preconditions = []
+        ; Preconditions = [ enoughEnergy Constants.ACTION_COST_EXPENSIVE; isNotDisabled ]
         ; Effect = fun state -> state
         ; Cost = fun _ -> 0
         }
