@@ -105,7 +105,7 @@
         let MAXIMUM_EDGE_COST = 9
 
         let ZONE_ORIGIN_VALUE = 9
-        let ZONE_BORDER_VALUE = 7
+        let ZONE_BORDER_VALUE = 6
         let SOME_VALUE_VALUE = 8
         let LITTLE_VALUE_VALUE = 6
         let LEAST_VALUE_VALUE = 4

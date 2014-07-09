@@ -69,7 +69,7 @@ module Common =
     let getAdjacentSentinels state = 
                                 let neighbours = getNeighbourIds state.Self.Node state.World
                                 let nearbyEnemies = List.filter (fun a -> Option.isSome (List.tryFind ((=) a.Node) neighbours)) state.EnemyData
-                                List.filter (fun a -> a.Role = Some Sentinel && a.RoleCertainty >= MINIMUM_ROLE_CERTAINTY && a.Status = Normal) nearbyEnemies
+                                List.filter (fun a -> a.Role = Some Sentinel && a.RoleCertainty = 100 && a.Status = Normal) nearbyEnemies
 
     ////////////////////////////////////////Immediate Actions/////////////////////////////////
     let immediateAction state =
