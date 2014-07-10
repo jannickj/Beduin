@@ -7,6 +7,7 @@ module MessageTranslator =
             match msg with
             | MyLocation vn -> "myloc "+vn
             | GoingToRepairYou -> "MyNameIsCarlosIWillBeYourRepeairerForToday"
+            | Saw (agentName,vn) -> "saw "+agentName+" "+vn
 
         (((sender+" "+parseMsg):string), recipient)
             
@@ -20,6 +21,8 @@ module MessageTranslator =
                     MyLocation vn
                 | ["MyNameIsCarlosIWillBeYourRepeairerForToday"] ->
                     GoingToRepairYou
+                | ["saw"; agentName; vn] ->
+                    Saw (agentName,vn)
                 | _ -> failwith ("unknown mail message "+text)
             (sender,recipient,mailmsg):Mail
         | [] -> failwith ("mail was empty")

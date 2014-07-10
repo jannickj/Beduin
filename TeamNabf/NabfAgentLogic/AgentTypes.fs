@@ -121,6 +121,7 @@ module AgentTypes =
     type Message =
         | MyLocation of VertexName
         | GoingToRepairYou
+        | Saw of AgentName*VertexName
 
     type RecipientName = AgentName
     type SenderName = AgentName
