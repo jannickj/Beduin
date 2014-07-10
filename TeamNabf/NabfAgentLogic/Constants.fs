@@ -113,7 +113,8 @@
 
         let SIMULATED_EDGE_COST = 1
 
-        let RECHARGE_FACTOR = 0.5
+        let RECHARGE_FACTOR_NORMAL = 0.5
+        let RECHARGE_FACTOR_DISABLED = 0.3
 
         let ACTION_COST_MAX = 9
         let ACTION_COST_CHEAP = 1

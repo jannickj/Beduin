@@ -20,8 +20,13 @@ module ActionSpecifications =
         | Success -> true
         | Failure _ -> false
 
+    let rechargeFactor state = 
+        match state.Self.Status with
+        | Disabled -> RECHARGE_FACTOR_DISABLED
+        | Normal -> RECHARGE_FACTOR_NORMAL
+
     let turnCost (state : State) =
-        state.Self.MaxEnergy.Value / 2
+        int <| (float state.Self.MaxEnergy.Value) * (rechargeFactor state)
 
     [<CustomEquality>]
     [<CustomComparison>]
@@ -176,8 +181,7 @@ module ActionSpecifications =
 
     let rechargeAction =
         let updateState state = 
-//            logImportant "updating state rechargeAction"
-            let newEnergy = state.Self.Energy.Value + (int ((float state.Self.MaxEnergy.Value) * RECHARGE_FACTOR)) 
+            let newEnergy = state.Self.Energy.Value + (int <| (float state.Self.MaxEnergy.Value) * (rechargeFactor state)) 
             { state with Self = { state.Self with Energy = Some newEnergy}; LastAction = Recharge }
         { ActionType    = Perform <| Recharge
         ; Preconditions = [  ]
