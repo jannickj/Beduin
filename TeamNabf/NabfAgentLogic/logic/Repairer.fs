@@ -29,15 +29,15 @@ module Repairer =
 
 
     let spontanouslyRepairDamagedAgent (inputState:State) = 
-        let nearbyDamagedAgent = List.filter (fun a -> a.Status = Disabled) (alliesHere inputState inputState.Self.Node)
-        //logStateImportant inputState Logging.Intentions <| sprintf "nearby damaged agents: %A" nearbyDamagedAgent
-        match nearbyDamagedAgent with
-        | [] -> None
-        | head::_ ->     
+        let disabledAgentsHere = List.filter (fun a -> a.Status = Disabled) (alliesHere inputState inputState.Self.Node)
+        let myTarget = selectBasedOnRank inputState disabledAgentsHere
+        match myTarget with
+        | None -> None
+        | Some agent ->
             Some <| normalIntention (
-                    "repair agent " + head.Name
+                    "repair agent " + agent.Name
                     , Activity
-                    , [Plan (fun _ -> Some [Perform <| Repair head.Name])]
+                    , [Plan (fun _ -> Some [Perform <| Repair agent.Name])]
                 )
 
     let applyToRepairJob (inputState:State) = 
