@@ -92,7 +92,7 @@ module Common =
                 @ roleList (Some Explorer)
                 @ roleList (Some Inspector)
                
-            match selectBasedOnRank state priorityList with
+            match selectBasedOnRankMyNodeAndRole state priorityList with
             | Some agent -> Some <| Perform (Attack agent.Name)
             | None -> None
 
@@ -291,14 +291,18 @@ module Common =
         let myOccupyJobs = getJobsByType JobType.OccupyJob myJobs
         match myOccupyJobs with
         | ((id,_,_,_),_)::_ -> 
-            let (_,node) = List.find (fun (jid,_) -> id.Value = jid) inputState.MyJobs
-            Some <| normalIntention 
-                ( "occupy node " + node
-                 , Activity
-                 , [ Requirement (At node)
-                   ; Plan <| fun _ -> Some [Perform Recharge]
-                   ]
-                 )
+            let myJob = List.find (fun (jid,_) -> id.Value = jid) inputState.MyJobs
+            let attemptedNode = getMyNodeOnOccupyJob inputState myJob
+            match attemptedNode with
+            | Some node ->
+                Some <| normalIntention 
+                    ( "occupy node " + node
+                     , Activity
+                     , [ Requirement (At node)
+                       ; Plan <| fun _ -> Some [Perform Recharge]
+                       ]
+                     )
+            | None -> None
         | [] -> None
 
 
@@ -376,51 +380,53 @@ module Common =
                 None
             else 
                 match inputState.MyJobs.Head with
-                | (_,vertex) when vertex <> inputState.Self.Node-> None //if we have not arrived at the job yet, dont post defense
-                | (id,_) -> 
-                    let ((_,occupyValue,_,_),_) = getJobFromJobID inputState.Jobs id
-                    let jobValue = occupyValue * DEFENSE_IMPORTANCE_MODIFIER
-                    let isAttackJobOnNode onNode job =
-                        match job with
-                        | (_,AttackJob(aNodes,_)) -> List.exists ((=) onNode) aNodes
-                        | _ -> false
+                | (id,agents) & myJob -> 
+                    match getMyNodeOnOccupyJob inputState myJob with
+                    | Some node when node <> inputState.Self.Node -> None //if we have not arrived at the job yet, dont post defense
+                    | Some node ->
+                        let ((_,occupyValue,_,_),_) = getJobFromJobID inputState.Jobs id
+                        let jobValue = occupyValue * DEFENSE_IMPORTANCE_MODIFIER
+                        let isAttackJobOnNode onNode job =
+                            match job with
+                            | (_,AttackJob(aNodes,_)) -> List.exists ((=) onNode) aNodes
+                            | _ -> false
+                            
+                        let jobNodes = 
+                            match (getJobFromJobID inputState.Jobs (fst inputState.MyJobs.Head)) with
+                            | (_,OccupyJob(_,ns)) ->  ns
+                            | _ -> failwith "Hoer her jannick, det her kan ikke ske. -And"
                         
-                    let jobNodes = 
-                        match (getJobFromJobID inputState.Jobs (fst inputState.MyJobs.Head)) with
-                        | (_,OccupyJob(_,ns)) ->  ns
-                        | _ -> failwith "Hoer her jannick, det her kan ikke ske. -And"
-                    
-                    
-                    let existingJob job =  List.exists (fun node -> isAttackJobOnNode node job) jobNodes  
-                    match List.filter existingJob inputState.Jobs with
-                    | [((id,_,_,_),_)] ->
-                        Some <| normalIntention 
-                                ( sprintf "update defense job on nodes %A" jobNodes
-                                , Communication
-                                , [ Plan <| fun state -> Some [Communicate( UpdateJob((id,jobValue,JobType.AttackJob,1),AttackJob(jobNodes,inputState.SimulationStep) ))]]
-                                )
-                    | [] ->
-                        Some <| normalIntention 
-                                ( sprintf "post defense job on nodes %A" jobNodes
-                                , Communication
-                                , [ Plan <| fun state -> Some [Communicate( CreateJob( (None,jobValue,JobType.AttackJob,1),AttackJob(jobNodes,inputState.SimulationStep) ))]]
-                                )
-                    | multipleJobs -> 
-                        let updateZoneOfOldJob nodesOfNewJob jobToBeUpdated =
-                            match jobToBeUpdated with
-                            | ((oldId,oldValue,_,_),AttackJob(nodesOfOld,timeStamp)) -> 
-                                let newAttackJobNodes = List.filter (fun n -> List.exists ((<>) n) nodesOfNewJob) nodesOfOld
-                                Plan <| fun state -> Some [Communicate( UpdateJob((oldId,oldValue,JobType.AttackJob,1),AttackJob(newAttackJobNodes,timeStamp) ))]
-                            | _ -> failwith "job list includes non-attack jobs"
-
-                        let allJobUpdates = List.map (updateZoneOfOldJob jobNodes) multipleJobs
                         
-                        Some <| normalIntention 
-                                ( sprintf "post defense job on nodes %A" jobNodes
-                                , Communication
-                                , allJobUpdates@[ Plan <| fun state -> Some [Communicate( CreateJob( (None,jobValue,JobType.AttackJob,1),AttackJob(jobNodes,inputState.SimulationStep) ))]]
-                                )
+                        let existingJob job =  List.exists (fun node -> isAttackJobOnNode node job) jobNodes  
+                        match List.filter existingJob inputState.Jobs with
+                        | [((id,_,_,_),_)] ->
+                            Some <| normalIntention 
+                                    ( sprintf "update defense job on nodes %A" jobNodes
+                                    , Communication
+                                    , [ Plan <| fun state -> Some [Communicate( UpdateJob((id,jobValue,JobType.AttackJob,1),AttackJob(jobNodes,inputState.SimulationStep) ))]]
+                                    )
+                        | [] ->
+                            Some <| normalIntention 
+                                    ( sprintf "post defense job on nodes %A" jobNodes
+                                    , Communication
+                                    , [ Plan <| fun state -> Some [Communicate( CreateJob( (None,jobValue,JobType.AttackJob,1),AttackJob(jobNodes,inputState.SimulationStep) ))]]
+                                    )
+                        | multipleJobs -> 
+                            let updateZoneOfOldJob nodesOfNewJob jobToBeUpdated =
+                                match jobToBeUpdated with
+                                | ((oldId,oldValue,_,_),AttackJob(nodesOfOld,timeStamp)) -> 
+                                    let newAttackJobNodes = List.filter (fun n -> List.exists ((<>) n) nodesOfNewJob) nodesOfOld
+                                    Plan <| fun state -> Some [Communicate( UpdateJob((oldId,oldValue,JobType.AttackJob,1),AttackJob(newAttackJobNodes,timeStamp) ))]
+                                | _ -> failwith "job list includes non-attack jobs"
 
+                            let allJobUpdates = List.map (updateZoneOfOldJob jobNodes) multipleJobs
+                            
+                            Some <| normalIntention 
+                                    ( sprintf "post defense job on nodes %A" jobNodes
+                                    , Communication
+                                    , allJobUpdates@[ Plan <| fun state -> Some [Communicate( CreateJob( (None,jobValue,JobType.AttackJob,1),AttackJob(jobNodes,inputState.SimulationStep) ))]]
+                                    )
+                    | None -> None
                             
 
 

@@ -374,6 +374,12 @@ namespace NabfAgentLogic.IiLang
             | OccupyJob (nodes,_) -> nodes
             | RepairJob (nh,_) -> [nh]
             | EmptyJob -> []                  
+        
+        let parseAgentNames (agents:Element list) =
+            List.choose (fun ele -> match ele with
+                                    | Identifier agentName -> Some (agentName : AgentName)
+                                    | _ -> None
+                        ) agents       
 
         let parseIilServerMessage iilServerMessage =
             match iilServerMessage with
@@ -399,8 +405,8 @@ namespace NabfAgentLogic.IiLang
                     let [Numeral roundid] = data
                     AgentServerMessage <| (RoundChanged  <| (int roundid))
                 | "receivedJob" ->
-                    let [Percept ("noticeId", [Numeral rjobid]); Percept ("whichNodeNameToGoTo", [Identifier nodename])] = tail
-                    AgentServerMessage <| (JobMessage <| (AcceptedJob <| ((int rjobid),nodename)))
+                    let [Percept ("noticeId", [Numeral rjobid]); Percept ("agentsThatGotJob", agents)] = tail
+                    AgentServerMessage <| (JobMessage <| (AcceptedJob <| ((int rjobid),parseAgentNames agents)))
                 | "firedFromJob" ->
                     let [Percept ("noticeId", [Numeral jobId])] = tail
                     AgentServerMessage <| (JobMessage <| (FiredFrom (int jobId)))

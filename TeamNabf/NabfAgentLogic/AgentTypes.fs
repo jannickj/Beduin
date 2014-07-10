@@ -131,7 +131,7 @@ module AgentTypes =
     type JobPercept =
         | AddedOrChangedJob of Job
         | RemovedJob of Job
-        | AcceptedJob of JobID*VertexName
+        | AcceptedJob of JobID*(AgentName list)
         | FiredFrom of JobID 
     
     type RoundNumber = int
@@ -171,7 +171,7 @@ module AgentTypes =
     
     type SimulationID = int
     
-    
+    type MyJob = JobID * (AgentName list)
         
     type AgentAction = 
         | Communicate of CommunicationAction
@@ -232,7 +232,7 @@ module AgentTypes =
             LastAction       : Action
             TeamZoneScore    : int
             Jobs             : Job list
-            MyJobs           : (JobID * VertexName) list
+            MyJobs           : MyJob list
             TotalNodeCount   : int
             NewKnowledge     : Percept list
             GraphHeuristic   : (Map<VertexName*VertexName, (int*int)>* Map<VertexName,int>)

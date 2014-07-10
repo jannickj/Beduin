@@ -27,16 +27,21 @@ module LogicLib =
     let isAlive (agent:Agent) = agent.Status = Normal
 
 
-    let selectBasedOnRank (state:State) things =
-        let self = state.Self
-        let isSameAndAlive = predicateAnd (isSameRoleSameNode self) isAlive
-        let sameFriendlies = List.filter isSameAndAlive state.FriendlyData
-        let order = List.sortBy getAgentName (self::sameFriendlies)
-        let myPos = List.findIndex (getAgentName >> ((=) self.Name)) order
+    
+    let selectBasedOnRank (self:AgentName) (contenders:AgentName list) things =
+        let order = List.sort (self::contenders)
+        let myPos = List.findIndex ((=) self) order
         if List.length things <= myPos then 
             None 
         else
             Some <| List.nth things myPos
+
+    let selectBasedOnRankMyNodeAndRole (state:State) things =
+        let self = state.Self
+        let isSameAndAlive = predicateAnd (isSameRoleSameNode self) isAlive
+        let sameFriendlies = List.filter isSameAndAlive state.FriendlyData
+        let friendlyNames = List.map getAgentName sameFriendlies
+        selectBasedOnRank self.Name friendlyNames things
 
     let nodeListContains n (nl:string list) =
         (List.tryFind (fun s -> s = n) nl).IsSome
@@ -66,14 +71,20 @@ module LogicLib =
 
     let nearbyAllies state = 
         List.filter (fun a -> nodeListContains a.Node (neighbourNodes state state.Self)) state.FriendlyData 
+    
+    let getLeaderOfJob ((id,agents):MyJob) = 
+        match List.sort agents with
+        | head::_ -> head
+        | [] -> failwith <| sprintf "no agents in job of id %A" id
 
-    let getJobsByType (jobtype:JobType) (list : Job list) : Job list = List.filter 
-                                                                        (
-                                                                            fun j -> 
-                                                                                match j with
-                                                                                | ((_, _, jt, _), _) when jt = jobtype -> true
-                                                                                | _ -> false
-                                                                        ) list
+    let getJobsByType (jobtype:JobType) (list : Job list) : Job list = 
+        List.filter 
+            (
+                fun j -> 
+                    match j with
+                    | ((_, _, jt, _), _) when jt = jobtype -> true
+                    | _ -> false
+            ) list
     
     let getJobValue (j:Job) = 
         let ((_,jobValue,_,_),(_)) = j
@@ -84,12 +95,23 @@ module LogicLib =
         match id with
         | Some jid -> jid
         | None -> failwith <| sprintf "Job: %A, does not have an id" job
+    
+    let getMyJobFromId jobId myJobs=
+        List.find (fst >> ((=) jobId)) myJobs
 
     let getJobFromJobID  (jobs:Job list) (jid:JobID) =
         match List.filter (getJobId >> ((=) jid)) jobs with
         | job::_ -> job
         | [] -> failwith <| sprintf "No job with id: %A exists" jid
     
+    let getMyNodeOnOccupyJob (state:State) (myJob:MyJob) =
+        let job = getJobFromJobID state.Jobs (fst myJob)
+        match job,myJob with
+        | (_,OccupyJob (agentPos,_)),(_,agents) -> 
+            let agentsWithoutSelf = List.filter ((<>) state.Self.Name) agents
+            selectBasedOnRank state.Self.Name agentsWithoutSelf agentPos
+        | _ -> None
+
     let getMyJobs (s:State) =
         List.map (fst >> (getJobFromJobID s.Jobs)) s.MyJobs
     

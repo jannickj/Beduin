@@ -48,28 +48,34 @@ module Sentinel =
         let myOccupyJobs = getJobsByType JobType.OccupyJob myJobs
         if (float (inputState.Self.Energy.Value) < float(inputState.Self.MaxEnergy.Value) * ENERGY_FACTOR_TO_PREFER_SURVEY_OVER_RECHARGE) then
             match myOccupyJobs with
-            | ((id,_,_,_),_)::_ -> 
-                let (_,node) = List.find (fun (jid,_) -> id.Value = jid) inputState.MyJobs
-                Some <| normalIntention 
-                    ( "occupy node " + node
-                     , Activity
-                     , [ Requirement (At node)
-                       ; Plan <| fun _ -> Some [Perform Recharge]
-                       ]
-                     )
-            | [] -> None
+            | ((Some id,_,_,_),_)::_ -> 
+                let myJob = getMyJobFromId id inputState.MyJobs 
+                match getMyNodeOnOccupyJob inputState myJob with
+                | Some node ->
+                    Some <| normalIntention 
+                        ( "occupy node " + node
+                         , Activity
+                         , [ Requirement (At node)
+                           ; Plan <| fun _ -> Some [Perform Recharge]
+                           ]
+                         )
+                | None -> None
+            | _ -> None
         else
             match myOccupyJobs with
-            | ((id,_,_,_),_)::_ -> 
-                let (_,node) = List.find (fun (jid,_) -> id.Value = jid) inputState.MyJobs
-                Some <| normalIntention 
-                    ( "occupy node with survey " + node
-                     , Activity
-                     , [ Requirement (At node)
-                       ; Plan <| fun _ -> Some [Perform Survey]
-                       ]
-                     )
-            | [] -> None
+            | ((Some id,_,_,_),_)::_ -> 
+                let myJob = getMyJobFromId id inputState.MyJobs
+                match getMyNodeOnOccupyJob inputState myJob with
+                | Some node ->
+                    Some <| normalIntention 
+                        ( "occupy node with survey " + node
+                         , Activity
+                         , [ Requirement (At node)
+                           ; Plan <| fun _ -> Some [Perform Survey]
+                           ]
+                         )
+                | None -> None
+            | _ -> None
 
 //    let workOnOccupyJobThenParryIfEnemiesClose (inputState:State) = 
 //        let myJobs = List.map (fun (id,_) -> getJobFromJobID inputState id) inputState.MyJobs

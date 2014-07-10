@@ -30,12 +30,17 @@ namespace NabfProject.Parsers.AgentMasterToAgentConverters
             if (gobj.Notice.WhichNodes.Count != 0)
                 gotoNode = gobj.Notice.WhichNodes[receiverIndex].Name;
 
+			var agentsWithJob = gobj.Notice.GetAgentsOnJob ().Select (a => new IilIdentifier (a.Name)).ToArray();
+
+
+
             ipc = new IilPerceptCollection
             (
                 new IilPercept("receivedJob"),
                 new IilPercept("noticeId", new IilNumeral(gobj.Notice.Id)),
-                new IilPercept("whichNodeNameToGoTo", new IilIdentifier(gotoNode))
-                //percept
+		      	//new IilPercept("whichNodeNameToGoTo", new IilIdentifier(gotoNode))
+		      	new IilPercept("agentsThatGotJob",agentsWithJob)
+				//percept
             );
 
             return ipc;
