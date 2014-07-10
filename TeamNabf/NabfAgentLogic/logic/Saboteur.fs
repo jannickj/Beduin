@@ -137,7 +137,7 @@ module Saboteur =
     
     let patrolAZone (inputState:State) =
         let occupyJobs = getJobsByType JobType.OccupyJob inputState.Jobs
-        if List.length occupyJobs > 0 then
+        if List.length occupyJobs > 0 && inputState.Self.Status = Normal then
             let rand = System.Random()
             let index = rand.Next(0, List.length occupyJobs)
             let target = List.nth occupyJobs index
